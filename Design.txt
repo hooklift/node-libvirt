@@ -1,0 +1,28 @@
+Clases
+    Connect 
+    ConnectAuth
+    ConnectAuthDefault 
+    Device 
+    Domain 
+    DomainBlockStats 
+    DomainInfo 
+    DomainInterfaceStats 
+    Error 
+    ErrorHandler 
+    Interface 
+    Network 
+    NodeInfo 
+    SchedBooleanParameter 
+    SchedDoubleParameter 
+    SchedIntParameter 
+    SchedLongParameter 
+    SchedParameter 
+    SchedUintParameter 
+    SchedUlongParameter 
+    StoragePool 
+    StoragePoolInfo 
+    StorageVol 
+    StorageVolInfo 
+    VcpuInfo
+    
+
