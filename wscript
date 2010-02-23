@@ -1,6 +1,6 @@
 srcdir = "."
 blddir = "build"
-APPNAME = "node_libvirt"
+APPNAME = "node-libvirt"
 VERSION = "0.0.1"
 
 def set_options(opt):
@@ -12,5 +12,5 @@ def configure(conf):
 
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
-  obj.target = "node_libvirt"
-  obj.source = "node_libvirt.cc"
+  obj.target = "node-libvirt"
+  obj.source = "node-libvirt.cc"
