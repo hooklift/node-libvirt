@@ -19,7 +19,7 @@ describe 'Libvirt'
         // conn = new libvirt.Connect('test+ssh://root@example.com/default')    
     end
      
-    describe 'Domain'
+    describe 'Interface'
         it ''
         end
     end
