@@ -2,7 +2,7 @@ describe 'Libvirt'
   before_each
  
     // local access, default config
-    conn = libvirt.openConnection('test:///default') 
+    conn = new libvirt.Connection('test:///default') 
 
     // local access, custom config
     // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
@@ -32,7 +32,7 @@ describe 'Libvirt'
     end
     
     it 'should open a hypervisor read-only connection'
-        var readonly_conn = libvirt.openConnection('test:///default', true)
+        var readonly_conn = new libvirt.Connection('test:///default', true)
         readonly_conn.should_not be_undefined
         readonly_conn.should_not be_null    
     end
@@ -93,7 +93,7 @@ describe 'Libvirt'
     end
 
     it 'should not return version level of the running hypervisor if connection is read-only'
-        var readonly_conn = libvirt.openConnection('test:///default', true)
+        var readonly_conn = new libvirt.Connection('test:///default', true)
         var hypervisor_version = readonly_conn.getHypervisorVersion()
         hypervisor_version.should_not be_undefined
         hypervisor_version.should_not be_null
