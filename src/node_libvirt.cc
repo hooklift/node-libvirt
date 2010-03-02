@@ -11,8 +11,9 @@ class Connection : public EventEmitter {
   static void Initialize (v8::Handle<v8::Object> target) {
 
   }
-
+};
 extern "C" void init (Handle<Object> target) {
   HandleScope scope;
   Connection::Initialize(target);
 }
+
