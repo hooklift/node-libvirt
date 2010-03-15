@@ -1,7 +1,7 @@
 describe 'Libvirt'
     before_each
         // local access, default config
-        conn = new libvirt.Connect('test:///default') 
+        //conn = new libvirt.Connect('test:///default');
 
         // local access, custom config
         // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
@@ -20,7 +20,8 @@ describe 'Libvirt'
     end
      
     describe 'Domain'
-        it ''
+        it 'testing true == true'
+            true.should_be true
         end
     end
 end

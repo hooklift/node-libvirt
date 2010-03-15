@@ -1,9 +1,8 @@
 describe 'Libvirt'
-  before_each
- 
+  before_each 
     // local access, default config
-    conn = new libvirt.Connection('test:///default') 
-
+    conn = new libvirt.Connection('test:///default')    
+    
     // local access, custom config
     // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
  
@@ -27,18 +26,18 @@ describe 'Libvirt'
         
   describe 'Connect'
     it 'should open a hypervisor connection'
-        conn.should_not be_undefined
-        conn.should_not be_null
+        conn.should_not_be undefined
+        conn.should_not_be null
     end
     
     it 'should open a hypervisor read-only connection'
         var readonly_conn = new libvirt.Connection('test:///default', true)
-        readonly_conn.should_not be_undefined
-        readonly_conn.should_not be_null    
+        readonly_conn.should_not_be undefined
+        readonly_conn.should_not_be null    
     end
   
     it 'should open an authenticated hypervisor connection'
-    ends
+    end
   
     it 'should compute the most feature-rich CPU'
         //TODO fixture with CPUs descriptions
@@ -46,71 +45,71 @@ describe 'Libvirt'
     end
   
     it 'should close a hypervisor connection'
-        conn.close().should_equal true
+        conn.close().should_be true
     end
   
     it 'should return hypervisor capabilities'
         var capabilities = conn.getHypCapabilities()
-        capabilities.should_not be_undefined
-        capabilities.should_not be_null
+        capabilities.should_not_be undefined
+        capabilities.should_not_be null
     end
     
     it 'should return the hostname of the hypervisor host'
         var hostname = conn.getHypHostname()
-        hostname.should_not be_undefined
-        hostname.should_not be_null
+        hostname.should_not_be undefined
+        hostname.should_not_be null
     end
     
     it 'should return libvirt version used by remote running deamon'
         var version = conn.getRemoteLibVirtVersion()
-        version.should_not be_undefined
-        version.should_not be_null
+        version.should_not_be undefined
+        version.should_not_be null
         version.should_not_equal -1
     end
     
-    it 'should return maximum number of virtual CPUs supported for a guest VM'
+    it 'should return the maximum number of virtual CPUs supported for a guest VM'
         var max_vcpus = conn.getMaxVcpus()
-        max_vcpus.should_not be_undefined
-        max_vcpus.should_not be_null
+        max_vcpus.should_not_be undefined
+        max_vcpus.should_not_be null
         max_vcpus.should_not_equal -1
     end
     
     it 'should return the name of the hypervisor software used'
         var hypervisor_type = conn.getHypervisorType()
-        hypervisor_type.should_not be_undefined
-        hypervisor_type.should_not be_null
+        hypervisor_type.should_not_be undefined
+        hypervisor_type.should_not_be null
     end
     
     it 'should return the URI of the hypervisor connection'
         var hypervisor_uri = conn.getHypervisorUri()
-        hypervisor_uri.should_not be_undefined
-        hypervisor_uri.should_not be_null
+        hypervisor_uri.should_not_be undefined
+        hypervisor_uri.should_not_be null
     end
     
     it 'should return version level of the running hypervisor'
-        var hypervisor_version = conn.geHypervisorVersion()
+        var hypervisor_version = conn.getHypervisorVersion()
         hypervisor_version.should_not_equal -1
     end
 
     it 'should not return version level of the running hypervisor if connection is read-only'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         var hypervisor_version = readonly_conn.getHypervisorVersion()
-        hypervisor_version.should_not be_undefined
-        hypervisor_version.should_not be_null
+        hypervisor_version.should_not_be undefined
+        hypervisor_version.should_not_be null
         hypervisor_version.should_equal -1
     end 
     
     it 'should recognize if hypervisor connection is encrypted'
         var isEncrypted = conn.isEncrypted()
-        isEncrypted.should_not be_undefined
-        isEncrypted.should_not be_null
+        isEncrypted.should_not_be undefined
+        isEncrypted.should_not_be null
         isEncrypted.should_be false    
     end
     
     it 'should recognize if hypervisor connection is secure'
         var isSecure = conn.isSecure()
-        isSecure.should_not be_undefined
-        isSecure.should_not be_null
+        isSecure.should_not_be undefined
+        isSecure.should_not_be null
         isSecure.should_be false    
     end
     
