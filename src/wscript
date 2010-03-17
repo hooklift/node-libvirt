@@ -1,5 +1,3 @@
-import Build
-
 srcdir = "."
 blddir = "build"
 

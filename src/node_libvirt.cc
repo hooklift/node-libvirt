@@ -29,6 +29,11 @@ namespace NodeLibvirt {
         v8::Context::Scope context_scope(context);
         context->Global()->Set(v8::String::NewSymbol("libvirt"), target);
     }
+    
+    // Extracts a C string from a V8 Utf8Value.
+    const char* ToCString(const v8::String::Utf8Value& value) {
+        return *value ? *value : "<string conversion failed>";
+    }
 
     extern "C" void init (Handle<Object> target) {
       HandleScope scope;
