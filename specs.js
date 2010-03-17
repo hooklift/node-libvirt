@@ -1,4 +1,5 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
+//require.paths.unshift('./spec/lib', './lib', './build/default/src');
 require.paths.unshift('./spec/lib', './lib');
 var sys     = require("sys");
 var fs      = require("fs");

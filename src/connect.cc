@@ -49,7 +49,18 @@ namespace NodeLibvirt {
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
 
-        return args.This();
+        return connection->get_hypervisor_capabilities(); 
+    }
+    
+    v8::Handle<v8::String> Connection::get_hypervisor_capabilities() {
+        char *cap = virConnectGetCapabilities(conn);
+        
+        if(cap == NULL) {
+                    
+        }
+        return v8::String::New((const char*)cap);
+        //return ObjectWrap::Unwrap()caps;
+        //return caps;
     }
     
 } //namespace NodeLibvirt

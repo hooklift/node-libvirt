@@ -25,7 +25,7 @@ namespace NodeLibvirt {
             static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
             
 
-            v8::Handle<v8::Value> get_hypervisor_capabilities();
+            v8::Handle<v8::String> get_hypervisor_capabilities();
             v8::Handle<v8::Value> get_hypervisor_hostname();
             v8::Handle<v8::Value> get_hypervisor_type();
             v8::Handle<v8::Value> get_hypervisor_uri();
