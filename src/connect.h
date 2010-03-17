@@ -12,17 +12,32 @@ namespace NodeLibvirt {
             
         protected:
             static v8::Handle<v8::Value> New(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetBaselineCPU(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypCapabilities(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypHostname(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetRemoteLibVirtVersion(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetMaxVcpus(const v8::Arguments& args);
+            
+            static v8::Handle<v8::Value> GetHypervisorCapabilities(const v8::Arguments& args);
+            static v8::Handle<v8::Value> GetHypervisorHostname(const v8::Arguments& args);
             static v8::Handle<v8::Value> GetHypervisorType(const v8::Arguments& args);
             static v8::Handle<v8::Value> GetHypervisorUri(const v8::Arguments& args);
             static v8::Handle<v8::Value> GetHypervisorVersion(const v8::Arguments& args);
+            static v8::Handle<v8::Value> GetRemoteLibVirtVersion(const v8::Arguments& args);
+            static v8::Handle<v8::Value> GetMaxVcpus(const v8::Arguments& args);
+            static v8::Handle<v8::Value> GetBaselineCPU(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsEncrypted(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
-                                                
+            
+
+            v8::Handle<v8::Value> get_hypervisor_capabilities();
+            v8::Handle<v8::Value> get_hypervisor_hostname();
+            v8::Handle<v8::Value> get_hypervisor_type();
+            v8::Handle<v8::Value> get_hypervisor_uri();
+            v8::Handle<v8::Value> get_hypervisor_version();
+            v8::Handle<v8::Value> get_remote_libvirt_version();
+            v8::Handle<v8::Value> get_max_vcpus();
+            v8::Handle<v8::Value> get_baseline_cpu();            
+            bool is_encrypted();
+            bool is_secure();
+            
+        private:
+            virConnectPtr conn;  
     };
 
 }  // namespace NodeLibvirt

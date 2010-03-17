@@ -12,25 +12,25 @@ namespace NodeLibvirt {
         t->InstanceTemplate()->SetInternalFieldCount(1);
         
         //NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
-        //                              GetBaselineCPU);
+        //                              Connection::GetBaselineCPU);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
-        //                              GetHypCapabilities);
+        //                              Connection::GetHypervisorCapabilities);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
-        //                              GetHypHostname);
+        //                              Connection::GetHypervisorHostname);
         //NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
-        //                              GetRemoteLibVirtVersion);
+        //                              Connection::GetRemoteLibVirtVersion);
         //NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
-        //                              GetMaxVcpus);
+        //                              Connection::GetMaxVcpus);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
-        //                              GetHypervisorType);
+        //                              Connection::GetHypervisorType);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
-        //                              GetHypervisorUri);
+        //                              Connection::GetHypervisorUri);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion", 
-        //                              GetHypervisorVersion);
+        //                              Connection::GetHypervisorVersion);
         //NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted", 
-        //                              IsEncrypted);
+        //                              Connection::IsEncrypted);
         //NODE_SET_PROTOTYPE_METHOD(t, "isSecure", 
-        //                              IsSecure);
+        //                              Connection::IsSecure);
         
         target->Set(String::NewSymbol("Connection"), t->GetFunction());
     }
@@ -42,7 +42,15 @@ namespace NodeLibvirt {
         c->Wrap(args.This());
         
         return args.This();
-    }    
+    }
+    
+    v8::Handle<v8::Value> Connection::GetHypervisorCapabilities(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+
+        return args.This();
+    }
     
 } //namespace NodeLibvirt
 
