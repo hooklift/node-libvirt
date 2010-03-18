@@ -3,6 +3,8 @@
 
 namespace NodeLibvirt {
 
+    //v8::Persistent<v8::FunctionTemplate> Connection::constructor_template;
+
     void Connection::Initialize(v8::Handle<v8::Object> target) {
         v8::HandleScope scope;
         
@@ -35,10 +37,30 @@ namespace NodeLibvirt {
         target->Set(String::NewSymbol("Connection"), t->GetFunction());
     }
     
+    Connection::Connection(const v8::Local<v8::String>& uriStr, bool readOnly) : EventEmitter(){
+        v8::String::Utf8Value uriUtf8(uriStr);
+        const char *uri = ToCString(uriUtf8);
+        
+        if(readOnly) {
+            conn = virConnectOpenReadOnly(uri);
+        } else {
+            conn = virConnectOpen(uri);
+        }
+    }
+ 
+    Connection::~Connection(){
+        assert(conn == NULL);
+    }
+    
     v8::Handle<v8::Value> Connection::New(const v8::Arguments& args) {
         v8::HandleScope scope;
-
-        Connection *c = new Connection();
+        
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("First argument must be a string")));
+        }
+        
+        Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
         c->Wrap(args.This());
         
         return args.This();
@@ -56,11 +78,11 @@ namespace NodeLibvirt {
         char *cap = virConnectGetCapabilities(conn);
         
         if(cap == NULL) {
-                    
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive hypervisor capabilities");
         }
+        
         return v8::String::New((const char*)cap);
-        //return ObjectWrap::Unwrap()caps;
-        //return caps;
     }
     
 } //namespace NodeLibvirt

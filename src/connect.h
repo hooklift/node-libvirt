@@ -9,6 +9,7 @@ namespace NodeLibvirt {
     class Connection : public EventEmitter {
         public:
             static void Initialize(v8::Handle<v8::Object> target);
+            //static v8::Persistent<v8::FunctionTemplate> constructor_template;
             
         protected:
             static v8::Handle<v8::Value> New(const v8::Arguments& args);
@@ -24,7 +25,8 @@ namespace NodeLibvirt {
             static v8::Handle<v8::Value> IsEncrypted(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
             
-
+            Connection(const v8::Local<v8::String>& uri, bool readOnly);
+            ~Connection();
             v8::Handle<v8::String> get_hypervisor_capabilities();
             v8::Handle<v8::Value> get_hypervisor_hostname();
             v8::Handle<v8::Value> get_hypervisor_type();

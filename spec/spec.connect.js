@@ -1,8 +1,10 @@
+sys = require('sys');
+
 describe 'Libvirt'
   before_each 
     // local access, default config
     conn = new libvirt.Connection('test:///default')    
-    
+
     // local access, custom config
     // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
  
@@ -21,7 +23,7 @@ describe 'Libvirt'
   end
   
   after_each
-    conn.close()
+    conn.close();
   end
         
   describe 'Connect'
@@ -33,7 +35,7 @@ describe 'Libvirt'
     it 'should open a hypervisor read-only connection'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         readonly_conn.should_not_be undefined
-        readonly_conn.should_not_be null    
+        readonly_conn.should_not_be null          
     end
   
     it 'should open an authenticated hypervisor connection'
