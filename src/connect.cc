@@ -40,7 +40,7 @@ namespace NodeLibvirt {
     Connection::Connection(const v8::Local<v8::String>& uriStr, bool readOnly) : EventEmitter(){
         v8::String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
-        
+        //TODO auth support
         if(readOnly) {
             conn = virConnectOpenReadOnly(uri);
         } else {
@@ -82,8 +82,33 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive hypervisor capabilities");
         }
         
-        return v8::String::New((const char*)cap);
+        v8::Local<v8::String> capabilities = v8::String::New((const char*)cap);
+        delete cap;
+        
+        return capabilities;
     }
     
+    v8::Handle<v8::Value> Connection::GetHypervisorHostname(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        
+        return connection->get_hypervisor_hostname();
+    }
+    
+    v8::Handle<v8::String> Connection::get_hypervisor_hostname() {
+        char *hn = virConnectGetHostname(conn);
+        
+        if(hn == NULL) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive hypervisor hostname");
+        }
+        
+        v8::Local<v8::String> hostname = v8::String::New((const char*)hn);
+        delete hn;
+        
+        return hostname;
+    }
+     
 } //namespace NodeLibvirt
 

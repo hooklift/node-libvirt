@@ -28,7 +28,7 @@ namespace NodeLibvirt {
             Connection(const v8::Local<v8::String>& uri, bool readOnly);
             ~Connection();
             v8::Handle<v8::String> get_hypervisor_capabilities();
-            v8::Handle<v8::Value> get_hypervisor_hostname();
+            v8::Handle<v8::String> get_hypervisor_hostname();
             v8::Handle<v8::Value> get_hypervisor_type();
             v8::Handle<v8::Value> get_hypervisor_uri();
             v8::Handle<v8::Value> get_hypervisor_version();
