@@ -1,4 +1,6 @@
+require.paths.unshift('build/default/src');
 sys = require('sys');
+libvirt = require('node-libvirt');
 
 describe 'Libvirt'
   before_each 
@@ -23,7 +25,7 @@ describe 'Libvirt'
   end
   
   after_each
-    conn.close();
+    //conn.close();
   end
         
   describe 'Connect'

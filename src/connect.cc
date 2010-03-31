@@ -15,10 +15,10 @@ namespace NodeLibvirt {
         
         //NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
         //                              Connection::GetBaselineCPU);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
-        //                              Connection::GetHypervisorCapabilities);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
-        //                              Connection::GetHypervisorHostname);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
+                                      Connection::GetHypervisorCapabilities);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
+                                      Connection::GetHypervisorHostname);
         //NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
         //                              Connection::GetRemoteLibVirtVersion);
         //NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 

@@ -29,12 +29,12 @@ namespace NodeLibvirt {
             ~Connection();
             v8::Handle<v8::String> get_hypervisor_capabilities();
             v8::Handle<v8::String> get_hypervisor_hostname();
-            v8::Handle<v8::Value> get_hypervisor_type();
-            v8::Handle<v8::Value> get_hypervisor_uri();
-            v8::Handle<v8::Value> get_hypervisor_version();
-            v8::Handle<v8::Value> get_remote_libvirt_version();
-            v8::Handle<v8::Value> get_max_vcpus();
-            v8::Handle<v8::Value> get_baseline_cpu();            
+            v8::Handle<v8::String> get_hypervisor_type();
+            v8::Handle<v8::String> get_hypervisor_uri();
+            v8::Handle<v8::String> get_hypervisor_version();
+            v8::Handle<v8::String> get_remote_libvirt_version();
+            v8::Handle<v8::String> get_max_vcpus();
+            v8::Handle<v8::String> get_baseline_cpu();            
             bool is_encrypted();
             bool is_secure();
             
