@@ -24,6 +24,7 @@ namespace NodeLibvirt {
             static v8::Handle<v8::Value> GetBaselineCPU(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsEncrypted(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
+            static v8::Handle<v8::Value> Close(const v8::Arguments& args);
             
             Connection(const v8::Local<v8::String>& uri, bool readOnly);
             ~Connection();
@@ -35,8 +36,9 @@ namespace NodeLibvirt {
             v8::Handle<v8::String> get_remote_libvirt_version();
             v8::Handle<v8::String> get_max_vcpus();
             v8::Handle<v8::String> get_baseline_cpu();            
-            bool is_encrypted();
-            bool is_secure();
+            v8::Handle<Boolean> is_encrypted();
+            v8::Handle<Boolean> is_secure();
+            v8::Handle<Boolean> close();
             
         private:
             virConnectPtr conn;  

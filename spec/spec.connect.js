@@ -25,7 +25,7 @@ describe 'Libvirt'
   end
   
   after_each
-    //conn.close();
+    conn.close();
   end
         
   describe 'Connect'

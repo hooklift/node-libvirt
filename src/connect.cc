@@ -33,6 +33,8 @@ namespace NodeLibvirt {
         //                              Connection::IsEncrypted);
         //NODE_SET_PROTOTYPE_METHOD(t, "isSecure", 
         //                              Connection::IsSecure);
+        NODE_SET_PROTOTYPE_METHOD(t, "close", 
+                                      Connection::Close);
         
         target->Set(String::NewSymbol("Connection"), t->GetFunction());
     }
@@ -47,7 +49,9 @@ namespace NodeLibvirt {
             conn = virConnectOpen(uri);
         }
     }
- 
+    
+
+    
     Connection::~Connection(){
         assert(conn == NULL);
     }
@@ -108,6 +112,22 @@ namespace NodeLibvirt {
         delete hn;
         
         return hostname;
+    }
+    
+    v8::Handle<v8::Value> Connection::Close(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->close();
+    }
+    
+    v8::Handle<Boolean> Connection::close() {
+        int isClosed = virConnectClose(conn);
+        
+        if(isClosed == -1) {
+            return False();
+        }
+        return True();
     }
      
 } //namespace NodeLibvirt
