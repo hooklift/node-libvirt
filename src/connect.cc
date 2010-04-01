@@ -19,8 +19,8 @@ namespace NodeLibvirt {
                                       Connection::GetHypervisorCapabilities);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
                                       Connection::GetHypervisorHostname);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
-        //                              Connection::GetRemoteLibVirtVersion);
+        NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
+                                      Connection::GetRemoteLibVirtVersion);
         //NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
         //                              Connection::GetMaxVcpus);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
@@ -49,9 +49,7 @@ namespace NodeLibvirt {
             conn = virConnectOpen(uri);
         }
     }
-    
-
-    
+      
     Connection::~Connection(){
         assert(conn == NULL);
     }
@@ -122,13 +120,39 @@ namespace NodeLibvirt {
     }
     
     v8::Handle<Boolean> Connection::close() {
-        int isClosed = virConnectClose(conn);
-        
-        if(isClosed == -1) {
-            return False();
+        int isClosed = -1;
+        if(conn != NULL) {
+            isClosed = virConnectClose(conn);
+
+            if(isClosed == -1) {
+                return False();
+            }
         }
+        conn = NULL;
         return True();
     }
-     
+    
+     v8::Handle<v8::Value> Connection::GetRemoteLibVirtVersion(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->get_remote_libvirt_version();
+    }
+    
+    v8::Handle<v8::String> Connection::get_remote_libvirt_version() {
+        unsigned long libVer = 0;
+        
+        int ret = virConnectGetLibVersion(conn, &libVer);
+        
+        if(ret == -1) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive remote libvirt version");
+        }
+        
+        v8::Local<v8::String> version = v8::String::New((const char*)libVer);
+        
+        return version;
+    }
+    
 } //namespace NodeLibvirt
 
