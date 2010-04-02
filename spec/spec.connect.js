@@ -68,7 +68,6 @@ describe 'Libvirt'
         var version = conn.getRemoteLibVirtVersion()
         version.should_not_be undefined
         version.should_not_be null
-        version.should_not_equal -1
     end
     
     it 'should return the maximum number of virtual CPUs supported for a guest VM'

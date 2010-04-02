@@ -28,17 +28,17 @@ namespace NodeLibvirt {
             
             Connection(const v8::Local<v8::String>& uri, bool readOnly);
             ~Connection();
-            v8::Handle<v8::String> get_hypervisor_capabilities();
-            v8::Handle<v8::String> get_hypervisor_hostname();
-            v8::Handle<v8::String> get_hypervisor_type();
-            v8::Handle<v8::String> get_hypervisor_uri();
-            v8::Handle<v8::String> get_hypervisor_version();
-            v8::Handle<v8::String> get_remote_libvirt_version();
-            v8::Handle<v8::String> get_max_vcpus();
-            v8::Handle<v8::String> get_baseline_cpu();            
-            v8::Handle<Boolean> is_encrypted();
-            v8::Handle<Boolean> is_secure();
-            v8::Handle<Boolean> close();
+            v8::Handle<v8::Value> get_hypervisor_capabilities();
+            v8::Handle<v8::Value> get_hypervisor_hostname();
+            v8::Handle<v8::Value> get_hypervisor_type();
+            v8::Handle<v8::Value> get_hypervisor_uri();
+            v8::Handle<v8::Value> get_hypervisor_version();
+            v8::Handle<v8::Value> get_remote_libvirt_version();
+            v8::Handle<v8::Value> get_max_vcpus();
+            v8::Handle<v8::Value> get_baseline_cpu();            
+            v8::Handle<Value> is_encrypted();
+            v8::Handle<Value> is_secure();
+            v8::Handle<Value> close();
             
         private:
             virConnectPtr conn;  

@@ -1,4 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
+#include <stdio.h>
+#include <stdlib.h>
 #include "connect.h"
 
 namespace NodeLibvirt {
@@ -76,7 +78,7 @@ namespace NodeLibvirt {
         return connection->get_hypervisor_capabilities(); 
     }
     
-    v8::Handle<v8::String> Connection::get_hypervisor_capabilities() {
+    v8::Handle<v8::Value> Connection::get_hypervisor_capabilities() {
         char *cap = virConnectGetCapabilities(conn);
         
         if(cap == NULL) {
@@ -98,7 +100,7 @@ namespace NodeLibvirt {
         return connection->get_hypervisor_hostname();
     }
     
-    v8::Handle<v8::String> Connection::get_hypervisor_hostname() {
+    v8::Handle<v8::Value> Connection::get_hypervisor_hostname() {
         char *hn = virConnectGetHostname(conn);
         
         if(hn == NULL) {
@@ -119,7 +121,7 @@ namespace NodeLibvirt {
         return connection->close();
     }
     
-    v8::Handle<Boolean> Connection::close() {
+    v8::Handle<Value> Connection::close() {
         int isClosed = -1;
         if(conn != NULL) {
             isClosed = virConnectClose(conn);
@@ -132,24 +134,27 @@ namespace NodeLibvirt {
         return True();
     }
     
-     v8::Handle<v8::Value> Connection::GetRemoteLibVirtVersion(const v8::Arguments& args) {
+    v8::Handle<v8::Value> Connection::GetRemoteLibVirtVersion(const v8::Arguments& args) {
         v8::HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_remote_libvirt_version();
     }
     
-    v8::Handle<v8::String> Connection::get_remote_libvirt_version() {
-        unsigned long libVer = 0;
+    v8::Handle<v8::Value> Connection::get_remote_libvirt_version() {
+        unsigned long *libVer;
         
-        int ret = virConnectGetLibVersion(conn, &libVer);
+        libVer = new unsigned long;
+        
+        int ret = virConnectGetLibVersion(conn, libVer);
         
         if(ret == -1) {
             LIBVIRT_THROW_EXCEPTION(
                 "There was an error while attempting to retrive remote libvirt version");
         }
         
-        v8::Local<v8::String> version = v8::String::New((const char*)libVer);
+        v8::Local<v8::Number> version = v8::Number::New((double)*libVer);
+        delete libVer;
         
         return version;
     }
