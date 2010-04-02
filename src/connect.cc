@@ -25,8 +25,8 @@ namespace NodeLibvirt {
                                       Connection::GetRemoteLibVirtVersion);
         //NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
         //                              Connection::GetMaxVcpus);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
-        //                              Connection::GetHypervisorType);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
+                                      Connection::GetHypervisorType);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
         //                              Connection::GetHypervisorUri);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion", 
@@ -157,6 +157,27 @@ namespace NodeLibvirt {
         delete libVer;
         
         return version;
+    }
+    
+    
+    v8::Handle<v8::Value> Connection::GetHypervisorType(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->get_hypervisor_type();
+    }
+    
+    v8::Handle<v8::Value> Connection::get_hypervisor_type() {
+        const char *t = virConnectGetType(conn);
+        
+        if(t == NULL) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive hypervisor type");
+        }
+        
+        v8::Local<v8::String> type = v8::String::New(t);
+        
+        return type;
     }
     
 } //namespace NodeLibvirt
