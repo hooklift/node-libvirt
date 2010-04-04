@@ -74,7 +74,6 @@ describe 'Libvirt'
         var max_vcpus = conn.getMaxVcpus()
         max_vcpus.should_not_be undefined
         max_vcpus.should_not_be null
-        max_vcpus.should_not_equal -1
     end
     
     it 'should return the name of the hypervisor software used'

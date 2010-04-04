@@ -23,8 +23,8 @@ namespace NodeLibvirt {
                                       Connection::GetHypervisorHostname);
         NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
                                       Connection::GetRemoteLibVirtVersion);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
-        //                              Connection::GetMaxVcpus);
+        NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
+                                      Connection::GetMaxVcpus);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
                                       Connection::GetHypervisorType);
         //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
@@ -178,6 +178,33 @@ namespace NodeLibvirt {
         v8::Local<v8::String> type = v8::String::New(t);
         
         return type;
+    }
+    
+     v8::Handle<v8::Value> Connection::GetMaxVcpus(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->get_max_vcpus();
+    }
+    
+    v8::Handle<v8::Value> Connection::get_max_vcpus() {
+        const char *type = virConnectGetType(conn);
+        
+        if(type == NULL) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive hypervisor type");
+        }
+        
+        int m = virConnectGetMaxVcpus(conn, type);
+        
+        if(m == -1) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive maximum number of CPUs supported");
+        }
+        
+        v8::Local<v8::Number> max = v8::Number::New(m);
+        
+        return max;
     }
     
 } //namespace NodeLibvirt
