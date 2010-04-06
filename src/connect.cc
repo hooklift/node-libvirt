@@ -27,14 +27,14 @@ namespace NodeLibvirt {
                                       Connection::GetMaxVcpus);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
                                       Connection::GetHypervisorType);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
-        //                              Connection::GetHypervisorUri);
-        //NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion", 
-        //                              Connection::GetHypervisorVersion);
-        //NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted", 
-        //                              Connection::IsEncrypted);
-        //NODE_SET_PROTOTYPE_METHOD(t, "isSecure", 
-        //                              Connection::IsSecure);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
+                                      Connection::GetHypervisorUri);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion", 
+                                      Connection::GetHypervisorVersion);
+        NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted", 
+                                      Connection::IsEncrypted);
+        NODE_SET_PROTOTYPE_METHOD(t, "isSecure", 
+                                      Connection::IsSecure);
         NODE_SET_PROTOTYPE_METHOD(t, "close", 
                                       Connection::Close);
         
@@ -42,6 +42,7 @@ namespace NodeLibvirt {
     }
     
     Connection::Connection(const v8::Local<v8::String>& uriStr, bool readOnly) : EventEmitter(){
+        v8::HandleScope scope;
         v8::String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
         //TODO auth support
@@ -59,9 +60,19 @@ namespace NodeLibvirt {
     v8::Handle<v8::Value> Connection::New(const v8::Arguments& args) {
         v8::HandleScope scope;
         
-        if(args.Length() == 0 || !args[0]->IsString()) {
+        if(args.Length() == 0 ) {
+            return ThrowException(Exception::TypeError(
+            String::New("You need specify at least a Hypervisor URI")));    
+        }
+        
+        if(!args[0]->IsString()) { 
             return ThrowException(Exception::TypeError(
             String::New("First argument must be a string")));
+        }
+        
+        if(args.Length() == 2 && !args[1]->IsBoolean()) {
+            return ThrowException(Exception::TypeError(
+            String::New("Second argument must be a boolean")));
         }
         
         Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
@@ -180,7 +191,7 @@ namespace NodeLibvirt {
         return type;
     }
     
-     v8::Handle<v8::Value> Connection::GetMaxVcpus(const v8::Arguments& args) {
+    v8::Handle<v8::Value> Connection::GetMaxVcpus(const v8::Arguments& args) {
         v8::HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
@@ -205,6 +216,103 @@ namespace NodeLibvirt {
         v8::Local<v8::Number> max = v8::Number::New(m);
         
         return max;
+    }
+    
+    v8::Handle<v8::Value> Connection::GetHypervisorUri(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->get_hypervisor_uri();
+    }
+    
+    v8::Handle<v8::Value> Connection::get_hypervisor_uri() {
+        char *u = virConnectGetURI(conn);
+        
+        if(u == NULL) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive hypervisor connection URI");
+        }
+         
+        v8::Local<v8::String> uri = v8::String::New(u);
+        delete u;
+        
+        return uri;
+    }
+    
+    v8::Handle<v8::Value> Connection::GetHypervisorVersion(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->get_hypervisor_version();
+    }
+    
+    v8::Handle<v8::Value> Connection::get_hypervisor_version() {
+        unsigned long *hvVer;
+        
+        hvVer = new unsigned long;
+        
+        int ret = virConnectGetVersion(conn, hvVer);
+        
+        if(ret == -1) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to retrive Hypervisor version");
+        }
+        
+        if(ret == 0 && *hvVer == 0) {
+            delete hvVer;
+            return v8::Null(); 
+            /*LIBVIRT_THROW_EXCEPTION(
+                "Hypervisor lack of capacities to retrive its version");*/
+        }
+        
+        v8::Local<v8::Number> version = v8::Number::New((double)*hvVer);
+        delete hvVer;
+
+        return version;
+    }
+    
+    v8::Handle<v8::Value> Connection::IsEncrypted(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->is_encrypted();
+    }
+    
+    v8::Handle<v8::Value> Connection::is_encrypted() {
+        int ret = virConnectIsEncrypted(conn);
+        
+        if(ret == -1) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to determinate if Hypervisor connection is encrypted");
+        }
+        
+        if(ret == 1) {
+            return True();
+        }
+
+       return False();
+    }
+    
+    v8::Handle<v8::Value> Connection::IsSecure(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        return connection->is_secure();
+    }
+    
+    v8::Handle<v8::Value> Connection::is_secure() {
+        int ret = virConnectIsSecure(conn);
+        
+        if(ret == -1) {
+            LIBVIRT_THROW_EXCEPTION(
+            "There was an error while attempting to determinate if Hypervisor connection is secure");
+        }
+        
+        if(ret == 1) {
+            return True();
+        }
+
+       return False();
     }
     
 } //namespace NodeLibvirt

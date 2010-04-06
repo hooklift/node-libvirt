@@ -37,7 +37,8 @@ describe 'Libvirt'
     it 'should open a hypervisor read-only connection'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         readonly_conn.should_not_be undefined
-        readonly_conn.should_not_be null          
+        readonly_conn.should_not_be null
+        readonly_conn.close();          
     end
   
     it 'should open an authenticated hypervisor connection'
@@ -97,8 +98,7 @@ describe 'Libvirt'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         var hypervisor_version = readonly_conn.getHypervisorVersion()
         hypervisor_version.should_not_be undefined
-        hypervisor_version.should_not_be null
-        hypervisor_version.should_equal -1
+        hypervisor_version.should_be null
     end 
     
     it 'should recognize if hypervisor connection is encrypted'
@@ -112,7 +112,8 @@ describe 'Libvirt'
         var isSecure = conn.isSecure()
         isSecure.should_not_be undefined
         isSecure.should_not_be null
-        isSecure.should_be false    
+        //see http://libvirt.org/html/libvirt-libvirt.html#virConnectIsSecure
+        isSecure.should_be true     
     end
     
     it 'should compare given cpu description with host CPU'

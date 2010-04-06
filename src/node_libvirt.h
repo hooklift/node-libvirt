@@ -11,7 +11,7 @@
 #define LIBVIRT_VERSION "0.7.0"
 
 #define LIBVIRT_THROW_EXCEPTION(err)                                        \
-        v8::Local<v8::Value> exception = v8::Exception::TypeError(          \
+        v8::Local<v8::Value> exception = v8::Exception::Error(              \
         v8::String::New(err));                                              \
         ThrowException(exception);                                          
 
