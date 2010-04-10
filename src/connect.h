@@ -22,6 +22,7 @@ namespace NodeLibvirt {
             static v8::Handle<v8::Value> GetRemoteLibVirtVersion(const v8::Arguments& args);
             static v8::Handle<v8::Value> GetMaxVcpus(const v8::Arguments& args);
             static v8::Handle<v8::Value> GetBaselineCPU(const v8::Arguments& args);
+            static v8::Handle<v8::Value> CompareCPU(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsEncrypted(const v8::Arguments& args);
             static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
             static v8::Handle<v8::Value> Close(const v8::Arguments& args);
@@ -35,7 +36,8 @@ namespace NodeLibvirt {
             v8::Handle<v8::Value> get_hypervisor_version();
             v8::Handle<v8::Value> get_remote_libvirt_version();
             v8::Handle<v8::Value> get_max_vcpus();
-            v8::Handle<v8::Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);            
+            v8::Handle<v8::Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
+            v8::Handle<v8::Value> compare_cpu(const char *xmlDesc, unsigned int flags);
             v8::Handle<Value> is_encrypted();
             v8::Handle<Value> is_secure();
             v8::Handle<Value> close();

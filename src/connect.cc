@@ -8,8 +8,6 @@ using namespace v8;
 
 namespace NodeLibvirt {
 
-    //Persistent<FunctionTemplate> Connection::constructor_template;
-
     void Connection::Initialize(Handle<Object> target) {
         HandleScope scope;
         
@@ -20,6 +18,8 @@ namespace NodeLibvirt {
         
         NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
                                       Connection::GetBaselineCPU);
+        NODE_SET_PROTOTYPE_METHOD(t, "compareCPU", 
+                                      Connection::CompareCPU);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
                                       Connection::GetHypervisorCapabilities);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
@@ -395,4 +395,36 @@ namespace NodeLibvirt {
         return v8::Null();
     }
     
+    Handle<Value> Connection::CompareCPU(const Arguments& args) {
+        HandleScope scope;
+        
+        char *xmlDesc = NULL;
+        unsigned int flags = 0;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You need to specify a string as first argument")));    
+        }
+        
+        String::Utf8Value cpu(args[0]->ToString());
+        
+        return connection->compare_cpu(ToCString(cpu), flags); 
+    }
+    
+    Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {  
+        int ret = virConnectCompareCPU(conn, xmlDesc, flags);
+                
+        /*if(ret == VIR_CPU_COMPARE_ERROR) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                LIBVIRT_THROW_EXCEPTION(error->message);
+            }
+            return v8::Null();
+        }*/
+        Local<Number> result = Number::New(ret);
+        
+        return result;
+    }
 } //namespace NodeLibvirt
