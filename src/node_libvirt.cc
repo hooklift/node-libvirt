@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "node_libvirt.h"
 #include "connect.h"
 //#include "domain.h"
@@ -25,8 +27,8 @@ namespace NodeLibvirt {
      
         v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
         v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
-        
         v8::Context::Scope context_scope(context);
+        
         context->Global()->Set(v8::String::NewSymbol("libvirt"), target);
     }
     

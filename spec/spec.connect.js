@@ -8,19 +8,19 @@ describe 'Libvirt'
     conn = new libvirt.Connection('test:///default')    
 
     // local access, custom config
-    // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
+    // conn = new libvirt.Connection('test:///path/to/driver/config.xml')
  
     // local access, default config, via daemon
-    //conn = new libvirt.Connect('test+unix:///default')
+    //conn = new libvirt.Connection('test+unix:///default')
 
     // remote access, TLS/x509
-    // conn = new libvirt.Connect('test://example.com/default')
+    // conn = new libvirt.Connection('test://example.com/default')
     
     // remote access, SASl/Kerberos
-    // conn = new libvirt.Connect('test+tcp://example.com/default')
+    // conn = new libvirt.Connection('test+tcp://example.com/default')
     
     // remote access, SSH tunnelled
-    // conn = new libvirt.Connect('test+ssh://root@example.com/default')
+    //conn = new libvirt.Connection('test+ssh://camilo@example.com/default')
     
     
   end
@@ -50,7 +50,9 @@ describe 'Libvirt'
         cpu2 = fixture('cpu2.xml')
         xmlCPUs = [cpu1, cpu2]
         
-        conn.getBaselineCPU(xmlCPUs)
+        var baseline = conn.getBaselineCPU(xmlCPUs)
+        baseline.should_not_be null
+        baseline.should_not_be undefined
     end
   
     it 'should close a hypervisor connection'
@@ -102,7 +104,12 @@ describe 'Libvirt'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         var hypervisor_version = readonly_conn.getHypervisorVersion()
         hypervisor_version.should_not_be undefined
-        hypervisor_version.should_be null
+        
+        if(conn.getHypervisorType() == 'Test'){
+            hypervisor_version.should_be 2
+        } else {
+            hypervisor_version.should_be null
+        }   
     end 
     
     it 'should recognize if hypervisor connection is encrypted'
