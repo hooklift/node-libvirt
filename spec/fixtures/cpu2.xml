@@ -1,0 +1,25 @@
+<cpu>
+    <arch>i686</arch>
+    <model>pentium3</model>
+    <topology sockets='1' cores='2' threads='1'/>
+    <feature name='lahf_lm'/>
+    <feature name='lm'/>
+    <feature name='xtpr'/>
+    <feature name='cx16'/>
+    <feature name='ssse3'/>
+    <feature name='tm2'/>
+    <feature name='est'/>
+    <feature name='vmx'/>
+    <feature name='ds_cpl'/>
+    <feature name='monitor'/>
+    <feature name='pni'/>
+    <feature name='pbe'/>
+    <feature name='tm'/>
+    <feature name='ht'/>
+    <feature name='ss'/>
+    <feature name='sse2'/>
+    <feature name='acpi'/>
+    <feature name='ds'/>
+    <feature name='clflush'/>
+    <feature name='apic'/>
+</cpu>

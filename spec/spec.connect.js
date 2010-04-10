@@ -51,7 +51,7 @@ describe 'Libvirt'
         xmlCPUs = [cpu1, cpu2]
         
         var baseline = conn.getBaselineCPU(xmlCPUs)
-        baseline.should_not_be null
+        baseline.should_be null
         baseline.should_not_be undefined
     end
   

@@ -107,8 +107,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive hypervisor capabilities"); */
         }
         
         Local<String> capabilities = String::New((const char*)cap);
@@ -133,8 +131,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive hypervisor hostname");*/
         }
         
         Local<String> hostname = String::New((const char*)hn);
@@ -182,8 +178,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive remote libvirt version");*/
         }
         
         Local<Number> version = Number::New((double)*libVer);
@@ -208,8 +202,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive hypervisor type");*/
         }
         
         Local<String> type = String::New(t);
@@ -232,8 +224,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive hypervisor type");*/
         }
         
         int m = virConnectGetMaxVcpus(conn, type);
@@ -243,8 +233,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive maximum number of CPUs supported");*/
         }
         
         Local<Number> max = Number::New(m);
@@ -267,8 +255,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive hypervisor connection URI");*/
         }
          
         Local<String> uri = String::New(u);
@@ -296,8 +282,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to retrive Hypervisor version");*/
         }
         
         if(ret == 0 && *hvVer == 0) {
@@ -328,8 +312,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to determinate if Hypervisor connection is encrypted");*/
         }
         
         if(ret == 1) {
@@ -354,8 +336,6 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            /*LIBVIRT_THROW_EXCEPTION(
-            "There was an error while attempting to determinate if Hypervisor connection is secure");*/
         }
         
         if(ret == 1) {
@@ -396,24 +376,23 @@ namespace NodeLibvirt {
                                                 unsigned int flags) {  
         const char *x = virConnectBaselineCPU(conn, (const char**)xmlCPUs, ncpus, flags);
         
-        if(x == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
-/*            LIBVIRT_THROW_EXCEPTION(
-                "There was an error while attempting to compute the most feature-rich CPU, which is compatible with all given host CPUs hypervisor capabilities"); */
-        }
-        
         for (int i = 0; i < ncpus; i++) {
             free(xmlCPUs[i]);
         }
          
         delete [] xmlCPUs;
-        
-        Local<String> xml = String::New(x);
-        
-        return xml;
+                
+        if(x == NULL) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                LIBVIRT_THROW_EXCEPTION(error->message);
+            }
+        } else {
+            Local<String> xml = String::New(x);            
+            return xml;
+        }
+    
+        return v8::Null();
     }
     
 } //namespace NodeLibvirt
