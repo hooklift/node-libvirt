@@ -14,7 +14,6 @@ namespace NodeLibvirt {
         
         Connection::Initialize(target);
     //    Domain::Initialize(target);
-    //    Device::Initialize(target);
     //    Network::Initialize(target);
     //    StoragePool::Initialize(target);
     //    StorageVolume::Initialize(target);
