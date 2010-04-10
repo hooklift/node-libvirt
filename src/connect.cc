@@ -394,7 +394,7 @@ namespace NodeLibvirt {
     Handle<Value> Connection::get_baseline_cpu( char **xmlCPUs, 
                                                 unsigned int ncpus, 
                                                 unsigned int flags) {  
-        char *x = virConnectBaselineCPU(conn, (const char**)xmlCPUs, ncpus, flags);
+        const char *x = virConnectBaselineCPU(conn, (const char**)xmlCPUs, ncpus, flags);
         
         if(x == NULL) {
             virError *error = virGetLastError();
@@ -411,7 +411,7 @@ namespace NodeLibvirt {
          
         delete [] xmlCPUs;
         
-        Local<String> xml = String::New((const char*)x);
+        Local<String> xml = String::New(x);
         
         return xml;
     }
