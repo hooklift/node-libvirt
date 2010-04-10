@@ -1,22 +1,25 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "connect.h"
+
+using namespace v8;
 
 namespace NodeLibvirt {
 
-    //v8::Persistent<v8::FunctionTemplate> Connection::constructor_template;
+    //Persistent<FunctionTemplate> Connection::constructor_template;
 
-    void Connection::Initialize(v8::Handle<v8::Object> target) {
-        v8::HandleScope scope;
+    void Connection::Initialize(Handle<Object> target) {
+        HandleScope scope;
         
         Local<FunctionTemplate> t = FunctionTemplate::New(New);
  
         t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         
-        //NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
-        //                              Connection::GetBaselineCPU);
+        NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
+                                      Connection::GetBaselineCPU);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
                                       Connection::GetHypervisorCapabilities);
         NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
@@ -41,9 +44,9 @@ namespace NodeLibvirt {
         target->Set(String::NewSymbol("Connection"), t->GetFunction());
     }
     
-    Connection::Connection(const v8::Local<v8::String>& uriStr, bool readOnly) : EventEmitter(){
-        v8::HandleScope scope;
-        v8::String::Utf8Value uriUtf8(uriStr);
+    Connection::Connection(const Local<String>& uriStr, bool readOnly) : EventEmitter(){
+        HandleScope scope;
+        String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
         //TODO auth support
         if(readOnly) {
@@ -51,14 +54,21 @@ namespace NodeLibvirt {
         } else {
             conn = virConnectOpen(uri);
         }
+        
+        if(conn == NULL) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                LIBVIRT_THROW_EXCEPTION(error->message);
+            }
+        }
     }
       
     Connection::~Connection(){
         assert(conn == NULL);
     }
     
-    v8::Handle<v8::Value> Connection::New(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::New(const Arguments& args) {
+        HandleScope scope;
         
         if(args.Length() == 0 ) {
             return ThrowException(Exception::TypeError(
@@ -81,15 +91,15 @@ namespace NodeLibvirt {
         return args.This();
     }
     
-    v8::Handle<v8::Value> Connection::GetHypervisorCapabilities(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetHypervisorCapabilities(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
 
         return connection->get_hypervisor_capabilities(); 
     }
     
-    v8::Handle<v8::Value> Connection::get_hypervisor_capabilities() {
+    Handle<Value> Connection::get_hypervisor_capabilities() {
         char *cap = virConnectGetCapabilities(conn);
         
         if(cap == NULL) {
@@ -97,21 +107,21 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive hypervisor capabilities");
         }
         
-        v8::Local<v8::String> capabilities = v8::String::New((const char*)cap);
+        Local<String> capabilities = String::New((const char*)cap);
         delete cap;
         
         return capabilities;
     }
     
-    v8::Handle<v8::Value> Connection::GetHypervisorHostname(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetHypervisorHostname(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         return connection->get_hypervisor_hostname();
     }
     
-    v8::Handle<v8::Value> Connection::get_hypervisor_hostname() {
+    Handle<Value> Connection::get_hypervisor_hostname() {
         char *hn = virConnectGetHostname(conn);
         
         if(hn == NULL) {
@@ -119,20 +129,20 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive hypervisor hostname");
         }
         
-        v8::Local<v8::String> hostname = v8::String::New((const char*)hn);
+        Local<String> hostname = String::New((const char*)hn);
         delete hn;
         
         return hostname;
     }
     
-    v8::Handle<v8::Value> Connection::Close(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::Close(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->close();
     }
     
-    v8::Handle<Value> Connection::close() {
+    Handle<Value> Connection::close() {
         int isClosed = -1;
         if(conn != NULL) {
             isClosed = virConnectClose(conn);
@@ -145,14 +155,14 @@ namespace NodeLibvirt {
         return True();
     }
     
-    v8::Handle<v8::Value> Connection::GetRemoteLibVirtVersion(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetRemoteLibVirtVersion(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_remote_libvirt_version();
     }
     
-    v8::Handle<v8::Value> Connection::get_remote_libvirt_version() {
+    Handle<Value> Connection::get_remote_libvirt_version() {
         unsigned long *libVer;
         
         libVer = new unsigned long;
@@ -164,21 +174,21 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive remote libvirt version");
         }
         
-        v8::Local<v8::Number> version = v8::Number::New((double)*libVer);
+        Local<Number> version = Number::New((double)*libVer);
         delete libVer;
         
         return version;
     }
     
     
-    v8::Handle<v8::Value> Connection::GetHypervisorType(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetHypervisorType(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_hypervisor_type();
     }
     
-    v8::Handle<v8::Value> Connection::get_hypervisor_type() {
+    Handle<Value> Connection::get_hypervisor_type() {
         const char *t = virConnectGetType(conn);
         
         if(t == NULL) {
@@ -186,19 +196,19 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive hypervisor type");
         }
         
-        v8::Local<v8::String> type = v8::String::New(t);
+        Local<String> type = String::New(t);
         
         return type;
     }
     
-    v8::Handle<v8::Value> Connection::GetMaxVcpus(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetMaxVcpus(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_max_vcpus();
     }
     
-    v8::Handle<v8::Value> Connection::get_max_vcpus() {
+    Handle<Value> Connection::get_max_vcpus() {
         const char *type = virConnectGetType(conn);
         
         if(type == NULL) {
@@ -213,19 +223,19 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive maximum number of CPUs supported");
         }
         
-        v8::Local<v8::Number> max = v8::Number::New(m);
+        Local<Number> max = Number::New(m);
         
         return max;
     }
     
-    v8::Handle<v8::Value> Connection::GetHypervisorUri(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetHypervisorUri(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_hypervisor_uri();
     }
     
-    v8::Handle<v8::Value> Connection::get_hypervisor_uri() {
+    Handle<Value> Connection::get_hypervisor_uri() {
         char *u = virConnectGetURI(conn);
         
         if(u == NULL) {
@@ -233,20 +243,20 @@ namespace NodeLibvirt {
                 "There was an error while attempting to retrive hypervisor connection URI");
         }
          
-        v8::Local<v8::String> uri = v8::String::New(u);
+        Local<String> uri = String::New(u);
         delete u;
         
         return uri;
     }
     
-    v8::Handle<v8::Value> Connection::GetHypervisorVersion(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::GetHypervisorVersion(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->get_hypervisor_version();
     }
     
-    v8::Handle<v8::Value> Connection::get_hypervisor_version() {
+    Handle<Value> Connection::get_hypervisor_version() {
         unsigned long *hvVer;
         
         hvVer = new unsigned long;
@@ -260,25 +270,25 @@ namespace NodeLibvirt {
         
         if(ret == 0 && *hvVer == 0) {
             delete hvVer;
-            return v8::Null(); 
+            return Null(); 
             /*LIBVIRT_THROW_EXCEPTION(
                 "Hypervisor lack of capacities to retrive its version");*/
         }
         
-        v8::Local<v8::Number> version = v8::Number::New((double)*hvVer);
+        Local<Number> version = Number::New((double)*hvVer);
         delete hvVer;
 
         return version;
     }
     
-    v8::Handle<v8::Value> Connection::IsEncrypted(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::IsEncrypted(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->is_encrypted();
     }
     
-    v8::Handle<v8::Value> Connection::is_encrypted() {
+    Handle<Value> Connection::is_encrypted() {
         int ret = virConnectIsEncrypted(conn);
         
         if(ret == -1) {
@@ -293,14 +303,14 @@ namespace NodeLibvirt {
        return False();
     }
     
-    v8::Handle<v8::Value> Connection::IsSecure(const v8::Arguments& args) {
-        v8::HandleScope scope;
+    Handle<Value> Connection::IsSecure(const Arguments& args) {
+        HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         return connection->is_secure();
     }
     
-    v8::Handle<v8::Value> Connection::is_secure() {
+    Handle<Value> Connection::is_secure() {
         int ret = virConnectIsSecure(conn);
         
         if(ret == -1) {
@@ -315,5 +325,42 @@ namespace NodeLibvirt {
        return False();
     }
     
-} //namespace NodeLibvirt
+     Handle<Value> Connection::GetBaselineCPU(const Arguments& args) {
+        HandleScope scope;
+        const char **xmlCPUs = NULL;
+        unsigned int ncpus = 0;
+        unsigned int flags = 0;
+        
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        
+        if(args.Length() == 0 || !args[0]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU")));    
+        }
+        
+        Local<Array> xmls = Local<Array>::Cast(args[0]);
+        ncpus = xmls->Length();
+        char **xmls1 = new char*[ncpus + 1]; // heap allocated to detect errors
+        xmls1[ncpus] = NULL;
+        for (int i = 0; i < ncpus; i++) {
+            String::Utf8Value cpu(xmls->Get(Integer::New(i))->ToString());
+            xmls1[i] = strdup(*cpu);
+        }
 
+        return connection->get_baseline_cpu((const char**)xmls1, ncpus, flags); 
+    }
+    
+    Handle<Value> Connection::get_baseline_cpu(const char **xmlCPUs, unsigned int ncpus, unsigned int flags) {
+        char *x = virConnectBaselineCPU(conn, xmlCPUs, ncpus, flags);
+        
+        if(x == NULL) {
+            LIBVIRT_THROW_EXCEPTION(
+                "There was an error while attempting to compute the most feature-rich CPU, which is compatible with all given host CPUs hypervisor capabilities");
+        }
+        
+        Local<String> xml = String::New((const char*)x);
+        
+        return xml;
+    }
+    
+} //namespace NodeLibvirt

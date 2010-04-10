@@ -35,7 +35,7 @@ namespace NodeLibvirt {
             v8::Handle<v8::Value> get_hypervisor_version();
             v8::Handle<v8::Value> get_remote_libvirt_version();
             v8::Handle<v8::Value> get_max_vcpus();
-            v8::Handle<v8::Value> get_baseline_cpu();            
+            v8::Handle<v8::Value> get_baseline_cpu(const char **xmlCPUs, unsigned int ncpus, unsigned int flags);            
             v8::Handle<Value> is_encrypted();
             v8::Handle<Value> is_secure();
             v8::Handle<Value> close();

@@ -11,7 +11,7 @@ describe 'Libvirt'
     // conn = new libvirt.Connect('test:///path/to/driver/config.xml')
  
     // local access, default config, via daemon
-    // conn = new libvirt.Connect('test+unix:///default')
+    //conn = new libvirt.Connect('test+unix:///default')
 
     // remote access, TLS/x509
     // conn = new libvirt.Connect('test://example.com/default')
@@ -21,7 +21,8 @@ describe 'Libvirt'
     
     // remote access, SSH tunnelled
     // conn = new libvirt.Connect('test+ssh://root@example.com/default')
-
+    
+    
   end
   
   after_each
@@ -38,15 +39,18 @@ describe 'Libvirt'
         var readonly_conn = new libvirt.Connection('test:///default', true)
         readonly_conn.should_not_be undefined
         readonly_conn.should_not_be null
-        readonly_conn.close();          
+        readonly_conn.close()         
     end
   
     it 'should open an authenticated hypervisor connection'
     end
   
     it 'should compute the most feature-rich CPU'
-        //TODO fixture with CPUs descriptions
-        conn.getBaselineCPU()
+        cpu1 = fixture('cpu1.xml')
+        cpu2 = fixture('cpu2.xml')
+        xmlCPUs = [cpu1, cpu2]
+        
+        conn.getBaselineCPU(xmlCPUs)
     end
   
     it 'should close a hypervisor connection'
