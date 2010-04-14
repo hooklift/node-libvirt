@@ -416,13 +416,12 @@ namespace NodeLibvirt {
     Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {  
         int ret = virConnectCompareCPU(conn, xmlDesc, flags);
                 
-        /*if(ret == VIR_CPU_COMPARE_ERROR) {
+        if(ret == VIR_CPU_COMPARE_ERROR) {
             virError *error = virGetLastError();
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-            return v8::Null();
-        }*/
+        }
         Local<Number> result = Number::New(ret);
         
         return result;
