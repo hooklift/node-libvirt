@@ -88,7 +88,7 @@ namespace NodeLibvirt {
         Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
         c->Wrap(args.This());
         
-        return args.This();
+        return scope.Close(args.This());
     }
     
     Handle<Value> Connection::GetHypervisorCapabilities(const Arguments& args) {
@@ -96,7 +96,7 @@ namespace NodeLibvirt {
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
 
-        return connection->get_hypervisor_capabilities(); 
+        return scope.Close(connection->get_hypervisor_capabilities()); 
     }
     
     Handle<Value> Connection::get_hypervisor_capabilities() {
@@ -120,7 +120,7 @@ namespace NodeLibvirt {
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
-        return connection->get_hypervisor_hostname();
+        return scope.Close(connection->get_hypervisor_hostname());
     }
     
     Handle<Value> Connection::get_hypervisor_hostname() {
@@ -143,7 +143,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->close();
+        return scope.Close(connection->close());
     }
     
     Handle<Value> Connection::close() {
@@ -163,7 +163,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_remote_libvirt_version();
+        return scope.Close(connection->get_remote_libvirt_version());
     }
     
     Handle<Value> Connection::get_remote_libvirt_version() {
@@ -191,7 +191,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_type();
+        return scope.Close(connection->get_hypervisor_type());
     }
     
     Handle<Value> Connection::get_hypervisor_type() {
@@ -213,7 +213,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_max_vcpus();
+        return scope.Close(connection->get_max_vcpus());
     }
     
     Handle<Value> Connection::get_max_vcpus() {
@@ -244,7 +244,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_uri();
+        return scope.Close(connection->get_hypervisor_uri());
     }
     
     Handle<Value> Connection::get_hypervisor_uri() {
@@ -267,7 +267,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_version();
+        return scope.Close(connection->get_hypervisor_version());
     }
     
     Handle<Value> Connection::get_hypervisor_version() {
@@ -301,7 +301,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->is_encrypted();
+        return scope.Close(connection->is_encrypted());
     }
     
     Handle<Value> Connection::is_encrypted() {
@@ -325,7 +325,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->is_secure();
+        return scope.Close(connection->is_secure());
     }
     
     Handle<Value> Connection::is_secure() {
@@ -368,7 +368,7 @@ namespace NodeLibvirt {
             xmls1[i] = strdup(*cpu);
         }
         
-        return connection->get_baseline_cpu(xmls1, ncpus, flags); 
+        return scope.Close(connection->get_baseline_cpu(xmls1, ncpus, flags)); 
     }
     
     Handle<Value> Connection::get_baseline_cpu( char **xmlCPUs, 
@@ -410,7 +410,7 @@ namespace NodeLibvirt {
         
         String::Utf8Value cpu(args[0]->ToString());
         
-        return connection->compare_cpu(ToCString(cpu), flags); 
+        return scope.Close(connection->compare_cpu(ToCString(cpu), flags)); 
     }
     
     Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {  

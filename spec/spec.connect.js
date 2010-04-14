@@ -5,7 +5,7 @@ libvirt = require('node-libvirt');
 describe 'Libvirt'
     before_each 
         // local access, default config
-        conn = new libvirt.Connection('test:///default')    
+        conn = new libvirt.Connection('test:///default')
 
         // local access, custom config
         // conn = new libvirt.Connection('test:///path/to/driver/config.xml')
