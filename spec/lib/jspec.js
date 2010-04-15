@@ -4,12 +4,13 @@
 ;(function(){
 
   JSpec = {
-    version   : '3.3.1',
+    version   : '4.2.0',
     assert    : true,
     cache     : {},
     suites    : [],
     modules   : [],
     allSuites : [],
+		sharedBehaviors: [],
     matchers  : {},
     stubbed   : [],
     options   : {},
@@ -68,6 +69,31 @@
         return JSpec.cache[path] = 
           JSpec.tryLoading(JSpec.options.fixturePath + '/' + path) ||
           JSpec.tryLoading(JSpec.options.fixturePath + '/' + path + '.html')
+      },
+      
+      /**
+       * Load json fixture at _path_.
+       *
+       * JSON fixtures are resolved as:
+       *
+       *  - <path>
+       *  - <path>.json
+       *
+       * @param  {string} path
+       * @return {object}
+       * @api public
+       */
+      
+      json_fixture: function(path) {
+        if (!JSpec.cache['json:' + path])
+          JSpec.cache['json:' + path] =
+            JSpec.tryLoading(JSpec.options.fixturePath + '/' + path) ||
+            JSpec.tryLoading(JSpec.options.fixturePath + '/' + path + '.json')
+        try {
+          return eval('(' + JSpec.cache['json:' + path] + ')')
+        } catch (e) {
+          throw 'json_fixture("' + path + '"): ' + e
+        }
       }
     },
 
@@ -92,7 +118,7 @@
           stats: JSpec.stats,
           options: options,
           results: map(results.allSuites, function(suite) {
-            if (suite.hasSpecs())
+            if (suite.isExecutable())
               return {
                 description: suite.description,
                 specs: map(suite.specs, function(spec) {
@@ -145,7 +171,7 @@
         <span class="passes">Duration: <em>' + results.duration + '</em> ms</span>          \
         </div><table class="suites">' + map(results.allSuites, function(suite) {
           var displaySuite = failuresOnly ? suite.ran && !suite.passed() : suite.ran
-          if (displaySuite && suite.hasSpecs())
+          if (displaySuite && suite.isExecutable())
             return '<tr class="description"><td colspan="2">' + escape(suite.description) + '</td></tr>' +
               map(suite.specs, function(i, spec) {
                 return '<tr class="' + (i % 2 ? 'odd' : 'even') + '">' +
@@ -181,7 +207,7 @@
          
          each(results.allSuites, function(suite) {
            var displaySuite = failuresOnly ? suite.ran && !suite.passed() : suite.ran
-            if (displaySuite && suite.hasSpecs()) {
+            if (displaySuite && suite.isExecutable()) {
               print(color(' ' + suite.description, 'bold'))
               each(suite.specs, function(spec){
                 var assertionsGraph = inject(spec.assertions, '', function(graph, assertion){
@@ -392,17 +418,21 @@
      * @api private
      */
 
-    Suite : function(description, body) {
+    Suite : function(description, body, isShared) {
       var self = this
       extend(this, {
         body: body,
         description: description,
         suites: [],
+				sharedBehaviors: [],
         specs: [],
         ran: false,
-        hooks: { 'before' : [], 'after' : [], 'before_each' : [], 'after_each' : [] },
+				shared: isShared, 
+				hooks: { 	'before' : [], 'after' : [], 
+									'before_each' : [], 'after_each' : [],
+									'before_nested' : [], 'after_nested' : []},
         
-        // Add a spec to the suite
+				// Add a spec to the suite
 
         addSpec : function(description, body) {
           var spec = new JSpec.Spec(description, body)
@@ -411,16 +441,30 @@
           spec.suite = this
         },
 
-        // Add a hook to the suite
+        // Add a before hook to the suite
 
+        addBefore : function(options, body) {
+					body.options = options || {}
+          this.befores.push(body)
+        },
+
+        // Add an after hook to the suite
+
+        addAfter : function(options, body) {
+					body.options = options || {}
+          this.afters.unshift(body)
+        },
+
+        // Add a hook to the suite
+ 
         addHook : function(hook, body) {
           this.hooks[hook].push(body)
         },
 
         // Add a nested suite
 
-        addSuite : function(description, body) {
-          var suite = new JSpec.Suite(description, body)
+        addSuite : function(description, body, isShared) {
+          var suite = new JSpec.Suite(description, body, isShared)
           JSpec.allSuites.push(suite)
           suite.name = suite.description
           suite.description = this.description + ' ' + suite.description
@@ -428,15 +472,17 @@
           suite.suite = this
         },
 
-        // Invoke a hook in context to this suite
+				// Invoke a hook in context to this suite
 
         hook : function(hook) {
-          if (this.suite) this.suite.hook(hook)
+					if (hook != 'before' && hook != 'after')	
+          	if (this.suite) this.suite.hook(hook)
+
           each(this.hooks[hook], function(body) {
             JSpec.evalBody(body, "Error in hook '" + hook + "', suite '" + self.description + "': ")
           })
         },
-
+				
         // Check if nested suites are present
 
         hasSuites : function() {
@@ -455,7 +501,15 @@
           return !any(this.specs, function(spec){
             return !spec.passed() 
           })
-        }
+        },
+
+				isShared : function(){
+					return this.shared
+				},
+
+				isExecutable : function() {
+					return !this.isShared() && this.hasSpecs()
+				}
       })
     },
     
@@ -603,7 +657,7 @@
         },
 
         describe : function(description, body) {
-          return JSpec.currentSuite.addSuite(description, body)
+          return JSpec.currentSuite.addSuite(description, body, false)
         },
 
         it : function(description, body) {
@@ -613,19 +667,31 @@
         before : function(body) {
           return JSpec.currentSuite.addHook('before', body)
         },
-
+ 
         after : function(body) {
           return JSpec.currentSuite.addHook('after', body)
         },
-
+ 
         before_each : function(body) {
           return JSpec.currentSuite.addHook('before_each', body)
         },
-
+ 
         after_each : function(body) {
           return JSpec.currentSuite.addHook('after_each', body)
         },
+
+				before_nested : function(body) {
+					return JSpec.currentSuite.addHook('before_nested', body)
+				},
+				
+				after_nested : function(body){
+					return JSpec.currentSuite.addhook('after_nested', body)
+				},
         
+				shared_behaviors_for : function(description, body){
+				  return JSpec.currentSuite.addSuite(description, body, true)
+				},
+
         should_behave_like : function(description) {
           return JSpec.shareBehaviorsOf(description)
         }
@@ -702,8 +768,7 @@
     
     evalHook : function(module, name, args) {
       hook('evaluatingHookBody', module, name)
-      try { return module[name].apply(module, args) }
-      catch(e) { error('Error in hook ' + module.name + '.' + name + ': ', e) }
+      return module[name].apply(module, args)
     },
     
     /**
@@ -726,19 +791,69 @@
     },
     
     /**
-     * Find a suite by its description or name.
+     * Find a shared example suite by its description or name.
+     * First searches parent tree of suites for shared behavior
+     * before falling back to global scoped nested behaviors.
      *
      * @param  {string} description
      * @return {Suite}
      * @api private
      */
     
-    findSuite : function(description) {
-      return find(this.allSuites, function(suite){
-        return suite.name == description || suite.description == description
-      })
+    findSharedBehavior : function(description) {
+      var behavior
+      return (behavior = JSpec.findLocalSharedBehavior(description))
+        ? behavior
+        : JSpec.findGlobalSharedBehavior(description)
     },
+
+    /**
+     * Find a shared example suite within the current suite's
+     * parent tree by its description or name.
+     *
+     * @param  {string} description
+     * @return {Suite}
+     * @api private
+     */
+     
+		findLocalSharedBehavior : function(description) {
+			var behavior,
+			    currentSuite = JSpec.currentSuite.suite
+			while (currentSuite)
+				if (behavior = find(currentSuite.suites, JSpec.suiteDescriptionPredicate(description)))
+				  return behavior
+				else
+				  currentSuite = currentSuite.suite
+		},
+		
+    /**
+     * Find a shared example suite within the global
+     * scope by its description or name.
+     *
+     * @param  {string} description
+     * @return {Suite}
+     * @api private
+     */
+     
+		findGlobalSharedBehavior : function(description) {
+	   return find(JSpec.suites, JSpec.suiteDescriptionPredicate(description))
+		},
     
+    /**
+     * Build a predicate that will match a suite based on name or description
+     *
+     * @param  {string} description
+     * @return {function}
+     * @api private
+     */
+     
+		suiteDescriptionPredicate : function(description) {
+			return function(suite){
+			  return suite.name === description ||
+			         suite.description === description
+			}
+		},
+
     /**
      * Share behaviors (specs) of the given suite with
      * the current suite.
@@ -748,24 +863,13 @@
      */
     
     shareBehaviorsOf : function(description) {
-      if (suite = this.findSuite(description)) this.copySpecs(suite, this.currentSuite)
-      else throw 'failed to share behaviors. ' + puts(description) + ' is not a valid Suite name'
+      var suite = JSpec.findSharedBehavior(description)
+      if (suite)
+        JSpec.evalBody(suite.body)
+      else
+        throw new Error("failed to find shared behaviors named `" + description + "'")
     },
     
-    /**
-     * Copy specs from one suite to another. 
-     *
-     * @param  {Suite} fromSuite
-     * @param  {Suite} toSuite
-     * @api public
-     */
-    
-    copySpecs : function(fromSuite, toSuite) {
-      each(fromSuite.specs, function(spec){
-        spec.assertions = []
-        toSuite.specs.push(spec)
-      })
-    },
     
     /**
      * Convert arguments to an array.
@@ -790,17 +894,21 @@
      */
     
     color : function(string, color) {
-      return "\u001B[" + {
-       bold    : 1,
-       black   : 30,
-       red     : 31,
-       green   : 32,
-       yellow  : 33,
-       blue    : 34,
-       magenta : 35,
-       cyan    : 36,
-       white   : 37
-      }[color] + 'm' + string + "\u001B[0m"
+      if (option('disableColors')) {
+        return string
+      } else {
+        return "\u001B[" + {
+         bold    : 1,
+         black   : 30,
+         red     : 31,
+         green   : 32,
+         yellow  : 33,
+         blue    : 34,
+         magenta : 35,
+         cyan    : 36,
+         white   : 37
+        }[color] + 'm' + string + "\u001B[0m"
+      }
     },
     
     /**
@@ -964,6 +1072,26 @@
         default: 
           return object.toString()
       }
+    },
+
+    /**
+     * Parse an XML String and return a 'document'.
+     *
+     * @param {string} text
+     * @return {document}
+     * @api public
+     */
+
+    parseXML : function(text) {
+      var xmlDoc
+      if (window.DOMParser)
+        xmlDoc = (new DOMParser()).parseFromString(text, "text/xml")
+      else {
+        xmlDoc = new ActiveXObject("Microsoft.XMLDOM")
+        xmlDoc.async = "false"
+        xmlDoc.loadXML(text)
+      }
+      return xmlDoc
     },
 
     /**
@@ -1275,12 +1403,27 @@
      */
     
     describe : function(description, body) {
-      var suite = new JSpec.Suite(description, body)
+      var suite = new JSpec.Suite(description, body, false)
       hook('addingSuite', suite)
       this.allSuites.push(suite)
       this.suites.push(suite)
     },
     
+    /**
+     * Add a shared example suite to JSpec.
+     *
+     * @param  {string} description
+     * @param  {body} function
+     * @api public
+     */
+    
+    shared_behaviors_for : function(description, body) {
+      var suite = new JSpec.Suite(description, body, true)
+      hook('addingSuite', suite)
+      this.allSuites.push(suite)
+      this.suites.push(suite)
+    },
+
     /**
      * Return the contents of a function body.
      *
@@ -1307,9 +1450,8 @@
       var matchers = this.matchers
       var context = this.context || this.defaultContext
       var contents = this.contentsOf(body)
-      hook('evaluatingBody', dsl, matchers, context, contents)
-      try { with (dsl){ with (context) { with (matchers) { eval(contents) }}} }
-      catch(e) { error(errorMessage, e) }
+			hook('evaluatingBody', dsl, matchers, context, contents)
+      with (dsl){ with (context) { with (matchers) { eval(contents) }}}
     },
 
     /**
@@ -1329,8 +1471,9 @@
         split('__END__')[0].
         replace(/([\w\.]+)\.(stub|destub)\((.*?)\)$/gm, '$2($1, $3)').
         replace(/describe\s+(.*?)$/gm, 'describe($1, function(){').
+        replace(/shared_behaviors_for\s+(.*?)$/gm, 'shared_behaviors_for($1, function(){').
         replace(/^\s+it\s+(.*?)$/gm, ' it($1, function(){').
-        replace(/^ *(before_each|after_each|before|after)(?= |\n|$)/gm, 'JSpec.currentSuite.addHook("$1", function(){').
+				replace(/^ *(before_nested|after_nested|before_each|after_each|before|after)(?= |\n|$)/gm, 'JSpec.currentSuite.addHook("$1", function(){').
         replace(/^\s*end(?=\s|$)/gm, '});').
         replace(/-\{/g, 'function(){').
         replace(/(\d+)\.\.(\d+)/g, function(_, a, b){ return range(a, b) }).
@@ -1393,25 +1536,28 @@
      */
 
     runSuite : function(suite) {
-      this.currentSuite = suite
-      this.evalBody(suite.body)
-      suite.ran = true
-      hook('beforeSuite', suite), suite.hook('before')
-      each(suite.specs, function(spec) {
-        hook('beforeSpec', spec)
-        suite.hook('before_each')
-        JSpec.runSpec(spec)
-        hook('afterSpec', spec)
-        suite.hook('after_each')
-      })
-      if (suite.hasSuites()) {
-        each(suite.suites, function(suite) {
-          JSpec.runSuite(suite)
-        })
-      }
-      hook('afterSuite', suite), suite.hook('after')
-      this.stats.suitesFinished++
-    },
+			if (!suite.isShared())
+			{
+	      this.currentSuite = suite
+	      this.evalBody(suite.body)
+	      suite.ran = true
+	      hook('beforeSuite', suite), suite.hook('before'), suite.hook('before_nested')
+	      each(suite.specs, function(spec) {
+	        hook('beforeSpec', spec)
+	        suite.hook('before_each')
+	        JSpec.runSpec(spec)
+	        hook('afterSpec', spec)
+	        suite.hook('after_each')
+	      })
+	      if (suite.hasSuites()) {
+	        each(suite.suites, function(suite) {
+	          JSpec.runSuite(suite)
+	        })
+	      }
+	      hook('afterSuite', suite), suite.hook('after_nested'), suite.hook('after')
+	      this.stats.suitesFinished++
+			}	
+		},
          
     /**
      * Report a failure for the current spec.
@@ -1486,19 +1632,6 @@
       })
     },
 
-    /**
-     * Throw a JSpec related error.
-     *
-     * @param {string} message
-     * @param {Exception} e
-     * @api public
-     */
-
-    error : function(message, e) {
-      throw (message ? message : '') + e.toString() + 
-              (e.line ? ' near line ' + e.line : '')
-    },
-    
     /**
      * Ad-hoc POST request for JSpec server usage.
      *
@@ -1594,7 +1727,7 @@
           return request.responseText
       }
       else
-        error("failed to load `" + file + "'")
+        throw new Error("failed to load `" + file + "'")
     },
 
     /**
@@ -1614,15 +1747,10 @@
   
   // --- Node.js support
   
-  if (typeof GLOBAL === 'object' && typeof exports === 'object') {
-    var fs = require('fs')
-    quit = process.exit
-    print = require('sys').puts
-
-    readFile = function(path) {
-      return fs.readFileSync(path)
-    }
-  }
+  if (typeof GLOBAL === 'object' && typeof exports === 'object')
+    quit = process.exit,
+    print = require('sys').puts,
+    readFile = require('fs').readFileSync
   
   // --- Utility functions
 
