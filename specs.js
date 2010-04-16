@@ -25,7 +25,7 @@ readFile = function(path) {
             if(!exists) {
                 sys.puts(file + ": Spec file does not exists");        
             } else {
-                JSpec.exec(file).run({ reporter: JSpec.reporters.Terminal}).report();
+                JSpec.exec(file).run({ reporter: JSpec.reporters.Terminal, fixturePath: 'spec/fixtures'}).report();
             }
         });
     } else {
@@ -39,7 +39,7 @@ readFile = function(path) {
                     }
                 }
                 if(specsFound === true) {
-                    JSpec.run({ reporter: JSpec.reporters.Terminal});
+                    JSpec.run({ reporter: JSpec.reporters.Terminal, fixturePath: 'spec/fixtures'});
                     JSpec.report();
                 }
             } else {

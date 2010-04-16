@@ -30,8 +30,7 @@ describe 'Libvirt'
             
         //describe 'Connect'
             it 'should open a hypervisor connection'
-                conn.should_not_be undefined
-                conn.should_not_be null
+                conn.isEncrypted().should_be false
             end
             
             /*it 'should open a hypervisor read-only connection'    
@@ -110,25 +109,10 @@ describe 'Libvirt'
             end
             
             it 'should compare given cpu description with host CPU'
-               /*describe 'when is incompatible'
-                    var cpu = fixture('cpu1.xml')
-                    var result = conn.compareCPU(cpu)
-                    result.should_be 0 //VIR_CPU_COMPARE_INCOMPATIBLE  
-                end*/
-                
-                /*describe 'when is identical'
-                    var cpu = fixture('cpu3.xml')
-                end 
-                
-                describe 'when is a superset'
-                    var cpu = fixture('cpu4.xml')
-                end
-                
-                describe 'there is an error'
-                    var cpu = fixture('cpu5.xml')
-                    var result = conn.compareCPU(cpu)
-                    result.should_be -1
-                end */
+                var cpu = fixture('cpu1.xml')
+                var result = conn.compareCPU(cpu)
+                result.should_not_be undefined
+                result.should_not_be null
             end
         //end
     end
@@ -176,4 +160,13 @@ describe 'Libvirt'
             hypervisor_version.should_be 2
         end
     end
+    
+    /*describe 'Connection using qemu:///system'
+        should_behave_like('Connect')
+        
+        before_each
+            // local access, default config, via daemon
+            conn = new libvirt.Connection('qemu:///system')
+        end 
+    end*/
 end
