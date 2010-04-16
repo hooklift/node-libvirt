@@ -34,8 +34,8 @@ describe 'Libvirt'
                 conn.should_not_be null
             end
             
-            it 'should open a hypervisor read-only connection'    
-            end
+            /*it 'should open a hypervisor read-only connection'    
+            end*/
             
             it 'should open an authenticated hypervisor connection'
             end
@@ -95,8 +95,8 @@ describe 'Libvirt'
                 hypervisor_version.should_not_equal -1
             end
 
-            it 'should not return version level of the running hypervisor if connection is read-only'
-            end 
+            /*it 'should not return version level of the running hypervisor if connection is read-only'
+            end*/ 
             
             it 'should recognize if hypervisor connection is encrypted'
                 var isEncrypted = conn.isEncrypted()
