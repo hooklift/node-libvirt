@@ -71,18 +71,18 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         if(args.Length() == 0 ) {
-            return ThrowException(Exception::TypeError(
-            String::New("You need specify at least a Hypervisor URI")));    
+            return scope.Close(ThrowException(Exception::TypeError(
+            String::New("You need specify at least a Hypervisor URI"))));    
         }
         
         if(!args[0]->IsString()) { 
-            return ThrowException(Exception::TypeError(
-            String::New("First argument must be a string")));
+            return scope.Close(ThrowException(Exception::TypeError(
+            String::New("First argument must be a string"))));
         }
         
         if(args.Length() == 2 && !args[1]->IsBoolean()) {
-            return ThrowException(Exception::TypeError(
-            String::New("Second argument must be a boolean")));
+            return scope.Close(ThrowException(Exception::TypeError(
+            String::New("Second argument must be a boolean"))));
         }
         
         Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
@@ -168,6 +168,9 @@ namespace NodeLibvirt {
     
     Handle<Value> Connection::get_remote_libvirt_version() {
         unsigned long *libVer;
+        unsigned int major;
+        unsigned int minor;
+        unsigned int rel;
         
         libVer = new unsigned long;
         
@@ -180,8 +183,16 @@ namespace NodeLibvirt {
             }
         }
         
-        Local<Number> version = Number::New((double)*libVer);
+        major = *libVer / 1000000;
+        *libVer %= 1000000;
+        minor = *libVer / 1000;
+        rel = *libVer % 1000;
         delete libVer;
+             
+        char vrs[10];
+        sprintf(vrs, "%d.%d.%d", major, minor, rel);
+        
+        Local<String> version = String::New(vrs);
         
         return version;
     }
@@ -272,6 +283,9 @@ namespace NodeLibvirt {
     
     Handle<Value> Connection::get_hypervisor_version() {
         unsigned long *hvVer;
+        unsigned int major;
+        unsigned int minor;
+        unsigned int rel;
         
         hvVer = new unsigned long;
         
@@ -291,9 +305,17 @@ namespace NodeLibvirt {
                 "Hypervisor lack of capacities to retrive its version");*/
         }
         
-        Local<Number> version = Number::New((double)*hvVer);
+        major = *hvVer / 1000000;
+        *hvVer %= 1000000;
+        minor = *hvVer / 1000;
+        rel = *hvVer % 1000;
         delete hvVer;
-
+             
+        char vrs[10];
+        sprintf(vrs, "%d.%d.%d", major, minor, rel);
+        
+        Local<String> version = String::New(vrs);
+   
         return version;
     }
     
@@ -355,8 +377,8 @@ namespace NodeLibvirt {
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         if(args.Length() == 0 || !args[0]->IsArray()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU")));    
+            return scope.Close(ThrowException(Exception::TypeError(
+            String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU"))));    
         }
         
         Local<Array> xmls = Local<Array>::Cast(args[0]);
@@ -404,8 +426,8 @@ namespace NodeLibvirt {
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You need to specify a string as first argument")));    
+            return scope.Close(ThrowException(Exception::TypeError(
+            String::New("You need to specify a string as first argument"))));    
         }
         
         String::Utf8Value cpu(args[0]->ToString());
@@ -413,7 +435,7 @@ namespace NodeLibvirt {
         return scope.Close(connection->compare_cpu(ToCString(cpu), flags)); 
     }
     
-    Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {  
+    Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {
         int ret = virConnectCompareCPU(conn, xmlDesc, flags);
                 
         if(ret == VIR_CPU_COMPARE_ERROR) {

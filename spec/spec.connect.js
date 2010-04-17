@@ -38,17 +38,7 @@ describe 'Libvirt'
             
             it 'should open an authenticated hypervisor connection'
             end
-            
-            it 'should compute the most feature-rich CPU'
-                cpu1 = fixture('cpu1.xml')
-                cpu2 = fixture('cpu2.xml')
-                xmlCPUs = [cpu1, cpu2]
-                
-                var baseline = conn.getBaselineCPU(xmlCPUs)
-                baseline.should_be null
-                baseline.should_not_be undefined
-            end
-            
+                  
             it 'should close a hypervisor connection'
                 conn.close().should_be true
             end
@@ -108,12 +98,7 @@ describe 'Libvirt'
                 isSecure.should_be true     
             end
             
-            it 'should compare given cpu description with host CPU'
-                var cpu = fixture('cpu1.xml')
-                var result = conn.compareCPU(cpu)
-                result.should_not_be undefined
-                result.should_not_be null
-            end
+           
         //end
     end
     
@@ -135,7 +120,7 @@ describe 'Libvirt'
         it 'should not return version level of the running hypervisor if connection is read-only'
             var readonly_conn = new libvirt.Connection('test:///default', true)
             var hypervisor_version = readonly_conn.getHypervisorVersion()
-            hypervisor_version.should_be 2
+            hypervisor_version.should_be '0.0.2'
         end
     end
     
@@ -157,16 +142,51 @@ describe 'Libvirt'
         it 'should not return version level of the running hypervisor if connection is read-only'
             var readonly_conn = new libvirt.Connection('test+unix:///default', true)
             var hypervisor_version = readonly_conn.getHypervisorVersion()
-            hypervisor_version.should_be 2
+            //hypervisor_version.should_be '0.0.2'
+            hypervisor_version.should_be null
         end
     end
     
-    /*describe 'Connection using qemu:///system'
+    describe 'Connection using qemu:///system'
         should_behave_like('Connect')
         
         before_each
             // local access, default config, via daemon
             conn = new libvirt.Connection('qemu:///system')
-        end 
-    end*/
+            //conn = new libvirt.Connection('test:///default')
+        end
+        
+         it 'should open a hypervisor read-only connection'
+            var readonly_conn = new libvirt.Connection('qemu:///system', true)
+            readonly_conn.should_not_be undefined
+            readonly_conn.should_not_be null
+            readonly_conn.close()         
+        end
+        
+        it 'should not return version level of the running hypervisor if connection is read-only'
+            var readonly_conn = new libvirt.Connection('qemu:///system', true)
+            var hypervisor_version = readonly_conn.getHypervisorVersion()
+            //hypervisor_version.should_be '0.11.0'
+            hypervisor_version.should_be null
+        end
+        
+        it 'should compute the most feature-rich CPU'
+            cpu1 = fixture('cpu1.xml')
+            cpu2 = fixture('cpu2.xml')
+            computed_cpu = fixture('match_bt_cpu1_and_cpu2.xml')
+                
+            xmlCPUs = [cpu1, cpu2]
+                
+            var baseline = conn.getBaselineCPU(xmlCPUs)
+            baseline.should_equal computed_cpu
+        end
+        
+         it 'should compare given cpu description with host CPU'
+            var cpu = fixture('cpu1.xml')
+            var result = conn.compareCPU(cpu)
+            result.should_not_be undefined
+            result.should_not_be null
+        end
+        
+    end
 end
