@@ -48,13 +48,10 @@ namespace NodeLibvirt {
         HandleScope scope;
         String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
-        //TODO auth support
-        if(readOnly) {
-            conn = virConnectOpenReadOnly(uri);
-        } else {
-            conn = virConnectOpen(uri);
-        }
-        
+
+        conn = virConnectOpenAuth(uri, virConnectAuthPtrDefault,
+                                   readOnly ? VIR_CONNECT_RO : 0);
+
         if(conn == NULL) {
             virError *error = virGetLastError();
             if(error != NULL) {

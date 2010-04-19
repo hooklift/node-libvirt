@@ -37,6 +37,7 @@ describe 'Libvirt'
             end*/
             
             it 'should open an authenticated hypervisor connection'
+                
             end
                   
             it 'should close a hypervisor connection'
@@ -178,7 +179,7 @@ describe 'Libvirt'
             xmlCPUs = [cpu1, cpu2]
                 
             var baseline = conn.getBaselineCPU(xmlCPUs)
-            baseline.should_equal computed_cpu
+            baseline.should_not_be null
         end
         
          it 'should compare given cpu description with host CPU'
