@@ -68,24 +68,24 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         if(args.Length() == 0 ) {
-            return scope.Close(ThrowException(Exception::TypeError(
-            String::New("You need specify at least a Hypervisor URI"))));    
+            return ThrowException(Exception::TypeError(
+            String::New("You need specify at least a Hypervisor URI")));    
         }
         
         if(!args[0]->IsString()) { 
-            return scope.Close(ThrowException(Exception::TypeError(
-            String::New("First argument must be a string"))));
+            return ThrowException(Exception::TypeError(
+            String::New("First argument must be a string")));
         }
         
         if(args.Length() == 2 && !args[1]->IsBoolean()) {
-            return scope.Close(ThrowException(Exception::TypeError(
-            String::New("Second argument must be a boolean"))));
+            return ThrowException(Exception::TypeError(
+            String::New("Second argument must be a boolean")));
         }
         
         Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
         c->Wrap(args.This());
         
-        return scope.Close(args.This());
+        return args.This();
     }
     
     Handle<Value> Connection::GetHypervisorCapabilities(const Arguments& args) {
@@ -93,7 +93,7 @@ namespace NodeLibvirt {
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
 
-        return scope.Close(connection->get_hypervisor_capabilities()); 
+        return connection->get_hypervisor_capabilities(); 
     }
     
     Handle<Value> Connection::get_hypervisor_capabilities() {
@@ -117,7 +117,7 @@ namespace NodeLibvirt {
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
-        return scope.Close(connection->get_hypervisor_hostname());
+        return connection->get_hypervisor_hostname();
     }
     
     Handle<Value> Connection::get_hypervisor_hostname() {
@@ -140,7 +140,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->close());
+        return connection->close();
     }
     
     Handle<Value> Connection::close() {
@@ -160,7 +160,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->get_remote_libvirt_version());
+        return connection->get_remote_libvirt_version();
     }
     
     Handle<Value> Connection::get_remote_libvirt_version() {
@@ -199,7 +199,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->get_hypervisor_type());
+        return connection->get_hypervisor_type();
     }
     
     Handle<Value> Connection::get_hypervisor_type() {
@@ -221,7 +221,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->get_max_vcpus());
+        return connection->get_max_vcpus();
     }
     
     Handle<Value> Connection::get_max_vcpus() {
@@ -252,7 +252,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->get_hypervisor_uri());
+        return connection->get_hypervisor_uri();
     }
     
     Handle<Value> Connection::get_hypervisor_uri() {
@@ -275,7 +275,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->get_hypervisor_version());
+        return connection->get_hypervisor_version();
     }
     
     Handle<Value> Connection::get_hypervisor_version() {
@@ -320,7 +320,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->is_encrypted());
+        return connection->is_encrypted();
     }
     
     Handle<Value> Connection::is_encrypted() {
@@ -344,7 +344,7 @@ namespace NodeLibvirt {
         HandleScope scope;
         
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return scope.Close(connection->is_secure());
+        return connection->is_secure();
     }
     
     Handle<Value> Connection::is_secure() {
@@ -387,7 +387,7 @@ namespace NodeLibvirt {
             xmls1[i] = strdup(*cpu);
         }
         
-        return scope.Close(connection->get_baseline_cpu(xmls1, ncpus, flags)); 
+        return connection->get_baseline_cpu(xmls1, ncpus, flags); 
     }
     
     Handle<Value> Connection::get_baseline_cpu( char **xmlCPUs, 
@@ -429,7 +429,7 @@ namespace NodeLibvirt {
         
         String::Utf8Value cpu(args[0]->ToString());
         
-        return scope.Close(connection->compare_cpu(ToCString(cpu), flags)); 
+        return connection->compare_cpu(ToCString(cpu), flags); 
     }
     
     Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {
