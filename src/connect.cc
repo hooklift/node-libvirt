@@ -374,8 +374,8 @@ namespace NodeLibvirt {
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         if(args.Length() == 0 || !args[0]->IsArray()) {
-            return scope.Close(ThrowException(Exception::TypeError(
-            String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU"))));    
+            return ThrowException(Exception::TypeError(
+            String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU")));    
         }
         
         Local<Array> xmls = Local<Array>::Cast(args[0]);
@@ -423,8 +423,8 @@ namespace NodeLibvirt {
         Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         if(args.Length() == 0 || !args[0]->IsString()) {
-            return scope.Close(ThrowException(Exception::TypeError(
-            String::New("You need to specify a string as first argument"))));    
+            return ThrowException(Exception::TypeError(
+            String::New("You need to specify a string as first argument")));    
         }
         
         String::Utf8Value cpu(args[0]->ToString());
