@@ -4,7 +4,7 @@
 #include <string.h>
 #include "connect.h"
 
-using namespace v8;
+//TODO figure out how to implement event based support
 
 namespace NodeLibvirt {
 
@@ -16,31 +16,71 @@ namespace NodeLibvirt {
         t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         
-        NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",
                                       Connection::GetBaselineCPU);
-        NODE_SET_PROTOTYPE_METHOD(t, "compareCPU", 
+        NODE_SET_PROTOTYPE_METHOD(t, "compareCPU",
                                       Connection::CompareCPU);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities",
                                       Connection::GetHypervisorCapabilities);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname",
                                       Connection::GetHypervisorHostname);
-        NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion",
                                       Connection::GetRemoteLibVirtVersion);
-        NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",
                                       Connection::GetMaxVcpus);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType",
                                       Connection::GetHypervisorType);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri",
                                       Connection::GetHypervisorUri);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion", 
+        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion",
                                       Connection::GetHypervisorVersion);
-        NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted", 
+        NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted",
                                       Connection::IsEncrypted);
-        NODE_SET_PROTOTYPE_METHOD(t, "isSecure", 
+        NODE_SET_PROTOTYPE_METHOD(t, "isSecure",
                                       Connection::IsSecure);
-        NODE_SET_PROTOTYPE_METHOD(t, "close", 
+        NODE_SET_PROTOTYPE_METHOD(t, "close",
                                       Connection::Close);
-        
+        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedDomains",
+                                      Connection::ListDefinedDomains);
+       /* NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces",
+                                      Connection::ListDefinedInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks",
+                                      Connection::ListDefinedNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedStoragePools",
+                                      Connection::ListDefinedStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "listDomains",
+                                      Connection::ListDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "listInterfaces",
+                                      Connection::ListInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "listNWFilters",
+                                      Connection::ListNWFilters);
+        NODE_SET_PROTOTYPE_METHOD(t, "listNetworks",
+                                      Connection::ListNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "listSecrets",
+                                      Connection::ListSecrets);
+        NODE_SET_PROTOTYPE_METHOD(t, "listStoragePools",
+                                      Connection::ListStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedDomains",
+                                      Connection::GetNumOfDefinedDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedInterfaces",
+                                      Connection::GetNumOfDefinedInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedNetworks",
+                                      Connection::GetNumOfDefinedNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedStoragePools",
+                                      Connection::GetNumOfDefinedStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDomains",
+                                      Connection::GetNumOfDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfInterfaces",
+                                      Connection::GetNumOfInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNetworks",
+                                      Connection::GetNumOfNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNWFilters",
+                                      Connection::GetNumOfNWFilters);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfSecrets",
+                                      Connection::GetNumOfSecrets);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfStoragePools",
+                                      Connection::GetNumOfStoragePools);*/
+                                      
         target->Set(String::NewSymbol("Connection"), t->GetFunction());
     }
     
@@ -49,6 +89,7 @@ namespace NodeLibvirt {
         String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
 
+        //FIXME receive auth Object
         conn = virConnectOpenAuth(uri, virConnectAuthPtrDefault,
                                    readOnly ? VIR_CONNECT_RO : 0);
 
@@ -107,7 +148,7 @@ namespace NodeLibvirt {
         }
         
         Local<String> capabilities = String::New((const char*)cap);
-        delete cap;
+        free(cap);
         
         return capabilities;
     }
@@ -131,7 +172,7 @@ namespace NodeLibvirt {
         }
         
         Local<String> hostname = String::New((const char*)hn);
-        delete hn;
+        free(hn);
         
         return hostname;
     }
@@ -266,7 +307,7 @@ namespace NodeLibvirt {
         }
          
         Local<String> uri = String::New(u);
-        delete u;
+        free(u);
         
         return uri;
     }
@@ -445,4 +486,56 @@ namespace NodeLibvirt {
         
         return result;
     }
+
+    Handle<Value> Connection::ListDefinedDomains(const Arguments& args) {
+        HandleScope scope;
+
+        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+
+        return connection->list_defined_domains();
+    }
+
+    Handle<Value> Connection::list_defined_domains() {
+        char **_names = NULL;
+        int numInactiveDomains;
+
+        numInactiveDomains = virConnectNumOfDefinedDomains(conn);
+
+        if(numInactiveDomains == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                LIBVIRT_THROW_EXCEPTION(error->message);
+            }
+        }
+
+        //*_names = new char[numInactiveDomains];
+        _names = (char **)malloc(sizeof(*_names) * numInactiveDomains);
+
+        if(_names == NULL) {
+            LIBVIRT_THROW_EXCEPTION("Error allocating memory for domains names");
+        }
+
+        int ret = virConnectListDefinedDomains(conn, _names, numInactiveDomains);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                delete[] _names;
+                LIBVIRT_THROW_EXCEPTION(error->message);
+            }
+        }
+
+        Local<Array> names = Array::New(numInactiveDomains);
+
+        for(int i = 0; i < numInactiveDomains; i++) {
+            names->Set(Integer::New(i), String::New(_names[i]));
+            free(_names[i]);
+        }
+
+        //delete[] _names;
+        free(_names);
+
+        return names;
+    }
+    
 } //namespace NodeLibvirt

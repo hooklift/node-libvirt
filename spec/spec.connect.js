@@ -37,7 +37,7 @@ describe 'Libvirt'
             end*/
             
             it 'should open an authenticated hypervisor connection'
-                
+                //TODO make specs for auth mechanism
             end
                   
             it 'should close a hypervisor connection'
@@ -97,6 +97,11 @@ describe 'Libvirt'
                 var isSecure = conn.isSecure()
                 //see http://libvirt.org/html/libvirt-libvirt.html#virConnectIsSecure
                 isSecure.should_be true     
+            end
+
+            it 'should list names of defined domains'
+                var domains = conn.listDefinedDomains();
+                domains.should_be_an_instance_of Array
             end
             
            
@@ -188,6 +193,5 @@ describe 'Libvirt'
             result.should_not_be undefined
             result.should_not_be null
         end
-        
     end
 end

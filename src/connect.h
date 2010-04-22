@@ -8,39 +8,67 @@ namespace NodeLibvirt {
 
     class Connection : public EventEmitter {
         public:
-            static void Initialize(v8::Handle<v8::Object> target);
-            //static v8::Persistent<v8::FunctionTemplate> constructor_template;
+            static void Initialize(Handle<Object> target);
             
         protected:
-            static v8::Handle<v8::Value> New(const v8::Arguments& args);
+            static Handle<Value> New(const Arguments& args);
             
-            static v8::Handle<v8::Value> GetHypervisorCapabilities(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypervisorHostname(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypervisorType(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypervisorUri(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetHypervisorVersion(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetRemoteLibVirtVersion(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetMaxVcpus(const v8::Arguments& args);
-            static v8::Handle<v8::Value> GetBaselineCPU(const v8::Arguments& args);
-            static v8::Handle<v8::Value> CompareCPU(const v8::Arguments& args);
-            static v8::Handle<v8::Value> IsEncrypted(const v8::Arguments& args);
-            static v8::Handle<v8::Value> IsSecure(const v8::Arguments& args);
-            static v8::Handle<v8::Value> Close(const v8::Arguments& args);
+            static Handle<Value> GetHypervisorCapabilities(const Arguments& args);
+            static Handle<Value> GetHypervisorHostname(const Arguments& args);
+            static Handle<Value> GetHypervisorType(const Arguments& args);
+            static Handle<Value> GetHypervisorUri(const Arguments& args);
+            static Handle<Value> GetHypervisorVersion(const Arguments& args);
+            static Handle<Value> GetRemoteLibVirtVersion(const Arguments& args);
+            static Handle<Value> GetMaxVcpus(const Arguments& args);
+            static Handle<Value> GetBaselineCPU(const Arguments& args);
+            static Handle<Value> CompareCPU(const Arguments& args);
+            static Handle<Value> IsEncrypted(const Arguments& args);
+            static Handle<Value> IsSecure(const Arguments& args);
+            static Handle<Value> Close(const Arguments& args);
+
+            //virConnectList functions
+            static Handle<Value> ListDefinedDomains(const Arguments& args);
+            static Handle<Value> ListDefinedInterfaces(const Arguments& args);
+            static Handle<Value> ListDefinedNetworks(const Arguments& args);
+            static Handle<Value> ListDefinedStoragePools(const Arguments& args);
+            static Handle<Value> ListDomains(const Arguments& args);
+            static Handle<Value> ListInterfaces(const Arguments& args);
+            static Handle<Value> ListNWFilters(const Arguments& args);
+            static Handle<Value> ListNetworks(const Arguments& args);
+            static Handle<Value> ListSecrets(const Arguments& args);
+            static Handle<Value> ListStoragePools(const Arguments& args);
             
-            Connection(const v8::Local<v8::String>& uri, bool readOnly);
+            //virConnectNumOf functions
+            static Handle<Value> GetNumOfDefinedDomains(const Arguments& args);
+            static Handle<Value> GetNumOfDefinedInterfaces(const Arguments& args);
+            static Handle<Value> GetNumOfDefinedNetworks(const Arguments& args);
+            static Handle<Value> GetNumOfDefinedStoragePools(const Arguments& args);
+            static Handle<Value> GetNumOfDomains(const Arguments& args);
+            static Handle<Value> GetNumOfInterfaces(const Arguments& args);
+            static Handle<Value> GetNumOfNetworks(const Arguments& args);
+            static Handle<Value> GetNumOfNWFilters(const Arguments& args);
+            static Handle<Value> GetNumOfSecrets(const Arguments& args);
+            static Handle<Value> GetNumOfStoragePools(const Arguments& args);
+
+            //TODO virConnectDomain functions
+            
+            Connection(const Local<String>& uri, bool readOnly);
             ~Connection();
-            v8::Handle<v8::Value> get_hypervisor_capabilities();
-            v8::Handle<v8::Value> get_hypervisor_hostname();
-            v8::Handle<v8::Value> get_hypervisor_type();
-            v8::Handle<v8::Value> get_hypervisor_uri();
-            v8::Handle<v8::Value> get_hypervisor_version();
-            v8::Handle<v8::Value> get_remote_libvirt_version();
-            v8::Handle<v8::Value> get_max_vcpus();
-            v8::Handle<v8::Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
-            v8::Handle<v8::Value> compare_cpu(const char *xmlDesc, unsigned int flags);
-            v8::Handle<Value> is_encrypted();
-            v8::Handle<Value> is_secure();
-            v8::Handle<Value> close();
+            
+            Handle<Value> get_hypervisor_capabilities();
+            Handle<Value> get_hypervisor_hostname();
+            Handle<Value> get_hypervisor_type();
+            Handle<Value> get_hypervisor_uri();
+            Handle<Value> get_hypervisor_version();
+            Handle<Value> get_remote_libvirt_version();
+            Handle<Value> get_max_vcpus();
+            Handle<Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
+            Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
+            Handle<Value> is_encrypted();
+            Handle<Value> is_secure();
+            Handle<Value> close();
+
+            Handle<Value> list_defined_domains();
             
         private:
             virConnectPtr conn;  

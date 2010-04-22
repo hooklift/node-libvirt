@@ -9,30 +9,30 @@
 //#include "storage_volume.h"
 
 namespace NodeLibvirt {
-    void InitializeLibvirt(v8::Handle<v8::Object> target) {
-        v8::HandleScope scope;
+    void InitializeLibvirt(Handle<Object> target) {
+        HandleScope scope;
         
         Connection::Initialize(target);
-    //    Domain::Initialize(target);
-    //    Network::Initialize(target);
-    //    StoragePool::Initialize(target);
-    //    StorageVolume::Initialize(target);
+        //Domain::Initialize(target);
+        //Network::Initialize(target);
+        //StoragePool::Initialize(target);
+        //StorageVolume::Initialize(target);
         
-        target->Set(v8::String::NewSymbol("version"),
-                    v8::String::New(NODE_LIBVIRT_VERSION));
+        target->Set(String::NewSymbol("version"),
+                    String::New(NODE_LIBVIRT_VERSION));
      
-        target->Set(v8::String::NewSymbol("libvirt_version"),
-                    v8::String::New(LIBVIRT_VERSION));
+        target->Set(String::NewSymbol("libvirt_version"),
+                    Number::New(LIBVIR_VERSION_NUMBER));
      
-        v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
-        v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
-        v8::Context::Scope context_scope(context);
+        Handle<ObjectTemplate> global = ObjectTemplate::New();
+        Handle<Context> context = Context::New(NULL, global);
+        Context::Scope context_scope(context);
         
-        context->Global()->Set(v8::String::NewSymbol("libvirt"), target);
+        context->Global()->Set(String::NewSymbol("libvirt"), target);
     }
     
     // Extracts a C string from a V8 Utf8Value.
-    const char* ToCString(const v8::String::Utf8Value& value) {
+    const char* ToCString(const String::Utf8Value& value) {
         return *value ? *value : "<string conversion failed>";
     }
 

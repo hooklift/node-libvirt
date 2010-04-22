@@ -8,7 +8,6 @@
 #include <libvirt/virterror.h>
 
 #define NODE_LIBVIRT_VERSION "v0.0.1"
-#define LIBVIRT_VERSION "0.7.0"
 
 #define LIBVIRT_THROW_EXCEPTION(err)                                        \
         v8::Local<v8::Value> exception = v8::Exception::Error(              \
