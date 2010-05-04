@@ -69,9 +69,10 @@ namespace NodeLibvirt {
             Handle<Value> close();
 
             Handle<Value> list_defined_domains();
+            Handle<Value> list_defined_interfaces();
             
         private:
-            virConnectPtr conn;  
+            virConnectPtr conn;
     };
 
 }  // namespace NodeLibvirt

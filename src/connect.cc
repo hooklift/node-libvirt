@@ -520,22 +520,13 @@ namespace NodeLibvirt {
         if(ret == -1) {
             virError *error = virGetLastError();
             if(error != NULL) {
-                delete[] _names;
+                free(_names);
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
         }
 
-        Local<Array> names = Array::New(numInactiveDomains);
-
-        for(int i = 0; i < numInactiveDomains; i++) {
-            names->Set(Integer::New(i), String::New(_names[i]));
-            free(_names[i]);
-        }
-
-        //delete[] _names;
-        free(_names);
-
-        return names;
+        TO_V8_ARRAY(numInactiveDomains, _names);
     }
+
     
 } //namespace NodeLibvirt

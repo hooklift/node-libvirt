@@ -1,0 +1,21 @@
+<domain type='kvm'>
+  <name>demo2</name>
+  <memory>131072</memory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch="i686">hvm</type>
+  </os>
+  <clock sync="localtime"/>
+  <devices>
+    <emulator>/usr/bin/kvm</emulator>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/demo2.img'/>
+      <target dev='hda'/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+      <mac address='24:42:53:21:52:45'/>
+    </interface>
+    <graphics type='vnc' port='-1' keymap='us'/>
+  </devices>
+</domain>

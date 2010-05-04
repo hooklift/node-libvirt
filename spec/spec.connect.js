@@ -4,26 +4,7 @@ libvirt = require('node-libvirt');
 
 describe 'Libvirt'
     shared_behaviors_for 'Connect'
-        before_each 
-            // local access, default config
-            //conn = new libvirt.Connection('test:///default')
 
-            // local access, custom config
-            // conn = new libvirt.Connection('test:///path/to/driver/config.xml')
-            
-            // local access, default config, via daemon
-            //conn = new libvirt.Connection('test+unix:///default')
-
-            // remote access, TLS/x509
-            // conn = new libvirt.Connection('test://example.com/default')
-            
-            // remote access, SASl/Kerberos
-            // conn = new libvirt.Connection('test+tcp://example.com/default')
-            
-            // remote access, SSH tunnelled
-            //conn = new libvirt.Connection('test+ssh://camilo@example.com/default')
-        end
-        
         after_each
             conn.close();
         end
@@ -99,12 +80,78 @@ describe 'Libvirt'
                 isSecure.should_be true     
             end
 
-            it 'should list names of defined domains'
-                var domains = conn.listDefinedDomains();
+            it 'should list names of defined but inactive domains'
+                //TODO We need to create domains and list them for a better
+                var domains = conn.listDefinedDomains()
                 domains.should_be_an_instance_of Array
             end
+
+            it 'should list names of defined but inactive interfaces'
+                //TODO We need to create interfaces and list them for a better
+                var interfaces = conn.listDefinedInterfaces()
+                interfaces.should_be_an_instance_of Array
+            end
+
+            it 'should list names of defined but inactive networks'
+                //TODO We need to create networks and list them for a better
+                var networks = conn.listDefinedNetworks()
+                networks.should_be_an_instance_of Array
+            end
+
+            it 'should list names of defined but inactive storage pools'
+                //TODO We need to create storage pools and list them
+                var storage_pools = conn.listDefinedStoragePools()
+                storage_pools.should_be_an_instance_of Array
+            end
+
+            it 'should list ids of active domains'
+            end
             
-           
+            it 'should list names of active physical host interfaces'
+            end
+
+            it 'should list names of network filters'
+            end
+
+            it 'should list names of active networks'
+            end
+
+            it 'should list UUIDs names of defined secrets'
+            end
+
+            it 'should list names of active storage pools'
+            end
+
+            it 'should return the number of defined but inactive domains'
+            end
+
+            it 'should return the number of defined but inactive interfaces on the physical host'
+            end
+
+            it 'should return the number of defined but inactive networks'
+            end
+
+            it 'should return the number of defined but inactive storage pools'
+            end
+
+            it 'should return the number of active domains'
+            end
+
+            it 'should return the number of active interfaces on the physical host'
+            end
+
+            it 'should return the number of network filters'
+            end
+
+            it 'should return the number of active networks'
+            end
+
+            it 'should return the number of currently defined secrets'
+            end
+
+            it 'should return the number of active storage pools'
+            end
+            
         //end
     end
     
@@ -148,8 +195,8 @@ describe 'Libvirt'
         it 'should not return version level of the running hypervisor if connection is read-only'
             var readonly_conn = new libvirt.Connection('test+unix:///default', true)
             var hypervisor_version = readonly_conn.getHypervisorVersion()
-            //hypervisor_version.should_be '0.0.2'
-            hypervisor_version.should_be null
+            hypervisor_version.should_be '0.0.2'
+            //hypervisor_version.should_be null
         end
     end
     
@@ -173,7 +220,8 @@ describe 'Libvirt'
             var readonly_conn = new libvirt.Connection('qemu:///system', true)
             var hypervisor_version = readonly_conn.getHypervisorVersion()
             //hypervisor_version.should_be '0.11.0'
-            hypervisor_version.should_be null
+            //hypervisor_version.should_be null  //must be this 
+            hypervisor_version.should_not_be null
         end
         
         it 'should compute the most feature-rich CPU'

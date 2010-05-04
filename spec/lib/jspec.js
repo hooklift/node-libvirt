@@ -4,7 +4,7 @@
 ;(function(){
 
   JSpec = {
-    version   : '4.2.1',
+    version   : '4.3.0',
     assert    : true,
     cache     : {},
     suites    : [],
