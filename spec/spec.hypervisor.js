@@ -2,16 +2,19 @@ require.paths.unshift('build/default/src');
 sys = require('sys');
 libvirt = require('node-libvirt');
 
+Hypervisor = libvirt.Hypervisor;
+//Domain = libvirt.Domain;
+
 describe 'Libvirt'
-    shared_behaviors_for 'Connect'
+    shared_behaviors_for 'Hypervisor'
 
         after_each
-            conn.close();
+            hypervisor.closeConnection();
         end
             
         //describe 'Connect'
             it 'should open a hypervisor connection'
-                conn.isEncrypted().should_be false
+                hypervisor.isConnectionEncrypted().should_be false
             end
             
             /*it 'should open a hypervisor read-only connection'    
@@ -22,85 +25,85 @@ describe 'Libvirt'
             end
                   
             it 'should close a hypervisor connection'
-                conn.close().should_be true
+                hypervisor.closeConnection().should_be true
             end
             
             it 'should return hypervisor capabilities'
-                var capabilities = conn.getHypCapabilities()
+                var capabilities = hypervisor.getCapabilities()
                 capabilities.should_not_be undefined
                 capabilities.should_not_be null
             end
             
             it 'should return the hostname of the hypervisor host'
-                var hostname = conn.getHypHostname()
+                var hostname = hypervisor.getHostname()
                 hostname.should_not_be undefined
                 hostname.should_not_be null
             end
             
             it 'should return libvirt version used by remote running deamon'
-                var version = conn.getRemoteLibVirtVersion()
+                var version = hypervisor.getLibVirtVersion()
                 version.should_not_be undefined
                 version.should_not_be null
             end
             
             it 'should return the maximum number of virtual CPUs supported for a guest VM'
-                var max_vcpus = conn.getMaxVcpus()
+                var max_vcpus = hypervisor.getMaxVcpus()
                 max_vcpus.should_not_be undefined
                 max_vcpus.should_not_be null
             end
             
             it 'should return the name of the hypervisor software used'
-                var hypervisor_type = conn.getHypervisorType()
-                hypervisor_type.should_not_be undefined
-                hypervisor_type.should_not_be null
+                var type = hypervisor.getType()
+                type.should_not_be undefined
+                type.should_not_be null
             end
             
             it 'should return the URI of the hypervisor connection'
-                var hypervisor_uri = conn.getHypervisorUri()
-                hypervisor_uri.should_not_be undefined
-                hypervisor_uri.should_not_be null
+                var uri = hypervisor.getConnectionUri()
+                uri.should_not_be undefined
+                uri.should_not_be null
             end
             
             it 'should return version level of the running hypervisor'
-                var hypervisor_version = conn.getHypervisorVersion()
-                hypervisor_version.should_not_equal -1
+                var version = hypervisor.getVersion()
+                version.should_not_equal -1
             end
 
             /*it 'should not return version level of the running hypervisor if connection is read-only'
             end*/ 
             
             it 'should recognize if hypervisor connection is encrypted'
-                var isEncrypted = conn.isEncrypted()
+                var isEncrypted = hypervisor.isConnectionEncrypted()
                 isEncrypted.should_be false    
             end
             
             it 'should recognize if hypervisor connection is secure'
-                var isSecure = conn.isSecure()
+                var isSecure = hypervisor.isConnectionSecure()
                 //see http://libvirt.org/html/libvirt-libvirt.html#virConnectIsSecure
                 isSecure.should_be true     
             end
 
             it 'should list names of defined but inactive domains'
                 //TODO We need to create domains and list them for a better
-                var domains = conn.listDefinedDomains()
+                var domains = hypervisor.getDefinedDomains()
                 domains.should_be_an_instance_of Array
             end
 
             it 'should list names of defined but inactive interfaces'
                 //TODO We need to create interfaces and list them for a better
-                var interfaces = conn.listDefinedInterfaces()
+                var interfaces = hypervisor.getDefinedInterfaces()
                 interfaces.should_be_an_instance_of Array
             end
 
             it 'should list names of defined but inactive networks'
                 //TODO We need to create networks and list them for a better
-                var networks = conn.listDefinedNetworks()
+                var networks = hypervisor.getDefinedNetworks()
                 networks.should_be_an_instance_of Array
             end
 
             it 'should list names of defined but inactive storage pools'
                 //TODO We need to create storage pools and list them
-                var storage_pools = conn.listDefinedStoragePools()
+                var storage_pools = hypervisor.getDefinedStoragePools()
                 storage_pools.should_be_an_instance_of Array
             end
 
@@ -155,73 +158,73 @@ describe 'Libvirt'
         //end
     end
     
-    describe 'Connection using test:///default'
-        should_behave_like('Connect')
+    describe 'Hypervisor connection using test:///default'
+        should_behave_like('Hypervisor')
 
         before_each
             // local access, default config
-            conn = new libvirt.Connection('test:///default')
+            hypervisor = new Hypervisor('test:///default')
         end
         
         it 'should open a hypervisor read-only connection'
-            var readonly_conn = new libvirt.Connection('test:///default', true)
+            var readonly_conn = new Hypervisor('test:///default', true)
             readonly_conn.should_not_be undefined
             readonly_conn.should_not_be null
-            readonly_conn.close()         
+            readonly_conn.closeConnection()         
         end
         
         it 'should not return version level of the running hypervisor if connection is read-only'
-            var readonly_conn = new libvirt.Connection('test:///default', true)
-            var hypervisor_version = readonly_conn.getHypervisorVersion()
-            hypervisor_version.should_be '0.0.2'
+            var readonly_conn = new Hypervisor('test:///default', true)
+            var version = readonly_conn.getVersion()
+            version.should_be '0.0.2'
         end
     end
     
-    describe 'Connection using test+unix:///default via libvirt daemon'
-        should_behave_like('Connect')
+    describe 'Hypervisor connection using test+unix:///default via libvirt daemon'
+        should_behave_like('Hypervisor')
 
         before_each
             // local access, default config, via daemon
-            conn = new libvirt.Connection('test+unix:///default')
+            hypervisor = new Hypervisor('test+unix:///default')
         end
         
         it 'should open a hypervisor read-only connection'
-            var readonly_conn = new libvirt.Connection('test+unix:///default', true)
+            var readonly_conn = new Hypervisor('test+unix:///default', true)
             readonly_conn.should_not_be undefined
             readonly_conn.should_not_be null
-            readonly_conn.close()         
+            readonly_conn.closeConnection()         
         end
         
         it 'should not return version level of the running hypervisor if connection is read-only'
-            var readonly_conn = new libvirt.Connection('test+unix:///default', true)
-            var hypervisor_version = readonly_conn.getHypervisorVersion()
-            hypervisor_version.should_be '0.0.2'
+            var readonly_conn = new Hypervisor('test+unix:///default', true)
+            var version = readonly_conn.getVersion()
+            version.should_be '0.0.2'
             //hypervisor_version.should_be null
         end
     end
     
-    describe 'Connection using qemu:///system'
-        should_behave_like('Connect')
+    describe 'Hypervisor connection using qemu:///system'
+        should_behave_like('Hypervisor')
         
         before_each
             // local access, default config, via daemon
-            conn = new libvirt.Connection('qemu:///system')
+            hypervisor = new Hypervisor('qemu:///system')
             //conn = new libvirt.Connection('test:///default')
         end
         
          it 'should open a hypervisor read-only connection'
-            var readonly_conn = new libvirt.Connection('qemu:///system', true)
+            var readonly_conn = new Hypervisor('qemu:///system', true)
             readonly_conn.should_not_be undefined
             readonly_conn.should_not_be null
-            readonly_conn.close()         
+            readonly_conn.closeConnection()      
         end
         
         it 'should not return version level of the running hypervisor if connection is read-only'
-            var readonly_conn = new libvirt.Connection('qemu:///system', true)
-            var hypervisor_version = readonly_conn.getHypervisorVersion()
+            var readonly_conn = new Hypervisor('qemu:///system', true)
+            var version = readonly_conn.getVersion()
             //hypervisor_version.should_be '0.11.0'
             //hypervisor_version.should_be null  //must be this 
-            hypervisor_version.should_not_be null
+            version.should_not_be null
         end
         
         it 'should compute the most feature-rich CPU'
@@ -231,13 +234,13 @@ describe 'Libvirt'
                 
             xmlCPUs = [cpu1, cpu2]
                 
-            var baseline = conn.getBaselineCPU(xmlCPUs)
+            var baseline = hypervisor.getBaselineCPU(xmlCPUs)
             baseline.should_not_be null
         end
         
          it 'should compare given cpu description with host CPU'
             var cpu = fixture('cpu1.xml')
-            var result = conn.compareCPU(cpu)
+            var result = hypervisor.compareCPU(cpu)
             result.should_not_be undefined
             result.should_not_be null
         end

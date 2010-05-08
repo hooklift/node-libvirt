@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "connect.h"
+#include "hypervisor.h"
 
 //TODO figure out how to implement event based support
 
 namespace NodeLibvirt {
 
-    void Connection::Initialize(Handle<Object> target) {
+    void Hypervisor::Initialize(Handle<Object> target) { 
         HandleScope scope;
         
         Local<FunctionTemplate> t = FunctionTemplate::New(New);
@@ -17,74 +17,74 @@ namespace NodeLibvirt {
         t->InstanceTemplate()->SetInternalFieldCount(1);
         
         NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",
-                                      Connection::GetBaselineCPU);
+                                      Hypervisor::GetBaselineCPU);
         NODE_SET_PROTOTYPE_METHOD(t, "compareCPU",
-                                      Connection::CompareCPU);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypCapabilities",
-                                      Connection::GetHypervisorCapabilities);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypHostname",
-                                      Connection::GetHypervisorHostname);
-        NODE_SET_PROTOTYPE_METHOD(t, "getRemoteLibVirtVersion",
-                                      Connection::GetRemoteLibVirtVersion);
+                                      Hypervisor::CompareCPU);
+        NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",
+                                      Hypervisor::GetCapabilities);
+        NODE_SET_PROTOTYPE_METHOD(t, "getHostname",
+                                      Hypervisor::GetHostname);
+        NODE_SET_PROTOTYPE_METHOD(t, "getLibVirtVersion",
+                                      Hypervisor::GetLibVirtVersion);
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",
-                                      Connection::GetMaxVcpus);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorType",
-                                      Connection::GetHypervisorType);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorUri",
-                                      Connection::GetHypervisorUri);
-        NODE_SET_PROTOTYPE_METHOD(t, "getHypervisorVersion",
-                                      Connection::GetHypervisorVersion);
-        NODE_SET_PROTOTYPE_METHOD(t, "isEncrypted",
-                                      Connection::IsEncrypted);
-        NODE_SET_PROTOTYPE_METHOD(t, "isSecure",
-                                      Connection::IsSecure);
-        NODE_SET_PROTOTYPE_METHOD(t, "close",
-                                      Connection::Close);
-        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedDomains",
-                                      Connection::ListDefinedDomains);
+                                      Hypervisor::GetMaxVcpus);
+        NODE_SET_PROTOTYPE_METHOD(t, "getType",
+                                      Hypervisor::GetType);
+        NODE_SET_PROTOTYPE_METHOD(t, "getConnectionUri",
+                                      Hypervisor::GetConnectionUri);
+        NODE_SET_PROTOTYPE_METHOD(t, "getVersion",
+                                      Hypervisor::GetVersion);
+        NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted",
+                                      Hypervisor::IsEncrypted);
+        NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",
+                                      Hypervisor::IsSecure);
+        NODE_SET_PROTOTYPE_METHOD(t, "closeConnection",
+                                      Hypervisor::CloseConnection);
+        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedDomains",
+                                      Hypervisor::GetDefinedDomains);
        /* NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces",
-                                      Connection::ListDefinedInterfaces);
+                                      Hypervisor::ListDefinedInterfaces);
         NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks",
-                                      Connection::ListDefinedNetworks);
+                                      Hypervisor::ListDefinedNetworks);
         NODE_SET_PROTOTYPE_METHOD(t, "listDefinedStoragePools",
-                                      Connection::ListDefinedStoragePools);
+                                      Hypervisor::ListDefinedStoragePools);
         NODE_SET_PROTOTYPE_METHOD(t, "listDomains",
-                                      Connection::ListDomains);
+                                      Hypervisor::ListDomains);
         NODE_SET_PROTOTYPE_METHOD(t, "listInterfaces",
-                                      Connection::ListInterfaces);
+                                      Hypervisor::ListInterfaces);
         NODE_SET_PROTOTYPE_METHOD(t, "listNWFilters",
-                                      Connection::ListNWFilters);
+                                      Hypervisor::ListNWFilters);
         NODE_SET_PROTOTYPE_METHOD(t, "listNetworks",
-                                      Connection::ListNetworks);
+                                      Hypervisor::ListNetworks);
         NODE_SET_PROTOTYPE_METHOD(t, "listSecrets",
-                                      Connection::ListSecrets);
+                                      Hypervisor::ListSecrets);
         NODE_SET_PROTOTYPE_METHOD(t, "listStoragePools",
-                                      Connection::ListStoragePools);
+                                      Hypervisor::ListStoragePools);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedDomains",
-                                      Connection::GetNumOfDefinedDomains);
+                                      Hypervisor::GetNumOfDefinedDomains);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedInterfaces",
-                                      Connection::GetNumOfDefinedInterfaces);
+                                      Hypervisor::GetNumOfDefinedInterfaces);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedNetworks",
-                                      Connection::GetNumOfDefinedNetworks);
+                                      Hypervisor::GetNumOfDefinedNetworks);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedStoragePools",
-                                      Connection::GetNumOfDefinedStoragePools);
+                                      Hypervisor::GetNumOfDefinedStoragePools);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDomains",
-                                      Connection::GetNumOfDomains);
+                                      Hypervisor::GetNumOfDomains);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfInterfaces",
-                                      Connection::GetNumOfInterfaces);
+                                      Hypervisor::GetNumOfInterfaces);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNetworks",
-                                      Connection::GetNumOfNetworks);
+                                      Hypervisor::GetNumOfNetworks);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNWFilters",
-                                      Connection::GetNumOfNWFilters);
+                                      Hypervisor::GetNumOfNWFilters);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfSecrets",
-                                      Connection::GetNumOfSecrets);
+                                      Hypervisor::GetNumOfSecrets);
         NODE_SET_PROTOTYPE_METHOD(t, "getNumOfStoragePools",
-                                      Connection::GetNumOfStoragePools);*/
+                                      Hypervisor::GetNumOfStoragePools);*/
                                       
-        target->Set(String::NewSymbol("Connection"), t->GetFunction());
+        target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
     
-    Connection::Connection(const Local<String>& uriStr, bool readOnly) : EventEmitter(){
+    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter(){
         HandleScope scope;
         String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
@@ -101,11 +101,12 @@ namespace NodeLibvirt {
         }
     }
       
-    Connection::~Connection(){
+    Hypervisor::~Hypervisor(){
         assert(conn == NULL);
+        
     }
     
-    Handle<Value> Connection::New(const Arguments& args) {
+    Handle<Value> Hypervisor::New(const Arguments& args) {
         HandleScope scope;
         
         if(args.Length() == 0 ) {
@@ -123,21 +124,21 @@ namespace NodeLibvirt {
             String::New("Second argument must be a boolean")));
         }
         
-        Connection *c = new Connection(args[0]->ToString(), args[1]->IsTrue());
-        c->Wrap(args.This());
+        Hypervisor *hypervisor = new Hypervisor(args[0]->ToString(), args[1]->IsTrue());
+        hypervisor->Wrap(args.This());
         
         return args.This();
     }
     
-    Handle<Value> Connection::GetHypervisorCapabilities(const Arguments& args) {
+    Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return connection->get_hypervisor_capabilities(); 
+        return hypervisor->get_capabilities(); 
     }
     
-    Handle<Value> Connection::get_hypervisor_capabilities() {
+    Handle<Value> Hypervisor::get_capabilities() {
         char *cap = virConnectGetCapabilities(conn);
         
         if(cap == NULL) {
@@ -153,15 +154,15 @@ namespace NodeLibvirt {
         return capabilities;
     }
     
-    Handle<Value> Connection::GetHypervisorHostname(const Arguments& args) {
+    Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
         
-        return connection->get_hypervisor_hostname();
+        return hypervisor->get_hostname();
     }
     
-    Handle<Value> Connection::get_hypervisor_hostname() {
+    Handle<Value> Hypervisor::get_hostname() {
         char *hn = virConnectGetHostname(conn);
         
         if(hn == NULL) {
@@ -177,14 +178,14 @@ namespace NodeLibvirt {
         return hostname;
     }
     
-    Handle<Value> Connection::Close(const Arguments& args) {
+    Handle<Value> Hypervisor::CloseConnection(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->close();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->close_connection();
     }
     
-    Handle<Value> Connection::close() {
+    Handle<Value> Hypervisor::close_connection() {
         int isClosed = -1;
         if(conn != NULL) {
             isClosed = virConnectClose(conn);
@@ -197,14 +198,14 @@ namespace NodeLibvirt {
         return True();
     }
     
-    Handle<Value> Connection::GetRemoteLibVirtVersion(const Arguments& args) {
+    Handle<Value> Hypervisor::GetLibVirtVersion(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_remote_libvirt_version();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->get_libvirt_version();
     }
     
-    Handle<Value> Connection::get_remote_libvirt_version() {
+    Handle<Value> Hypervisor::get_libvirt_version() {
         unsigned long *libVer;
         unsigned int major;
         unsigned int minor;
@@ -236,14 +237,14 @@ namespace NodeLibvirt {
     }
     
     
-    Handle<Value> Connection::GetHypervisorType(const Arguments& args) {
+    Handle<Value> Hypervisor::GetType(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_type();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->get_type();
     }
     
-    Handle<Value> Connection::get_hypervisor_type() {
+    Handle<Value> Hypervisor::get_type() {
         const char *t = virConnectGetType(conn);
         
         if(t == NULL) {
@@ -258,14 +259,14 @@ namespace NodeLibvirt {
         return type;
     }
     
-    Handle<Value> Connection::GetMaxVcpus(const Arguments& args) {
+    Handle<Value> Hypervisor::GetMaxVcpus(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_max_vcpus();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->get_max_vcpus();
     }
     
-    Handle<Value> Connection::get_max_vcpus() {
+    Handle<Value> Hypervisor::get_max_vcpus() {
         const char *type = virConnectGetType(conn);
         
         if(type == NULL) {
@@ -289,14 +290,14 @@ namespace NodeLibvirt {
         return max;
     }
     
-    Handle<Value> Connection::GetHypervisorUri(const Arguments& args) {
+    Handle<Value> Hypervisor::GetConnectionUri(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_uri();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->get_connection_uri();
     }
     
-    Handle<Value> Connection::get_hypervisor_uri() {
+    Handle<Value> Hypervisor::get_connection_uri() {
         char *u = virConnectGetURI(conn);
         
         if(u == NULL) {
@@ -312,14 +313,14 @@ namespace NodeLibvirt {
         return uri;
     }
     
-    Handle<Value> Connection::GetHypervisorVersion(const Arguments& args) {
+    Handle<Value> Hypervisor::GetVersion(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->get_hypervisor_version();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->get_version();
     }
     
-    Handle<Value> Connection::get_hypervisor_version() {
+    Handle<Value> Hypervisor::get_version() {
         unsigned long *hvVer;
         unsigned int major;
         unsigned int minor;
@@ -357,14 +358,14 @@ namespace NodeLibvirt {
         return version;
     }
     
-    Handle<Value> Connection::IsEncrypted(const Arguments& args) {
+    Handle<Value> Hypervisor::IsEncrypted(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->is_encrypted();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->is_encrypted();
     }
     
-    Handle<Value> Connection::is_encrypted() {
+    Handle<Value> Hypervisor::is_encrypted() {
         int ret = virConnectIsEncrypted(conn);
         
         if(ret == -1) {
@@ -381,14 +382,14 @@ namespace NodeLibvirt {
        return False();
     }
     
-    Handle<Value> Connection::IsSecure(const Arguments& args) {
+    Handle<Value> Hypervisor::IsSecure(const Arguments& args) {
         HandleScope scope;
         
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        return connection->is_secure();
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        return hypervisor->is_secure();
     }
     
-    Handle<Value> Connection::is_secure() {
+    Handle<Value> Hypervisor::is_secure() {
         int ret = virConnectIsSecure(conn);
         
         if(ret == -1) {
@@ -405,15 +406,13 @@ namespace NodeLibvirt {
        return False();
     }
     
-     Handle<Value> Connection::GetBaselineCPU(const Arguments& args) {
+     Handle<Value> Hypervisor::GetBaselineCPU(const Arguments& args) {
         HandleScope scope;
         
         const char **xmlCPUs = NULL;
         unsigned int ncpus = 0;
         unsigned int flags = 0;
-        
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
-        
+    
         if(args.Length() == 0 || !args[0]->IsArray()) {
             return ThrowException(Exception::TypeError(
             String::New("You need to specify an Array with two xml's to compute the most feature-rich CPU")));    
@@ -427,11 +426,12 @@ namespace NodeLibvirt {
             String::Utf8Value cpu(xmls->Get(Integer::New(i))->ToString());
             xmls1[i] = strdup(*cpu);
         }
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
         
-        return connection->get_baseline_cpu(xmls1, ncpus, flags); 
+        return hypervisor->get_baseline_cpu(xmls1, ncpus, flags); 
     }
     
-    Handle<Value> Connection::get_baseline_cpu( char **xmlCPUs, 
+    Handle<Value> Hypervisor::get_baseline_cpu( char **xmlCPUs, 
                                                 unsigned int ncpus, 
                                                 unsigned int flags) {  
         const char *x = virConnectBaselineCPU(conn, (const char**)xmlCPUs, ncpus, flags);
@@ -455,13 +455,11 @@ namespace NodeLibvirt {
         return v8::Null();
     }
     
-    Handle<Value> Connection::CompareCPU(const Arguments& args) {
+    Handle<Value> Hypervisor::CompareCPU(const Arguments& args) {
         HandleScope scope;
         
         char *xmlDesc = NULL;
         unsigned int flags = 0;
-        
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
         
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -469,11 +467,13 @@ namespace NodeLibvirt {
         }
         
         String::Utf8Value cpu(args[0]->ToString());
-        
-        return connection->compare_cpu(ToCString(cpu), flags); 
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());        
+
+        return hypervisor->compare_cpu(ToCString(cpu), flags); 
     }
     
-    Handle<Value> Connection::compare_cpu( const char *xmlDesc, unsigned int flags) {
+    Handle<Value> Hypervisor::compare_cpu( const char *xmlDesc, unsigned int flags) {
         int ret = virConnectCompareCPU(conn, xmlDesc, flags);
                 
         if(ret == VIR_CPU_COMPARE_ERROR) {
@@ -487,15 +487,15 @@ namespace NodeLibvirt {
         return result;
     }
 
-    Handle<Value> Connection::ListDefinedDomains(const Arguments& args) {
+    Handle<Value> Hypervisor::GetDefinedDomains(const Arguments& args) {
         HandleScope scope;
 
-        Connection *connection = ObjectWrap::Unwrap<Connection>(args.This());
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return connection->list_defined_domains();
+        return hypervisor->get_defined_domains();
     }
 
-    Handle<Value> Connection::list_defined_domains() {
+    Handle<Value> Hypervisor::get_defined_domains() {
         char **_names = NULL;
         int numInactiveDomains;
 

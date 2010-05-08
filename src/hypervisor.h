@@ -1,75 +1,80 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_CONNECT_H_
-#define SRC_CONNECT_H_
+#ifndef SRC_HYPERVISOR_H_
+#define SRC_HYPERVISOR_H_
 
 #include "node_libvirt.h"
 
 namespace NodeLibvirt {
 
-    class Connection : public EventEmitter {
+    class Hypervisor : public EventEmitter {
         public:
             static void Initialize(Handle<Object> target);
             
         protected:
             static Handle<Value> New(const Arguments& args);
             
-            static Handle<Value> GetHypervisorCapabilities(const Arguments& args);
-            static Handle<Value> GetHypervisorHostname(const Arguments& args);
-            static Handle<Value> GetHypervisorType(const Arguments& args);
-            static Handle<Value> GetHypervisorUri(const Arguments& args);
-            static Handle<Value> GetHypervisorVersion(const Arguments& args);
-            static Handle<Value> GetRemoteLibVirtVersion(const Arguments& args);
+            static Handle<Value> GetCapabilities(const Arguments& args);
+            static Handle<Value> GetHostname(const Arguments& args);
+            static Handle<Value> GetType(const Arguments& args);
+            static Handle<Value> GetConnectionUri(const Arguments& args);
+            static Handle<Value> GetVersion(const Arguments& args);
+            static Handle<Value> GetLibVirtVersion(const Arguments& args);
             static Handle<Value> GetMaxVcpus(const Arguments& args);
             static Handle<Value> GetBaselineCPU(const Arguments& args);
             static Handle<Value> CompareCPU(const Arguments& args);
             static Handle<Value> IsEncrypted(const Arguments& args);
             static Handle<Value> IsSecure(const Arguments& args);
-            static Handle<Value> Close(const Arguments& args);
+            static Handle<Value> CloseConnection(const Arguments& args);
 
             //virConnectList functions
-            static Handle<Value> ListDefinedDomains(const Arguments& args);
-            static Handle<Value> ListDefinedInterfaces(const Arguments& args);
-            static Handle<Value> ListDefinedNetworks(const Arguments& args);
-            static Handle<Value> ListDefinedStoragePools(const Arguments& args);
-            static Handle<Value> ListDomains(const Arguments& args);
-            static Handle<Value> ListInterfaces(const Arguments& args);
-            static Handle<Value> ListNWFilters(const Arguments& args);
-            static Handle<Value> ListNetworks(const Arguments& args);
-            static Handle<Value> ListSecrets(const Arguments& args);
-            static Handle<Value> ListStoragePools(const Arguments& args);
+            static Handle<Value> GetDefinedDomains(const Arguments& args);
+            static Handle<Value> GetDefinedInterfaces(const Arguments& args);
+            static Handle<Value> GetDefinedNetworks(const Arguments& args);
+            static Handle<Value> GetDefinedStoragePools(const Arguments& args);
+            static Handle<Value> GetActiveDomains(const Arguments& args);
+            static Handle<Value> GetActiveInterfaces(const Arguments& args);
+            static Handle<Value> GetNetworkFilters(const Arguments& args);
+            static Handle<Value> GetActiveNetworks(const Arguments& args);
+            static Handle<Value> GetSecrets(const Arguments& args);
+            static Handle<Value> GetActiveStoragePools(const Arguments& args);
             
             //virConnectNumOf functions
-            static Handle<Value> GetNumOfDefinedDomains(const Arguments& args);
-            static Handle<Value> GetNumOfDefinedInterfaces(const Arguments& args);
-            static Handle<Value> GetNumOfDefinedNetworks(const Arguments& args);
-            static Handle<Value> GetNumOfDefinedStoragePools(const Arguments& args);
-            static Handle<Value> GetNumOfDomains(const Arguments& args);
-            static Handle<Value> GetNumOfInterfaces(const Arguments& args);
-            static Handle<Value> GetNumOfNetworks(const Arguments& args);
-            static Handle<Value> GetNumOfNWFilters(const Arguments& args);
-            static Handle<Value> GetNumOfSecrets(const Arguments& args);
-            static Handle<Value> GetNumOfStoragePools(const Arguments& args);
+            static Handle<Value> GetNumberOfDefinedDomains(const Arguments& args);
+            static Handle<Value> GetNumberOfDefinedInterfaces(const Arguments& args);
+            static Handle<Value> GetNumberOfDefinedNetworks(const Arguments& args);
+            static Handle<Value> GetNumberOfDefinedStoragePools(const Arguments& args);
+            static Handle<Value> GetNumberOfActiveDomains(const Arguments& args);
+            static Handle<Value> GetNumberOfActiveInterfaces(const Arguments& args);
+            static Handle<Value> GetNumberOfActiveNetworks(const Arguments& args);
+            static Handle<Value> GetNumberOfNetworkFilters(const Arguments& args);
+            static Handle<Value> GetNumberOfSecrets(const Arguments& args);
+            static Handle<Value> GetNumberOfActiveStoragePools(const Arguments& args);
 
-            //TODO virConnectDomain functions
+            //Domain functions
+            static Handle<Value> CreateDomain(const Arguments& args);
+            static Handle<Value> DefineDomain(const Arguments& args);
+            static Handle<Value> GetDomainById(const Arguments& args);
+            static Handle<Value> GetDomainByName(const Arguments& args);
+            static Handle<Value> GetDomainByUUID(const Arguments& args);                        
+                        
+            Hypervisor(const Local<String>& uri, bool readOnly);
+            ~Hypervisor();
             
-            Connection(const Local<String>& uri, bool readOnly);
-            ~Connection();
-            
-            Handle<Value> get_hypervisor_capabilities();
-            Handle<Value> get_hypervisor_hostname();
-            Handle<Value> get_hypervisor_type();
-            Handle<Value> get_hypervisor_uri();
-            Handle<Value> get_hypervisor_version();
-            Handle<Value> get_remote_libvirt_version();
+            Handle<Value> get_capabilities();
+            Handle<Value> get_hostname();
+            Handle<Value> get_type();
+            Handle<Value> get_connection_uri();
+            Handle<Value> get_version();
+            Handle<Value> get_libvirt_version();
             Handle<Value> get_max_vcpus();
             Handle<Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
             Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
             Handle<Value> is_encrypted();
             Handle<Value> is_secure();
-            Handle<Value> close();
+            Handle<Value> close_connection();
 
-            Handle<Value> list_defined_domains();
-            Handle<Value> list_defined_interfaces();
+            Handle<Value> get_defined_domains();
+            Handle<Value> get_defined_interfaces();
             
         private:
             virConnectPtr conn;
@@ -77,4 +82,4 @@ namespace NodeLibvirt {
 
 }  // namespace NodeLibvirt
 
-#endif  // SRC_CONNECT_H_
+#endif  // SRC_HYPERVISOR_H_

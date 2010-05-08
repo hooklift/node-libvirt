@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "node_libvirt.h"
-#include "connect.h"
+#include "hypervisor.h"
 //#include "domain.h"
 //#include "device.h"
 //#include "network.h"
@@ -12,7 +12,7 @@ namespace NodeLibvirt {
     void InitializeLibvirt(Handle<Object> target) {
         HandleScope scope;
         
-        Connection::Initialize(target);
+        Hypervisor::Initialize(target);
         //Domain::Initialize(target);
         //Network::Initialize(target);
         //StoragePool::Initialize(target);
@@ -47,7 +47,8 @@ namespace NodeLibvirt {
     }*/
 
     extern "C" void init (Handle<Object> target) {
-      HandleScope scope;
-      InitializeLibvirt(target);
+        virInitialize();
+        HandleScope scope;
+        InitializeLibvirt(target);
     }
 } //namespace NodeLibvirt
