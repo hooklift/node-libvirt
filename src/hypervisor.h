@@ -22,8 +22,8 @@ namespace NodeLibvirt {
             static Handle<Value> GetMaxVcpus(const Arguments& args);
             static Handle<Value> GetBaselineCPU(const Arguments& args);
             static Handle<Value> CompareCPU(const Arguments& args);
-            static Handle<Value> IsEncrypted(const Arguments& args);
-            static Handle<Value> IsSecure(const Arguments& args);
+            static Handle<Value> IsConnectionEncrypted(const Arguments& args);
+            static Handle<Value> IsConnectionSecure(const Arguments& args);
             static Handle<Value> CloseConnection(const Arguments& args);
 
             //virConnectList functions
@@ -69,12 +69,26 @@ namespace NodeLibvirt {
             Handle<Value> get_max_vcpus();
             Handle<Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
             Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
-            Handle<Value> is_encrypted();
-            Handle<Value> is_secure();
+            Handle<Value> is_connection_encrypted();
+            Handle<Value> is_connection_secure();
             Handle<Value> close_connection();
 
             Handle<Value> get_defined_domains();
             Handle<Value> get_defined_interfaces();
+            Handle<Value> get_defined_networks();
+            Handle<Value> get_defined_storage_pools();
+            Handle<Value> get_active_domains();
+            Handle<Value> get_active_interfaces();
+            Handle<Value> get_active_networks();
+            Handle<Value> get_active_storage_pools();
+            Handle<Value> get_network_filters();
+            Handle<Value> get_secrets();
+            
+            Handle<Value> create_domain();
+            Handle<Value> define_domain();
+            Handle<Value> get_domain_by_id();
+            Handle<Value> get_domain_by_name();
+            Handle<Value> get_domain_by_uuid();            
             
         private:
             virConnectPtr conn;

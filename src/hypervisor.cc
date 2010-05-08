@@ -35,51 +35,51 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getVersion",
                                       Hypervisor::GetVersion);
         NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted",
-                                      Hypervisor::IsEncrypted);
+                                      Hypervisor::IsConnectionEncrypted);
         NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",
-                                      Hypervisor::IsSecure);
+                                      Hypervisor::IsConnectionSecure);
         NODE_SET_PROTOTYPE_METHOD(t, "closeConnection",
                                       Hypervisor::CloseConnection);
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedDomains",
                                       Hypervisor::GetDefinedDomains);
-       /* NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces",
-                                      Hypervisor::ListDefinedInterfaces);
-        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks",
-                                      Hypervisor::ListDefinedNetworks);
-        NODE_SET_PROTOTYPE_METHOD(t, "listDefinedStoragePools",
-                                      Hypervisor::ListDefinedStoragePools);
-        NODE_SET_PROTOTYPE_METHOD(t, "listDomains",
-                                      Hypervisor::ListDomains);
-        NODE_SET_PROTOTYPE_METHOD(t, "listInterfaces",
-                                      Hypervisor::ListInterfaces);
-        NODE_SET_PROTOTYPE_METHOD(t, "listNWFilters",
-                                      Hypervisor::ListNWFilters);
-        NODE_SET_PROTOTYPE_METHOD(t, "listNetworks",
-                                      Hypervisor::ListNetworks);
-        NODE_SET_PROTOTYPE_METHOD(t, "listSecrets",
-                                      Hypervisor::ListSecrets);
-        NODE_SET_PROTOTYPE_METHOD(t, "listStoragePools",
-                                      Hypervisor::ListStoragePools);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedDomains",
-                                      Hypervisor::GetNumOfDefinedDomains);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedInterfaces",
-                                      Hypervisor::GetNumOfDefinedInterfaces);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedNetworks",
-                                      Hypervisor::GetNumOfDefinedNetworks);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDefinedStoragePools",
-                                      Hypervisor::GetNumOfDefinedStoragePools);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfDomains",
-                                      Hypervisor::GetNumOfDomains);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfInterfaces",
-                                      Hypervisor::GetNumOfInterfaces);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNetworks",
-                                      Hypervisor::GetNumOfNetworks);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfNWFilters",
-                                      Hypervisor::GetNumOfNWFilters);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfSecrets",
-                                      Hypervisor::GetNumOfSecrets);
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumOfStoragePools",
-                                      Hypervisor::GetNumOfStoragePools);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedInterfaces",
+                                      Hypervisor::GetDefinedInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedNetworks",
+                                      Hypervisor::GetDefinedNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
+                                      Hypervisor::GetDefinedStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
+                                      Hypervisor::GetActiveDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
+                                      Hypervisor::GetActiveInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getActiveInterfaces",
+                                      Hypervisor::GetNetworkFilters);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNetworkFilters",
+                                      Hypervisor::GetActiveNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getActiveNetworks",
+                                      Hypervisor::GetSecrets);
+        NODE_SET_PROTOTYPE_METHOD(t, "getSecrets",
+                                      Hypervisor::GetActiveStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "getActiveStoragePools",
+                                      Hypervisor::GetNumberOfDefinedDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedInterfaces",
+                                      Hypervisor::GetNumberOfDefinedInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedNetworks",
+                                      Hypervisor::GetNumberOfDefinedNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedStoragePools",
+                                      Hypervisor::GetNumberOfDefinedStoragePools);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveDomains",
+                                      Hypervisor::GetNumberOfActiveDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveInterfaces",
+                                      Hypervisor::GetNumberOfActiveInterfaces);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveNetworks",
+                                      Hypervisor::GetNumberOfActiveNetworks);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfNetworkFilters",
+                                      Hypervisor::GetNumberOfNetworkFilters);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfSecrets",
+                                      Hypervisor::GetNumberOfSecrets);
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveStoragePools",
+                                      Hypervisor::GetNumberOfActiveStoragePools);
                                       
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
@@ -340,8 +340,6 @@ namespace NodeLibvirt {
         if(ret == 0 && *hvVer == 0) {
             delete hvVer;
             return Null(); 
-            /*LIBVIRT_THROW_EXCEPTION(
-                "Hypervisor lack of capacities to retrive its version");*/
         }
         
         major = *hvVer / 1000000;
@@ -358,14 +356,14 @@ namespace NodeLibvirt {
         return version;
     }
     
-    Handle<Value> Hypervisor::IsEncrypted(const Arguments& args) {
+    Handle<Value> Hypervisor::IsConnectionEncrypted(const Arguments& args) {
         HandleScope scope;
         
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->is_encrypted();
+        return hypervisor->is_connection_encrypted();
     }
     
-    Handle<Value> Hypervisor::is_encrypted() {
+    Handle<Value> Hypervisor::is_connection_encrypted() {
         int ret = virConnectIsEncrypted(conn);
         
         if(ret == -1) {
@@ -382,14 +380,14 @@ namespace NodeLibvirt {
        return False();
     }
     
-    Handle<Value> Hypervisor::IsSecure(const Arguments& args) {
+    Handle<Value> Hypervisor::IsConnectionSecure(const Arguments& args) {
         HandleScope scope;
         
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->is_secure();
+        return hypervisor->is_connection_secure();
     }
     
-    Handle<Value> Hypervisor::is_secure() {
+    Handle<Value> Hypervisor::is_connection_secure() {
         int ret = virConnectIsSecure(conn);
         
         if(ret == -1) {
