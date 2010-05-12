@@ -18,68 +18,99 @@ namespace NodeLibvirt {
         
         NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",
                                       Hypervisor::GetBaselineCPU);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "compareCPU",
                                       Hypervisor::CompareCPU);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",
                                       Hypervisor::GetCapabilities);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getHostname",
                                       Hypervisor::GetHostname);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getLibVirtVersion",
                                       Hypervisor::GetLibVirtVersion);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",
                                       Hypervisor::GetMaxVcpus);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getType",
                                       Hypervisor::GetType);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getConnectionUri",
                                       Hypervisor::GetConnectionUri);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getVersion",
                                       Hypervisor::GetVersion);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted",
                                       Hypervisor::IsConnectionEncrypted);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",
                                       Hypervisor::IsConnectionSecure);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "closeConnection",
                                       Hypervisor::CloseConnection);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedDomains",
                                       Hypervisor::GetDefinedDomains);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedInterfaces",
                                       Hypervisor::GetDefinedInterfaces);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedNetworks",
                                       Hypervisor::GetDefinedNetworks);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
                                       Hypervisor::GetDefinedStoragePools);
-        NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
+                                      
+        /*NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
                                       Hypervisor::GetActiveDomains);
-        NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
-                                      Hypervisor::GetActiveInterfaces);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveInterfaces",
-                                      Hypervisor::GetNetworkFilters);
+                                      Hypervisor::GetActiveInterfaces);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNetworkFilters",
-                                      Hypervisor::GetActiveNetworks);
+                                      Hypervisor::GetNetworkFilters);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveNetworks",
-                                      Hypervisor::GetSecrets);
+                                      Hypervisor::GetActiveNetworks);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getSecrets",
-                                      Hypervisor::GetActiveStoragePools);
+                                      Hypervisor::GetSecrets);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveStoragePools",
+                                      Hypervisor::GetActiveStoragePools);
+                                      
+        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedDomains",
                                       Hypervisor::GetNumberOfDefinedDomains);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedInterfaces",
                                       Hypervisor::GetNumberOfDefinedInterfaces);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedNetworks",
                                       Hypervisor::GetNumberOfDefinedNetworks);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedStoragePools",
                                       Hypervisor::GetNumberOfDefinedStoragePools);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveDomains",
                                       Hypervisor::GetNumberOfActiveDomains);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveInterfaces",
                                       Hypervisor::GetNumberOfActiveInterfaces);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveNetworks",
                                       Hypervisor::GetNumberOfActiveNetworks);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfNetworkFilters",
                                       Hypervisor::GetNumberOfNetworkFilters);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfSecrets",
                                       Hypervisor::GetNumberOfSecrets);
+                                      
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveStoragePools",
-                                      Hypervisor::GetNumberOfActiveStoragePools);
+                                      Hypervisor::GetNumberOfActiveStoragePools);*/
                                       
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
@@ -494,36 +525,47 @@ namespace NodeLibvirt {
     }
 
     Handle<Value> Hypervisor::get_defined_domains() {
-        char **_names = NULL;
-        int numInactiveDomains;
+        GET_LIST_OF(virConnectNumOfDefinedDomains, 
+                    virConnectListDefinedDomains, "Domain");
+    }
+    
+    Handle<Value> Hypervisor::GetDefinedInterfaces(const Arguments& args) {
+        HandleScope scope;
 
-        numInactiveDomains = virConnectNumOfDefinedDomains(conn);
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        if(numInactiveDomains == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
-        }
+        return hypervisor->get_defined_interfaces();
+    }
+    
+    Handle<Value> Hypervisor::get_defined_interfaces() {
+        GET_LIST_OF(virConnectNumOfDefinedInterfaces, 
+                    virConnectListDefinedInterfaces, "Interfaces");
+    }
+    
+    Handle<Value> Hypervisor::GetDefinedNetworks(const Arguments& args) {
+        HandleScope scope;
 
-        //*_names = new char[numInactiveDomains];
-        _names = (char **)malloc(sizeof(*_names) * numInactiveDomains);
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        if(_names == NULL) {
-            LIBVIRT_THROW_EXCEPTION("Error allocating memory for domains names");
-        }
+        return hypervisor->get_defined_networks();
+    }
+    
+    Handle<Value> Hypervisor::get_defined_networks() {
+        GET_LIST_OF(virConnectNumOfDefinedNetworks, 
+                    virConnectListDefinedNetworks, "Networks");
+    }
+    
+     Handle<Value> Hypervisor::GetDefinedStoragePools(const Arguments& args) {
+        HandleScope scope;
 
-        int ret = virConnectListDefinedDomains(conn, _names, numInactiveDomains);
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                free(_names);
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
-        }
+        return hypervisor->get_defined_storage_pools();
+    }
 
-        TO_V8_ARRAY(numInactiveDomains, _names);
+    Handle<Value> Hypervisor::get_defined_storage_pools() {
+        GET_LIST_OF(virConnectNumOfDefinedStoragePools, 
+                    virConnectListDefinedStoragePools, "Storage Pools");
     }
 
     

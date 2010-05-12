@@ -4,6 +4,42 @@
 
 #include "node_libvirt.h"
 
+#define GET_LIST_OF(numof_function, list_function, domain_concept) \
+({ \
+   \
+   \
+    char **_names = NULL;                                               \
+    int numInactiveThings;                                              \
+                                                                        \
+    numInactiveThings = numof_function(conn);                           \
+                                                                        \
+    if(numInactiveThings == -1) {                                       \
+        virError *error = virGetLastError();                            \
+        if(error != NULL) {                                             \
+                LIBVIRT_THROW_EXCEPTION(error->message);                \
+            }                                                           \
+    } else {                                                                   \
+                                                                        \
+        _names = (char **)malloc(sizeof(*_names) * numInactiveThings);  \
+                                                                        \
+        if(_names == NULL) {                                            \
+            LIBVIRT_THROW_EXCEPTION("Error allocating memory for ##domain_concept## names");\
+        }                                                               \
+                                                                        \
+        int ret = list_function(conn, _names, numInactiveThings);       \
+                                                                        \
+        if(ret == -1) {                                                 \
+            virError *error = virGetLastError();                        \
+            if(error != NULL) {                                         \
+                free(_names);                                           \
+                LIBVIRT_THROW_EXCEPTION(error->message);                \
+            }                                                           \
+        }                                                               \
+    }                                                                   \
+                                                                        \
+    TO_V8_ARRAY(numInactiveThings, _names);                             \
+})
+
 namespace NodeLibvirt {
 
     class Hypervisor : public EventEmitter {
@@ -67,7 +103,8 @@ namespace NodeLibvirt {
             Handle<Value> get_version();
             Handle<Value> get_libvirt_version();
             Handle<Value> get_max_vcpus();
-            Handle<Value> get_baseline_cpu(char **xmlCPUs, unsigned int ncpus, unsigned int flags);
+            Handle<Value> get_baseline_cpu( char **xmlCPUs, unsigned int ncpus, 
+                                            unsigned int flags);
             Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
             Handle<Value> is_connection_encrypted();
             Handle<Value> is_connection_secure();
@@ -84,6 +121,17 @@ namespace NodeLibvirt {
             Handle<Value> get_network_filters();
             Handle<Value> get_secrets();
             
+            Handle<Value> get_number_of_defined_domains();
+            Handle<Value> get_number_of_defined_interfaces();
+            Handle<Value> get_number_of_defined_networks();
+            Handle<Value> get_number_of_defined_storage_pools();
+            Handle<Value> get_number_of_active_domains();
+            Handle<Value> get_number_of_active_interfaces();
+            Handle<Value> get_number_of_active_networks();
+            Handle<Value> get_number_of_active_storage_pools();
+            Handle<Value> get_number_of_network_filters();
+            Handle<Value> get_number_of_secrets();         
+                        
             Handle<Value> create_domain();
             Handle<Value> define_domain();
             Handle<Value> get_domain_by_id();
