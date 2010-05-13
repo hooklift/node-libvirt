@@ -9,11 +9,11 @@
    \
    \
     char **_names = NULL;                                               \
-    int numInactiveThings;                                              \
+    int numInactiveItems;                                               \
                                                                         \
-    numInactiveThings = numof_function(conn);                           \
+    numInactiveItems = numof_function(conn);                            \
                                                                         \
-    if(numInactiveThings == -1) {                                       \
+    if(numInactiveItems == -1) {                                        \
         virError *error = virGetLastError();                            \
         if(error != NULL) {                                             \
             LIBVIRT_THROW_EXCEPTION(error->message);                    \
@@ -21,13 +21,13 @@
         return Null();                                                  \
     }                                                                   \
                                                                         \
-    _names = (char **)malloc(sizeof(*_names) * numInactiveThings);      \
+    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);       \
     if(_names == NULL) {                                                \
         LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           \
         return Null();                                                  \
     }                                                                   \
                                                                         \
-    int ret = list_function(conn, _names, numInactiveThings);           \
+    int ret = list_function(conn, _names, numInactiveItems);            \
                                                                         \
     if(ret == -1) {                                                     \
         virError *error = virGetLastError();                            \
@@ -38,7 +38,7 @@
         }                                                               \
     }                                                                   \
                                                                         \
-    TO_V8_ARRAY(numInactiveThings, _names);                             \
+    TO_V8_ARRAY(numInactiveItems, _names);                              \
 })
 
 namespace NodeLibvirt {

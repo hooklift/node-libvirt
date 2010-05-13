@@ -111,6 +111,8 @@ describe 'Libvirt'
             end
             
             it 'should list names of active physical host interfaces'
+                var interfaces = hypervisor.getActiveInterfaces();
+                interfaces.should_be_an_instance_of Array
             end
 
             it 'should list names of network filters'

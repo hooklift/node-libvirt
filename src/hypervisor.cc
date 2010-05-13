@@ -64,8 +64,8 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
                                       Hypervisor::GetDefinedStoragePools);
                                       
-        /*NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
-                                      Hypervisor::GetActiveDomains);
+        //NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
+        //                              Hypervisor::GetActiveDomains);
                                       
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveInterfaces",
                                       Hypervisor::GetActiveInterfaces);
@@ -82,7 +82,7 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveStoragePools",
                                       Hypervisor::GetActiveStoragePools);
                                       
-        NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedDomains",
+        /*NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedDomains",
                                       Hypervisor::GetNumberOfDefinedDomains);
                                       
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedInterfaces",
@@ -564,7 +564,7 @@ namespace NodeLibvirt {
                     virConnectListDefinedNetworks);
     }
     
-     Handle<Value> Hypervisor::GetDefinedStoragePools(const Arguments& args) {
+    Handle<Value> Hypervisor::GetDefinedStoragePools(const Arguments& args) {
         HandleScope scope;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
@@ -575,6 +575,84 @@ namespace NodeLibvirt {
     Handle<Value> Hypervisor::get_defined_storage_pools() {
         GET_LIST_OF(virConnectNumOfDefinedStoragePools, 
                     virConnectListDefinedStoragePools);
+    }
+    
+    /*Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_active_domains();
+    }
+
+    Handle<Value> Hypervisor::get_active_domains() {
+        GET_LIST_OF(virConnectNumOfDomains, 
+                    virConnectListDomains);
+    }*/
+    
+    Handle<Value> Hypervisor::GetActiveInterfaces(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_active_interfaces();
+    }
+
+    Handle<Value> Hypervisor::get_active_interfaces() {
+        GET_LIST_OF(virConnectNumOfInterfaces, 
+                    virConnectListInterfaces);
+    }
+    
+    Handle<Value> Hypervisor::GetNetworkFilters(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_network_filters();
+    }
+
+    Handle<Value> Hypervisor::get_network_filters() {
+        GET_LIST_OF(virConnectNumOfNWFilters, 
+                    virConnectListNWFilters);
+    }
+    
+    Handle<Value> Hypervisor::GetActiveNetworks(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_active_networks();
+    }
+
+    Handle<Value> Hypervisor::get_active_networks() {
+        GET_LIST_OF(virConnectNumOfNetworks, 
+                    virConnectListNetworks);
+    }
+    
+    Handle<Value> Hypervisor::GetSecrets(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_secrets();
+    }
+
+    Handle<Value> Hypervisor::get_secrets() {
+        GET_LIST_OF(virConnectNumOfSecrets, 
+                    virConnectListSecrets);
+    }
+    
+    Handle<Value> Hypervisor::GetActiveStoragePools(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        return hypervisor->get_active_storage_pools();
+    }
+
+    Handle<Value> Hypervisor::get_active_storage_pools() {
+        GET_LIST_OF(virConnectNumOfStoragePools, 
+                    virConnectListStoragePools);
     }
 
     
