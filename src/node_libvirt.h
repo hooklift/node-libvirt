@@ -12,7 +12,7 @@
 #define LIBVIRT_THROW_EXCEPTION(err)                                        \
         v8::Local<v8::Value> exception = v8::Exception::Error(              \
         v8::String::New(err));                                              \
-        ThrowException(exception);                                          
+        ThrowException(exception);                                           
         
 #define TO_V8_ARRAY(size,items)                                     \
         Local<Array> v8Array = Array::New(size);                    \

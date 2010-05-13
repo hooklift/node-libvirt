@@ -4,7 +4,7 @@
 
 #include "node_libvirt.h"
 
-#define GET_LIST_OF(numof_function, list_function, domain_concept) \
+#define GET_LIST_OF(numof_function, list_function)                      \
 ({ \
    \
    \
@@ -16,24 +16,25 @@
     if(numInactiveThings == -1) {                                       \
         virError *error = virGetLastError();                            \
         if(error != NULL) {                                             \
-                LIBVIRT_THROW_EXCEPTION(error->message);                \
-            }                                                           \
-    } else {                                                                   \
-                                                                        \
-        _names = (char **)malloc(sizeof(*_names) * numInactiveThings);  \
-                                                                        \
-        if(_names == NULL) {                                            \
-            LIBVIRT_THROW_EXCEPTION("Error allocating memory for ##domain_concept## names");\
+            LIBVIRT_THROW_EXCEPTION(error->message);                    \
         }                                                               \
+        return Null();                                                  \
+    }                                                                   \
                                                                         \
-        int ret = list_function(conn, _names, numInactiveThings);       \
+    _names = (char **)malloc(sizeof(*_names) * numInactiveThings);      \
+    if(_names == NULL) {                                                \
+        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           \
+        return Null();                                                  \
+    }                                                                   \
                                                                         \
-        if(ret == -1) {                                                 \
-            virError *error = virGetLastError();                        \
-            if(error != NULL) {                                         \
-                free(_names);                                           \
-                LIBVIRT_THROW_EXCEPTION(error->message);                \
-            }                                                           \
+    int ret = list_function(conn, _names, numInactiveThings);           \
+                                                                        \
+    if(ret == -1) {                                                     \
+        virError *error = virGetLastError();                            \
+        if(error != NULL) {                                             \
+            free(_names);                                               \
+            LIBVIRT_THROW_EXCEPTION(error->message);                    \
+            return Null();                                              \
         }                                                               \
     }                                                                   \
                                                                         \

@@ -177,6 +177,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         Local<String> capabilities = String::New((const char*)cap);
@@ -201,6 +202,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         Local<String> hostname = String::New((const char*)hn);
@@ -251,6 +253,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         major = *libVer / 1000000;
@@ -283,6 +286,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         Local<String> type = String::New(t);
@@ -305,6 +309,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         int m = virConnectGetMaxVcpus(conn, type);
@@ -314,6 +319,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         
         Local<Number> max = Number::New(m);
@@ -336,6 +342,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
          
         Local<String> uri = String::New(u);
@@ -366,6 +373,8 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            delete hvVer;
+            return Null();
         }
         
         if(ret == 0 && *hvVer == 0) {
@@ -476,12 +485,11 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
-        } else {
-            Local<String> xml = String::New(x);            
-            return xml;
+            return Null();
         }
-    
-        return v8::Null();
+        
+        Local<String> xml = String::New(x);            
+        return xml;
     }
     
     Handle<Value> Hypervisor::CompareCPU(const Arguments& args) {
@@ -510,6 +518,7 @@ namespace NodeLibvirt {
             if(error != NULL) {
                 LIBVIRT_THROW_EXCEPTION(error->message);
             }
+            return Null();
         }
         Local<Number> result = Number::New(ret);
         
@@ -526,7 +535,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::get_defined_domains() {
         GET_LIST_OF(virConnectNumOfDefinedDomains, 
-                    virConnectListDefinedDomains, "Domain");
+                    virConnectListDefinedDomains);
     }
     
     Handle<Value> Hypervisor::GetDefinedInterfaces(const Arguments& args) {
@@ -539,7 +548,7 @@ namespace NodeLibvirt {
     
     Handle<Value> Hypervisor::get_defined_interfaces() {
         GET_LIST_OF(virConnectNumOfDefinedInterfaces, 
-                    virConnectListDefinedInterfaces, "Interfaces");
+                    virConnectListDefinedInterfaces);
     }
     
     Handle<Value> Hypervisor::GetDefinedNetworks(const Arguments& args) {
@@ -552,7 +561,7 @@ namespace NodeLibvirt {
     
     Handle<Value> Hypervisor::get_defined_networks() {
         GET_LIST_OF(virConnectNumOfDefinedNetworks, 
-                    virConnectListDefinedNetworks, "Networks");
+                    virConnectListDefinedNetworks);
     }
     
      Handle<Value> Hypervisor::GetDefinedStoragePools(const Arguments& args) {
@@ -565,7 +574,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::get_defined_storage_pools() {
         GET_LIST_OF(virConnectNumOfDefinedStoragePools, 
-                    virConnectListDefinedStoragePools, "Storage Pools");
+                    virConnectListDefinedStoragePools);
     }
 
     
