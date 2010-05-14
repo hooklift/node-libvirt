@@ -64,8 +64,8 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedStoragePools",
                                       Hypervisor::GetDefinedStoragePools);
                                       
-        //NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
-        //                              Hypervisor::GetActiveDomains);
+        NODE_SET_PROTOTYPE_METHOD(t, "getActiveDomains",
+                                      Hypervisor::GetActiveDomains);
                                       
         NODE_SET_PROTOTYPE_METHOD(t, "getActiveInterfaces",
                                       Hypervisor::GetActiveInterfaces);
@@ -577,7 +577,7 @@ namespace NodeLibvirt {
                     virConnectListDefinedStoragePools);
     }
     
-    /*Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
+    Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
         HandleScope scope;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
@@ -586,9 +586,44 @@ namespace NodeLibvirt {
     }
 
     Handle<Value> Hypervisor::get_active_domains() {
-        GET_LIST_OF(virConnectNumOfDomains, 
-                    virConnectListDomains);
-    }*/
+        int *ids = NULL;                                               
+        int numOfDomains;
+                                                        
+        numOfDomains = virConnectNumOfDomains(conn);                            
+                                                                            
+        if(numOfDomains == -1) {                                        
+            virError *error = virGetLastError();                            
+            if(error != NULL) {                                             
+                LIBVIRT_THROW_EXCEPTION(error->message);                    
+            }                                                               
+            return Null();                                                  
+        }                                                                   
+                                                                            
+        ids = new int[numOfDomains];       
+        if(ids == NULL) {                                                
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           
+            return Null();                                                  
+        }                                                                   
+                                                                            
+        int ret = virConnectListDomains(conn, ids, numOfDomains);            
+                                                                            
+        if(ret == -1) {                                                     
+            virError *error = virGetLastError();                            
+            if(error != NULL) {                                             
+                delete [] ids;                                               
+                LIBVIRT_THROW_EXCEPTION(error->message);                    
+                return Null();                                              
+            }                                                               
+        }                                                                   
+        Local<Array> v8Array = Array::New(numOfDomains);                    
+        for(int i = 0; i < numOfDomains; i++) {                             
+            v8Array->Set(Integer::New(i), Integer::New(ids[i]));   
+            //free(ids[i]);                                         
+        }                                                       
+        delete [] ids;
+        ids = NULL;                                                
+        return v8Array;                                                              
+    }
     
     Handle<Value> Hypervisor::GetActiveInterfaces(const Arguments& args) {
         HandleScope scope;

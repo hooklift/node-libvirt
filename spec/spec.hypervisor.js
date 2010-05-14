@@ -140,6 +140,8 @@ describe 'Libvirt'
             end
 
             it 'should return the number of active domains'
+                var domains_ids = hypervisor.getActiveDomains();
+                domains_ids.should_be_an_instance_of Array
             end
 
             it 'should return the number of active interfaces on the physical host'
