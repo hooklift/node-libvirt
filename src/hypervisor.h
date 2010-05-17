@@ -41,6 +41,19 @@
     TO_V8_ARRAY(numInactiveItems, _names);                              \
 })
 
+#define GET_NUM_OF(function)                            \
+({                                                      \
+    int ret = function(conn);                           \
+    if(ret == -1) {                                    \
+        virError *error = virGetLastError();            \
+        if(error != NULL) {                             \
+            LIBVIRT_THROW_EXCEPTION(error->message);    \
+        }                                               \
+        return Null();                                  \
+    }                                                   \
+    return Integer::New(ret);                           \
+})                                                      \
+
 namespace NodeLibvirt {
 
     class Hypervisor : public EventEmitter {

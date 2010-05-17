@@ -8,7 +8,7 @@ def configure(conf):
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
   conf.find_program('node', var='NODE', mandatory=True)
-  conf.check_cfg(package='libvirt', args='--cflags --libs', atleast_version='0.7.7')
+  conf.check_cfg(package='libvirt', args='--cflags --libs', atleast_version='0.8.1')
     
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")

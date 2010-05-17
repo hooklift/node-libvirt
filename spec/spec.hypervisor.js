@@ -108,6 +108,8 @@ describe 'Libvirt'
             end
 
             it 'should list ids of active domains'
+                var ids = hypervisor.getActiveDomains();
+                ids.should_be_an_instance_of Array
             end
             
             it 'should list names of active physical host interfaces'
@@ -116,47 +118,73 @@ describe 'Libvirt'
             end
 
             it 'should list names of network filters'
+                //var nwfilters = hypervisor.getNetworkFilters();
+                //nwfilters.should_be_an_instance_of Array
             end
 
             it 'should list names of active networks'
+                var networks = hypervisor.getActiveNetworks();
+                networks.should_be_an_instance_of Array
             end
 
             it 'should list UUIDs names of defined secrets'
+                var uuids = hypervisor.getSecrets();
+                uuids.should_be_an_instance_of Array
             end
 
             it 'should list names of active storage pools'
+                var names = hypervisor.getActiveStoragePools();
+                names.should_be_an_instance_of Array
             end
 
             it 'should return the number of defined but inactive domains'
+                var num = hypervisor.getNumberOfDefinedDomains();
+                num.should_be 0
             end
 
             it 'should return the number of defined but inactive interfaces on the physical host'
+                var num = hypervisor.getNumberOfDefinedInterfaces();
+                num.should_be 0
             end
 
             it 'should return the number of defined but inactive networks'
+                var num = hypervisor.getNumberOfDefinedNetworks();
+                num.should_be 0
             end
 
             it 'should return the number of defined but inactive storage pools'
+                var num = hypervisor.getNumberOfDefinedStoragePools();
+                num.should_be 0
             end
 
             it 'should return the number of active domains'
-                var domains_ids = hypervisor.getActiveDomains();
-                domains_ids.should_be_an_instance_of Array
+                var num = hypervisor.getNumberOfActiveDomains();
+                num.should_be 0
             end
 
             it 'should return the number of active interfaces on the physical host'
+                var num = hypervisor.getNumberOfActiveInterfaces();
+                num.should_be 0
             end
 
             it 'should return the number of network filters'
+                //var num = hypervisor.getNumberOfNetworkFilters();
+                //num.should_be 0
             end
 
             it 'should return the number of active networks'
+                var num = hypervisor.getNumberOfActiveNetworks();
+                num.should_be 0
             end
 
             it 'should return the number of currently defined secrets'
+                var num = hypervisor.getNumberOfSecrets();
+                num.should_be 0
             end
 
             it 'should return the number of active storage pools'
+                var num = hypervisor.getNumberOfActiveStoragePools();
+                num.should_be 0
             end
             
         //end
