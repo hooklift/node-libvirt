@@ -10,7 +10,7 @@ require('jspec');
 readFile = function(path) {
   var result;
   try {
-    result = fs.readFileSync(path);
+    result = fs.readFileSync(path, 'utf-8');
   } catch (e) {
     throw e;
   }
@@ -25,7 +25,9 @@ readFile = function(path) {
             if(!exists) {
                 sys.puts(file + ": Spec file does not exists");        
             } else {
-                JSpec.exec(file).run({ reporter: JSpec.reporters.Terminal, fixturePath: 'spec/fixtures'}).report();
+                JSpec.exec(file).run({  reporter: JSpec.reporters.Terminal, 
+                                        fixturePath: 'spec/fixtures',
+                                        failuresOnly: false}).report();
             }
         });
     } else {

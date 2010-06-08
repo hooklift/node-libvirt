@@ -1,5 +1,5 @@
 <domain type='kvm'>
-  <name>demo2</name>
+  <name>demo3</name>
   <memory>131072</memory>
   <vcpu>1</vcpu>
   <os>
@@ -19,3 +19,4 @@
     <graphics type='vnc' port='-1' keymap='us'/>
   </devices>
 </domain>
+

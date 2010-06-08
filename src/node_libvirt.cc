@@ -11,12 +11,13 @@
 namespace NodeLibvirt {
     void InitializeLibvirt(Handle<Object> target) {
         HandleScope scope;
+        virInitialize();
         
         Hypervisor::Initialize(target);
-        //Domain::Initialize(target);
-        //Network::Initialize(target);
-        //StoragePool::Initialize(target);
-        //StorageVolume::Initialize(target);
+        Domain::Initialize();
+        //Network::Initialize();
+        //StoragePool::Initialize();
+        //StorageVolume::Initialize();
         
         target->Set(String::NewSymbol("version"),
                     String::New(NODE_LIBVIRT_VERSION));
@@ -36,18 +37,7 @@ namespace NodeLibvirt {
         return *value ? *value : "<string conversion failed>";
     }
 
-    /*Handle<Value> ToV8Array(int size, char **items) {
-        Local<Array> v8Array = Array::New(size);
-               
-        for(int i = 0; i < size; i++) {                             
-            v8Array->Set(Integer::New(i), String::New(items[i]));
-            free(items[i]);
-        }
-        return v8Array;
-    }*/
-
-    extern "C" void init (Handle<Object> target) {
-        virInitialize();
+    extern "C" void init (Handle<Object> target) {    
         HandleScope scope;
         InitializeLibvirt(target);
     }

@@ -3,6 +3,7 @@
 #define SRC_HYPERVISOR_H_
 
 #include "node_libvirt.h"
+#include "domain.h"
 
 #define GET_LIST_OF(numof_function, list_function)                      \
 ({ \
@@ -11,7 +12,7 @@
     char **_names = NULL;                                               \
     int numInactiveItems;                                               \
                                                                         \
-    numInactiveItems = numof_function(conn);                            \
+    numInactiveItems = numof_function(conn_);                            \
                                                                         \
     if(numInactiveItems == -1) {                                        \
         virError *error = virGetLastError();                            \
@@ -27,7 +28,7 @@
         return Null();                                                  \
     }                                                                   \
                                                                         \
-    int ret = list_function(conn, _names, numInactiveItems);            \
+    int ret = list_function(conn_, _names, numInactiveItems);            \
                                                                         \
     if(ret == -1) {                                                     \
         virError *error = virGetLastError();                            \
@@ -43,7 +44,7 @@
 
 #define GET_NUM_OF(function)                            \
 ({                                                      \
-    int ret = function(conn);                           \
+    int ret = function(conn_);                           \
     if(ret == -1) {                                    \
         virError *error = virGetLastError();            \
         if(error != NULL) {                             \
@@ -59,10 +60,18 @@ namespace NodeLibvirt {
     class Hypervisor : public EventEmitter {
         public:
             static void Initialize(Handle<Object> target);
-            
+            //static inline bool HasInstance(v8::Handle<v8::Value> value);
+            static inline bool HasInstance(v8::Handle<v8::Value> value) {
+                if (!value->IsObject()) {
+                    return false;
+                }
+                v8::Local<v8::Object> object = value->ToObject();
+                return constructor_template->HasInstance(object);
+            }
+            virConnectPtr connection() const;
         protected:
             static Handle<Value> New(const Arguments& args);
-            
+
             static Handle<Value> GetCapabilities(const Arguments& args);
             static Handle<Value> GetHostname(const Arguments& args);
             static Handle<Value> GetType(const Arguments& args);
@@ -87,7 +96,7 @@ namespace NodeLibvirt {
             static Handle<Value> GetActiveNetworks(const Arguments& args);
             static Handle<Value> GetSecrets(const Arguments& args);
             static Handle<Value> GetActiveStoragePools(const Arguments& args);
-            
+
             //virConnectNumOf functions
             static Handle<Value> GetNumberOfDefinedDomains(const Arguments& args);
             static Handle<Value> GetNumberOfDefinedInterfaces(const Arguments& args);
@@ -102,14 +111,14 @@ namespace NodeLibvirt {
 
             //Domain functions
             static Handle<Value> CreateDomain(const Arguments& args);
-            static Handle<Value> DefineDomain(const Arguments& args);
-            static Handle<Value> GetDomainById(const Arguments& args);
-            static Handle<Value> GetDomainByName(const Arguments& args);
-            static Handle<Value> GetDomainByUUID(const Arguments& args);                        
-                        
+            //static Handle<Value> DefineDomain(const Arguments& args);
+            static Handle<Value> LookupDomainById(const Arguments& args);
+            static Handle<Value> LookupDomainByName(const Arguments& args);
+            static Handle<Value> LookupDomainByUUID(const Arguments& args);
+
             Hypervisor(const Local<String>& uri, bool readOnly);
             ~Hypervisor();
-            
+
             Handle<Value> get_capabilities();
             Handle<Value> get_hostname();
             Handle<Value> get_type();
@@ -117,7 +126,7 @@ namespace NodeLibvirt {
             Handle<Value> get_version();
             Handle<Value> get_libvirt_version();
             Handle<Value> get_max_vcpus();
-            Handle<Value> get_baseline_cpu( char **xmlCPUs, unsigned int ncpus, 
+            Handle<Value> get_baseline_cpu( char **xmlCPUs, unsigned int ncpus,
                                             unsigned int flags);
             Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
             Handle<Value> is_connection_encrypted();
@@ -134,7 +143,7 @@ namespace NodeLibvirt {
             Handle<Value> get_active_storage_pools();
             Handle<Value> get_network_filters();
             Handle<Value> get_secrets();
-            
+
             Handle<Value> get_number_of_defined_domains();
             Handle<Value> get_number_of_defined_interfaces();
             Handle<Value> get_number_of_defined_networks();
@@ -144,18 +153,20 @@ namespace NodeLibvirt {
             Handle<Value> get_number_of_active_networks();
             Handle<Value> get_number_of_active_storage_pools();
             Handle<Value> get_number_of_network_filters();
-            Handle<Value> get_number_of_secrets();         
-                        
-            Handle<Value> create_domain();
-            Handle<Value> define_domain();
-            Handle<Value> get_domain_by_id();
-            Handle<Value> get_domain_by_name();
-            Handle<Value> get_domain_by_uuid();            
-            
+            Handle<Value> get_number_of_secrets();
+
+            Handle<Value> create_domain(const Arguments& args);
+            //Handle<Value> define_domain();
+            Handle<Value> lookup_domain_by_id(const Arguments& args);
+            Handle<Value> lookup_domain_by_name(const Arguments& args);
+            Handle<Value> lookup_domain_by_uuid(const Arguments& args);
+
         private:
-            virConnectPtr conn;
+            virConnectPtr conn_;
+            //static v8::Persistent<v8::FunctionTemplate> constructor_template;
     };
 
 }  // namespace NodeLibvirt
 
 #endif  // SRC_HYPERVISOR_H_
+
