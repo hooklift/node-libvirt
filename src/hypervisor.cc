@@ -115,19 +115,19 @@ namespace NodeLibvirt {
                                       Hypervisor::GetNumberOfActiveStoragePools);
 
         NODE_SET_PROTOTYPE_METHOD(t, "createDomain",
-                                      Hypervisor::CreateDomain);
+                                      Domain::Create);
 
-        /*NODE_SET_PROTOTYPE_METHOD(t, "defineDomain",
-                                      Hypervisor::DefineDomain);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "restoreDomain",
+                                      Domain::Restore);
 
         NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainById",
-                                      Hypervisor::LookupDomainById);
+                                      Domain::LookupById);
 
         NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName",
-                                      Hypervisor::LookupDomainByName);
+                                      Domain::LookupByName);
 
         NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",
-                                      Hypervisor::LookupDomainByUUID);
+                                      Domain::LookupByUUID);
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
@@ -152,13 +152,11 @@ namespace NodeLibvirt {
 
     Hypervisor::~Hypervisor(){
         assert(conn_ == NULL);
-
     }
 
     virConnectPtr Hypervisor::connection() const {
         return conn_;
     }
-
 
     Handle<Value> Hypervisor::New(const Arguments& args) {
         HandleScope scope;
@@ -853,55 +851,6 @@ namespace NodeLibvirt {
     Handle<Value> Hypervisor::get_number_of_active_storage_pools() {
         GET_NUM_OF(virConnectNumOfStoragePools);
     }
-
-    Handle<Value> Hypervisor::CreateDomain(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->create_domain(args);
-    }
-
-    Handle<Value> Hypervisor::create_domain(const Arguments& args) {
-        return Domain::Create(args);
-    }
-
-    Handle<Value> Hypervisor::LookupDomainById(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->lookup_domain_by_id(args);
-    }
-
-    Handle<Value> Hypervisor::lookup_domain_by_id(const Arguments& args) {
-        return Domain::LookupById(args);
-    }
-
-    Handle<Value> Hypervisor::LookupDomainByName(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->lookup_domain_by_name(args);
-    }
-
-    Handle<Value> Hypervisor::lookup_domain_by_name(const Arguments& args) {
-        return Domain::LookupByName(args);
-    }
-
-    Handle<Value> Hypervisor::LookupDomainByUUID(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->lookup_domain_by_uuid(args);
-    }
-
-    Handle<Value> Hypervisor::lookup_domain_by_uuid(const Arguments& args) {
-        return Domain::LookupByUUID(args);
-    }
-
 
 } //namespace NodeLibvirt
 

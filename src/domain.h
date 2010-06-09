@@ -44,6 +44,10 @@ namespace NodeLibvirt {
             static Handle<Value> IsPersistent(const Arguments& args);
             static Handle<Value> Reboot(const Arguments& args);
             static Handle<Value> Save(const Arguments& args);
+            static Handle<Value> Restore(const Arguments& args);
+            static Handle<Value> Suspend(const Arguments& args);
+            static Handle<Value> Resume(const Arguments& args);
+            static Handle<Value> Shutdown(const Arguments& args);
 
             static Handle<Value> GetXMLDesc(const Arguments& args);
             static Handle<Value> GetVcpus(const Arguments& args);
@@ -70,13 +74,12 @@ namespace NodeLibvirt {
             static Handle<Value> PinVcpu(const Arguments& args);
 
             static Handle<Value> IncrementRefCount(const Arguments& args);
-            static Handle<Value> Restore(const Arguments& args);
-            static Handle<Value> Resume(const Arguments& args);
-            static Handle<Value> RevertToSnapshot(const Arguments& args);
 
+
+            static Handle<Value> RevertToSnapshot(const Arguments& args);
             static Handle<Value> SetSchedulerParameters(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
-            static Handle<Value> Shutdown(const Arguments& args);
+
             static Handle<Value> CreateSnapshotXml(const Arguments& args);
             static Handle<Value> GetCurrentSnapshot(const Arguments& args);
             static Handle<Value> DeleteSnapshot(const Arguments& args);
@@ -85,7 +88,7 @@ namespace NodeLibvirt {
             static Handle<Value> ListSnapshotsNames(const Arguments& args);
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshotsCount(const Arguments& args);
-            static Handle<Value> Suspend(const Arguments& args);
+
             static Handle<Value> Undefine(const Arguments& args);
             static Handle<Value> UpdateDeviceFlags(const Arguments& args);
             static Handle<Value> Destroy(const Arguments& args);
@@ -112,6 +115,10 @@ namespace NodeLibvirt {
             Handle<Value> is_persistent();
             Handle<Value> reboot(unsigned int flags);
             Handle<Value> save(const char* path);
+            Handle<Value> restore(virConnectPtr conn, const char* path);
+            Handle<Value> suspend();
+            Handle<Value> resume();
+            Handle<Value> shutdown();
             Handle<Value> destroy();
         private:
             virDomainPtr domain_;

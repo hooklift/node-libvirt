@@ -109,13 +109,6 @@ namespace NodeLibvirt {
             static Handle<Value> GetNumberOfSecrets(const Arguments& args);
             static Handle<Value> GetNumberOfActiveStoragePools(const Arguments& args);
 
-            //Domain functions
-            static Handle<Value> CreateDomain(const Arguments& args);
-            //static Handle<Value> DefineDomain(const Arguments& args);
-            static Handle<Value> LookupDomainById(const Arguments& args);
-            static Handle<Value> LookupDomainByName(const Arguments& args);
-            static Handle<Value> LookupDomainByUUID(const Arguments& args);
-
             Hypervisor(const Local<String>& uri, bool readOnly);
             ~Hypervisor();
 
@@ -154,12 +147,6 @@ namespace NodeLibvirt {
             Handle<Value> get_number_of_active_storage_pools();
             Handle<Value> get_number_of_network_filters();
             Handle<Value> get_number_of_secrets();
-
-            Handle<Value> create_domain(const Arguments& args);
-            //Handle<Value> define_domain();
-            Handle<Value> lookup_domain_by_id(const Arguments& args);
-            Handle<Value> lookup_domain_by_name(const Arguments& args);
-            Handle<Value> lookup_domain_by_uuid(const Arguments& args);
 
         private:
             virConnectPtr conn_;

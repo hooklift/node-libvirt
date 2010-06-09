@@ -1,6 +1,7 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include "domain.h"
 
+//FIXME better error reporting
 namespace NodeLibvirt {
     Persistent<FunctionTemplate> Domain::constructor_template;
 
@@ -80,8 +81,6 @@ namespace NodeLibvirt {
                                       Domain::Resume);
         NODE_SET_PROTOTYPE_METHOD(t, "save",
                                       Domain::Save);
-        NODE_SET_PROTOTYPE_METHOD(t, "restore",
-                                      Domain::Restore);
         NODE_SET_PROTOTYPE_METHOD(t, "shutdown",
                                       Domain::Shutdown);
         NODE_SET_PROTOTYPE_METHOD(t, "suspend",
@@ -661,7 +660,7 @@ namespace NodeLibvirt {
         if(ret == -1) {
             virError *error = virGetLastError();
             if(error != NULL) {
-                return ThrowException(Exception::Error(
+                ThrowException(Exception::Error(
                 String::New(error->message)));
             }
             return False();
@@ -675,7 +674,7 @@ namespace NodeLibvirt {
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify a string")));
+            String::New("You must specify a string as function argument")));
         }
 
         String::Utf8Value path_(args[0]->ToString());
@@ -691,7 +690,7 @@ namespace NodeLibvirt {
         if(ret == -1) {
             virError *error = virGetLastError();
             if(error != NULL) {
-                return ThrowException(Exception::Error(
+                ThrowException(Exception::Error(
                 String::New(error->message)));
             }
             return False();
@@ -699,10 +698,110 @@ namespace NodeLibvirt {
         return True();
     }
 
-    //virDomainSave
-    //virDomainResume
-    //virDomainShutdown
-    //virDomainSuspend
+    Handle<Value> Domain::Restore(const Arguments& args) {
+        HandleScope scope;
+        virConnectPtr conn = NULL;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as function argument")));
+        }
+
+        Local<Object> hyp_obj = args.This();
+
+        if(!Hypervisor::HasInstance(hyp_obj)) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a Hypervisor object instance")));
+        }
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+
+        conn = hypervisor->connection();
+
+        String::Utf8Value path_(args[0]->ToString());
+        const char *path = ToCString(path_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        scope.Close(domain->restore(conn, path));
+    }
+
+    Handle<Value> Domain::restore(virConnectPtr conn, const char* path) {
+        int ret = virDomainRestore(conn, path);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+        return True();
+    }
+
+    Handle<Value> Domain::Suspend(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        domain->suspend();
+    }
+
+    Handle<Value> Domain::suspend() {
+        int ret = virDomainSuspend(domain_);
+
+        if(ret == -1) {
+          virError *error = virGetLastError();
+            if(error != NULL) {
+                ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+        return True();
+    }
+
+    Handle<Value> Domain::Resume(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        domain->resume();
+    }
+
+    Handle<Value> Domain::resume() {
+        int ret = virDomainResume(domain_);
+
+        if(ret == -1) {
+          virError *error = virGetLastError();
+            if(error != NULL) {
+                ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+        return True();
+    }
+
+    Handle<Value> Domain::Shutdown(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        domain->shutdown();
+    }
+
+    Handle<Value> Domain::shutdown() {
+        int ret = virDomainShutdown(domain_);
+
+        if(ret == -1) {
+          virError *error = virGetLastError();
+            if(error != NULL) {
+                ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+        return True();
+    }
+
     //virDomainMigrate
 
     Handle<Value> Domain::Destroy(const Arguments& args) {
@@ -714,7 +813,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::destroy() {
         if(domain_ == NULL) {
-            return Undefined();
+            return False();
         }
 
         int ret = virDomainDestroy(domain_);
@@ -722,14 +821,15 @@ namespace NodeLibvirt {
         if(ret == -1) {
             virError *error = virGetLastError();
             if(error != NULL) {
-                return ThrowException(Exception::Error(
+                ThrowException(Exception::Error(
                 String::New(error->message)));
             }
+            return False();
         } else {
             if(domain_ != NULL) {
                 virDomainFree(domain_);
             }
-            return Undefined();
+            return True();
         }
     }
 } //namespace NodeLibvirt
