@@ -120,18 +120,17 @@ namespace NodeLibvirt {
         /*NODE_SET_PROTOTYPE_METHOD(t, "defineDomain",
                                       Hypervisor::DefineDomain);*/
 
-        NODE_SET_PROTOTYPE_METHOD(t, "lookupById",
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainById",
                                       Hypervisor::LookupDomainById);
 
-        /*NODE_SET_PROTOTYPE_METHOD(t, "getDomainByName",
-                                      Hypervisor::GetDomainByName);
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName",
+                                      Hypervisor::LookupDomainByName);
 
-        NODE_SET_PROTOTYPE_METHOD(t, "getDomainByUUID",
-                                      Hypervisor::GetDomainByUUID);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",
+                                      Hypervisor::LookupDomainByUUID);
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
-        //constructor_template = Persistent<FunctionTemplate>::New(t);
     }
 
     Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter(){

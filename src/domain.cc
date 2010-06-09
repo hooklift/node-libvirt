@@ -1,9 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include "domain.h"
-#include "assert.h"
 
-
-//FIXME use accessors to get and set domain information. maybe with a macro
 namespace NodeLibvirt {
     Persistent<FunctionTemplate> Domain::constructor_template;
 
@@ -148,7 +145,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You need to specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor object instance")));
         }
         String::Utf8Value xml(args[0]->ToString());
 
@@ -196,7 +193,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You need to specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor object instance")));
         }
 
         int id = args[0]->Int32Value();
@@ -238,7 +235,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You need to specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor object instance")));
         }
 
         String::Utf8Value name_(args[0]->ToString());
@@ -282,7 +279,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You need to specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor object instance")));
         }
 
         String::Utf8Value uuid_(args[0]->ToString());
@@ -348,7 +345,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return Integer::New(id);
+        return Integer::NewFromUnsigned(id);
     }
 
     Handle<Value> Domain::GetInfo(const Arguments& args) {
@@ -457,6 +454,109 @@ namespace NodeLibvirt {
         return Boolean::New(autostart);
     }
 
+    Handle<Value> Domain::SetAutostart(const Arguments& args) {
+        HandleScope scope;
+
+        if(args.Length() == 0 || !args[0]->IsBoolean()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a boolean argument")));
+        }
+
+        bool autostart = args[0]->IsTrue();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->set_autostart(autostart);
+    }
+
+    Handle<Value> Domain::set_autostart(bool autostart) {
+        int ret = virDomainSetAutostart(domain_, autostart ? 0 : 1);
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+        return Undefined();
+    }
+
+    Handle<Value> Domain::GetMaxMemory(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->get_max_memory();
+    }
+
+    Handle<Value> Domain::get_max_memory() {
+        unsigned long memory = virDomainGetMaxMemory(domain_);
+
+        if(memory == 0) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+
+        return Number::New(memory);
+    }
+
+    Handle<Value> Domain::SetMaxMemory(const Arguments& args) {
+        HandleScope scope;
+
+        if(args.Length() == 0 || !args[0]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a valid amount of memory")));
+        }
+
+        unsigned long memory = args[0]->Int32Value();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->set_max_memory(memory);
+    }
+
+    Handle<Value> Domain::set_max_memory(unsigned long memory) {
+        int ret = virDomainSetMaxMemory(domain_, memory);
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+        return Undefined();
+    }
+
+      Handle<Value> Domain::SetMemory(const Arguments& args) {
+        HandleScope scope;
+
+        if(args.Length() == 0 || !args[0]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a valid amount of memory")));
+        }
+
+        unsigned long memory = args[0]->Int32Value();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->set_memory(memory);
+    }
+
+    Handle<Value> Domain::set_memory(unsigned long memory) {
+        int ret = virDomainSetMemory(domain_, memory);
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+        return Undefined();
+    }
+
     Handle<Value> Domain::GetOsType(const Arguments& args) {
         HandleScope scope;
 
@@ -479,6 +579,109 @@ namespace NodeLibvirt {
         return String::New(os_type);
     }
 
+    Handle<Value> Domain::GetMaxVcpus(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->get_max_vcpus();
+    }
+
+    Handle<Value> Domain::get_max_vcpus() {
+        int vcpus = virDomainGetMaxVcpus(domain_);
+
+        if(vcpus == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+
+        return Integer::New(vcpus);
+    }
+
+    Handle<Value> Domain::IsActive(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->is_active();
+    }
+
+    Handle<Value> Domain::is_active() {
+        int ret = virDomainIsActive(domain_);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+        bool is_active = ret == 1 ? true : false;
+
+        return Boolean::New(is_active);
+    }
+
+    Handle<Value> Domain::IsPersistent(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->is_persistent();
+    }
+
+    Handle<Value> Domain::is_persistent() {
+        int ret = virDomainIsPersistent(domain_);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return Null();
+        }
+        bool is_persistent = ret == 1 ? true : false;
+
+        return Boolean::New(is_persistent);
+    }
+
+    Handle<Value> Domain::Reboot(const Arguments& args) {
+        HandleScope scope;
+
+        /*if(args.Length() == 1 && !args[0]->IsObject()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an object with valid flags")));
+        }
+
+        Local<Object> flags_obj = args[0]->ToObject();*/
+        unsigned int flags = 0;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->reboot(flags);
+    }
+
+    Handle<Value> Domain::reboot(unsigned int flags) {
+        int ret = virDomainReboot(domain_, flags);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+
+        return True();
+    }
+
+    //virDomainSave
+    //virDomainResume
+    //virDomainShutdown
+    //virDomainSuspend
+
     Handle<Value> Domain::Destroy(const Arguments& args) {
         HandleScope scope;
 
@@ -493,7 +696,6 @@ namespace NodeLibvirt {
 
         int ret = virDomainDestroy(domain_);
 
-        //assert(domain_->magic == VIR_DOMAIN_MAGIC);
         if(ret == -1) {
             virError *error = virGetLastError();
             if(error != NULL) {

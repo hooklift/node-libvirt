@@ -34,7 +34,6 @@ describe 'Domain'
         var domain = hypervisor.createDomain(xml);
         domain.should_not_be undefined
         domain.should_not_be null
-        domain.os_type.should_be 'linux'
         sys.puts('domain: ' + sys.inspect(domain))
         sys.puts('object: ' + domain.toString());
     end
