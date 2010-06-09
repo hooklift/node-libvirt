@@ -43,6 +43,7 @@ namespace NodeLibvirt {
             static Handle<Value> IsActive(const Arguments& args);
             static Handle<Value> IsPersistent(const Arguments& args);
             static Handle<Value> Reboot(const Arguments& args);
+            static Handle<Value> Save(const Arguments& args);
 
             static Handle<Value> GetXMLDesc(const Arguments& args);
             static Handle<Value> GetVcpus(const Arguments& args);
@@ -72,7 +73,7 @@ namespace NodeLibvirt {
             static Handle<Value> Restore(const Arguments& args);
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> RevertToSnapshot(const Arguments& args);
-            static Handle<Value> Save(const Arguments& args);
+
             static Handle<Value> SetSchedulerParameters(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
@@ -110,6 +111,7 @@ namespace NodeLibvirt {
             Handle<Value> is_active();
             Handle<Value> is_persistent();
             Handle<Value> reboot(unsigned int flags);
+            Handle<Value> save(const char* path);
             Handle<Value> destroy();
         private:
             virDomainPtr domain_;

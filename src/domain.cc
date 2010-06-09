@@ -649,13 +649,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Reboot(const Arguments& args) {
         HandleScope scope;
-
-        /*if(args.Length() == 1 && !args[0]->IsObject()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify an object with valid flags")));
-        }
-
-        Local<Object> flags_obj = args[0]->ToObject();*/
         unsigned int flags = 0;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
@@ -677,10 +670,40 @@ namespace NodeLibvirt {
         return True();
     }
 
+    Handle<Value> Domain::Save(const Arguments& args) {
+        HandleScope scope;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string")));
+        }
+
+        String::Utf8Value path_(args[0]->ToString());
+        const char *path = ToCString(path_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        domain->save(path);
+    }
+
+    Handle<Value> Domain::save(const char* path) {
+        int ret = virDomainSave(domain_, path);
+
+        if(ret == -1) {
+            virError *error = virGetLastError();
+            if(error != NULL) {
+                return ThrowException(Exception::Error(
+                String::New(error->message)));
+            }
+            return False();
+        }
+        return True();
+    }
+
     //virDomainSave
     //virDomainResume
     //virDomainShutdown
     //virDomainSuspend
+    //virDomainMigrate
 
     Handle<Value> Domain::Destroy(const Arguments& args) {
         HandleScope scope;
@@ -709,5 +732,5 @@ namespace NodeLibvirt {
             return Undefined();
         }
     }
-}
+} //namespace NodeLibvirt
 
