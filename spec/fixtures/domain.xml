@@ -1,6 +1,6 @@
 <domain type='kvm'>
-  <name>demo3</name>
-  <memory>131072</memory>
+  <name>test_node_libvirt</name>
+  <memory>128000</memory>
   <vcpu>1</vcpu>
   <os>
     <type arch="i686">hvm</type>
@@ -9,7 +9,7 @@
   <devices>
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
-      <source file='/var/lib/libvirt/images/demo2.img'/>
+      <source file='/usr/local/var/lib/libvirt/images/demo2.img'/>
       <target dev='hda'/>
     </disk>
     <interface type='network'>

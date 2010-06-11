@@ -4,6 +4,7 @@ libvirt = require('node-libvirt');
 
 Hypervisor = libvirt.Hypervisor;
 
+//TODO improve using libxmljs and xpath
 describe 'Hypervisor'
     before_each
         hypervisor = new Hypervisor('test:///default')
@@ -208,7 +209,8 @@ describe 'Hypervisor'
     end
 
     it 'should return the number of currently defined secrets'
-        var num = hypervisor.getNumberOfSecrets();
+        var num;
+        -{num = hypervisor.getNumberOfSecrets()}.should_not.throw_error
         num.should_be 0
     end
 

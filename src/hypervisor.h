@@ -5,56 +5,6 @@
 #include "node_libvirt.h"
 #include "domain.h"
 
-#define GET_LIST_OF(numof_function, list_function)                      \
-({ \
-   \
-   \
-    char **_names = NULL;                                               \
-    int numInactiveItems;                                               \
-                                                                        \
-    numInactiveItems = numof_function(conn_);                            \
-                                                                        \
-    if(numInactiveItems == -1) {                                        \
-        virError *error = virGetLastError();                            \
-        if(error != NULL) {                                             \
-            LIBVIRT_THROW_EXCEPTION(error->message);                    \
-        }                                                               \
-        return Null();                                                  \
-    }                                                                   \
-                                                                        \
-    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);       \
-    if(_names == NULL) {                                                \
-        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           \
-        return Null();                                                  \
-    }                                                                   \
-                                                                        \
-    int ret = list_function(conn_, _names, numInactiveItems);            \
-                                                                        \
-    if(ret == -1) {                                                     \
-        virError *error = virGetLastError();                            \
-        if(error != NULL) {                                             \
-            free(_names);                                               \
-            LIBVIRT_THROW_EXCEPTION(error->message);                    \
-            return Null();                                              \
-        }                                                               \
-    }                                                                   \
-                                                                        \
-    TO_V8_ARRAY(numInactiveItems, _names);                              \
-})
-
-#define GET_NUM_OF(function)                            \
-({                                                      \
-    int ret = function(conn_);                           \
-    if(ret == -1) {                                    \
-        virError *error = virGetLastError();            \
-        if(error != NULL) {                             \
-            LIBVIRT_THROW_EXCEPTION(error->message);    \
-        }                                               \
-        return Null();                                  \
-    }                                                   \
-    return Integer::New(ret);                           \
-})                                                      \
-
 namespace NodeLibvirt {
 
     class Hypervisor : public EventEmitter {

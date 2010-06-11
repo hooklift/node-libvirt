@@ -4,8 +4,48 @@
 #include <string.h>
 #include "hypervisor.h"
 #include "domain.h"
+#include "error.h"
 
-//TODO figure out how implement event based support
+#define GET_LIST_OF(numof_function, list_function)                      \
+({ \
+   \
+   \
+    char **_names = NULL;                                               \
+    int numInactiveItems;                                               \
+                                                                        \
+    numInactiveItems = numof_function(conn_);                           \
+                                                                        \
+    if(numInactiveItems == -1) {                                        \
+        ThrowException(Error::New(virGetLastError()));                  \
+        return Null();                                                  \
+    }                                                                   \
+                                                                        \
+    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);       \
+    if(_names == NULL) {                                                \
+        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           \
+        return Null();                                                  \
+    }                                                                   \
+                                                                        \
+    int ret = list_function(conn_, _names, numInactiveItems);           \
+                                                                        \
+    if(ret == -1) {                                                     \
+        ThrowException(Error::New(virGetLastError()));                  \
+        free(_names);                                                   \
+        return Null();                                                  \
+    }                                                                   \
+                                                                        \
+    TO_V8_ARRAY(numInactiveItems, _names);                              \
+})
+
+#define GET_NUM_OF(function)                                            \
+({                                                                      \
+    int ret = function(conn_);                                          \
+    if(ret == -1) {                                                     \
+        ThrowException(Error::New(virGetLastError()));                  \
+        return Null();                                                  \
+    }                                                                   \
+    return Integer::New(ret);                                           \
+})
 
 namespace NodeLibvirt {
     //Persistent<FunctionTemplate> Hypervisor::constructor_template;
@@ -117,6 +157,9 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "createDomain",
                                       Domain::Create);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "defineDomain",
+                                      Domain::Define);
+
         NODE_SET_PROTOTYPE_METHOD(t, "restoreDomain",
                                       Domain::Restore);
 
@@ -133,7 +176,7 @@ namespace NodeLibvirt {
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
 
-    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter(){
+    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter() {
         HandleScope scope;
         String::Utf8Value uriUtf8(uriStr);
         const char *uri = ToCString(uriUtf8);
@@ -143,10 +186,7 @@ namespace NodeLibvirt {
                                    readOnly ? VIR_CONNECT_RO : 0);
 
         if(conn_ == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
         }
     }
 
@@ -215,10 +255,7 @@ namespace NodeLibvirt {
         char *cap = virConnectGetCapabilities(conn_);
 
         if(cap == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -240,10 +277,7 @@ namespace NodeLibvirt {
         char *hn = virConnectGetHostname(conn_);
 
         if(hn == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -291,10 +325,7 @@ namespace NodeLibvirt {
         int ret = virConnectGetLibVersion(conn_, libVer);
 
         if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -324,10 +355,7 @@ namespace NodeLibvirt {
         const char *t = virConnectGetType(conn_);
 
         if(t == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -347,20 +375,14 @@ namespace NodeLibvirt {
         const char *type = virConnectGetType(conn_);
 
         if(type == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
         int m = virConnectGetMaxVcpus(conn_, type);
 
         if(m == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -380,10 +402,7 @@ namespace NodeLibvirt {
         char *u = virConnectGetURI(conn_);
 
         if(u == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -411,10 +430,7 @@ namespace NodeLibvirt {
         int ret = virConnectGetVersion(conn_, hvVer);
 
         if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             delete hvVer;
             return Null();
         }
@@ -449,10 +465,7 @@ namespace NodeLibvirt {
         int ret = virConnectIsEncrypted(conn_);
 
         if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
         }
 
         if(ret == 1) {
@@ -473,10 +486,7 @@ namespace NodeLibvirt {
         int ret = virConnectIsSecure(conn_);
 
         if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
         }
 
         if(ret == 1) {
@@ -523,10 +533,7 @@ namespace NodeLibvirt {
         delete [] xmlCPUs;
 
         if(x == NULL) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -556,10 +563,7 @@ namespace NodeLibvirt {
         int ret = virConnectCompareCPU(conn_, xmlDesc, flags);
 
         if(ret == VIR_CPU_COMPARE_ERROR) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
         Local<Number> result = Number::New(ret);
@@ -634,10 +638,7 @@ namespace NodeLibvirt {
         numOfDomains = virConnectNumOfDomains(conn_);
 
         if(numOfDomains == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                LIBVIRT_THROW_EXCEPTION(error->message);
-            }
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
@@ -650,20 +651,17 @@ namespace NodeLibvirt {
         int ret = virConnectListDomains(conn_, ids, numOfDomains);
 
         if(ret == -1) {
-            virError *error = virGetLastError();
-            if(error != NULL) {
-                delete [] ids;
-                LIBVIRT_THROW_EXCEPTION(error->message);
-                return Null();
-            }
+            ThrowException(Error::New(virGetLastError()));
+            delete [] ids;
+            return Null();
         }
+
         Local<Array> v8Array = Array::New(numOfDomains);
         for(int i = 0; i < numOfDomains; i++) {
             v8Array->Set(Integer::New(i), Integer::New(ids[i]));
             //free(ids[i]);
         }
         delete [] ids;
-        ids = NULL;
         return v8Array;
     }
 

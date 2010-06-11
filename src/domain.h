@@ -27,8 +27,8 @@ namespace NodeLibvirt {
             static Handle<Value> LookupById(const Arguments& args);
             static Handle<Value> LookupByName(const Arguments& args);
             static Handle<Value> LookupByUUID(const Arguments& args);
-            //static Handle<Value> Define(const Arguments& args);
-            //static Handle<Value> FreeDomainObject(const Arguments& args); // maybe yes and maybe not ?
+            static Handle<Value> Define(const Arguments& args);
+            static Handle<Value> Undefine(const Arguments& args);
             static Handle<Value> GetId(const Arguments& args);
             static Handle<Value> GetInfo(const Arguments& args);
             static Handle<Value> GetName(const Arguments& args);
@@ -48,7 +48,12 @@ namespace NodeLibvirt {
             static Handle<Value> Suspend(const Arguments& args);
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
+            static Handle<Value> SetVcpus(const Arguments& args);
 
+            static Handle<Value> AttachDevice(const Arguments& args);
+            static Handle<Value> DetachDevice(const Arguments& args);
+
+            //unimplemented
             static Handle<Value> GetXMLDesc(const Arguments& args);
             static Handle<Value> GetVcpus(const Arguments& args);
             static Handle<Value> GetJobInfo(const Arguments& args);
@@ -56,14 +61,9 @@ namespace NodeLibvirt {
             static Handle<Value> SetSchedParams(const Arguments& args);
             static Handle<Value> GetSchedType(const Arguments& args);
             static Handle<Value> GetSecurityLabel(const Arguments& args);
-            //static Handle<Value> GetUUIDString(const Arguments& args);
-
             static Handle<Value> HasCurrentSnapshot(const Arguments& args);
             static Handle<Value> HasManagedSaveImage(const Arguments& args);
             static Handle<Value> GetInterfaceStats(const Arguments& args);
-
-
-            //static Handle<Value> LookupByUUIDString(const Arguments& args);
             static Handle<Value> ManagedSave(const Arguments& args);
             static Handle<Value> ManagedSaveRemove(const Arguments& args);
             static Handle<Value> MemoryPeek(const Arguments& args);
@@ -73,12 +73,8 @@ namespace NodeLibvirt {
             static Handle<Value> MigrateToURI(const Arguments& args);
             static Handle<Value> PinVcpu(const Arguments& args);
 
-            static Handle<Value> IncrementRefCount(const Arguments& args);
-
-
             static Handle<Value> RevertToSnapshot(const Arguments& args);
             static Handle<Value> SetSchedulerParameters(const Arguments& args);
-            static Handle<Value> SetVcpus(const Arguments& args);
 
             static Handle<Value> CreateSnapshotXml(const Arguments& args);
             static Handle<Value> GetCurrentSnapshot(const Arguments& args);
@@ -89,17 +85,16 @@ namespace NodeLibvirt {
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshotsCount(const Arguments& args);
 
-            static Handle<Value> Undefine(const Arguments& args);
             static Handle<Value> UpdateDeviceFlags(const Arguments& args);
             static Handle<Value> Destroy(const Arguments& args);
-            static Handle<Value> DetachDevice(const Arguments& args);
-            static Handle<Value> DetachDeviceFlags(const Arguments& args);
 
-            Handle<Value> create(const char* xml, bool persistent,
-                                 virConnectPtr conn, unsigned int flags);
-            Handle<Value> lookup_by_id(virConnectPtr conn, int id);
-            Handle<Value> lookup_by_name(virConnectPtr conn, const char* name);
-            Handle<Value> lookup_by_uuid(virConnectPtr conn, const char* uuid);
+
+            Local<Object> create(const char* xml, virConnectPtr conn, unsigned int flags);
+            Local<Object> define(const char* xml, virConnectPtr conn);
+            Handle<Value> undefine();
+            Local<Object> lookup_by_id(virConnectPtr conn, int id);
+            Local<Object> lookup_by_name(virConnectPtr conn, const char* name);
+            Local<Object> lookup_by_uuid(virConnectPtr conn, const char* uuid);
             Handle<Value> get_id();
             Handle<Value> get_info();
             Handle<Value> get_name();
@@ -119,11 +114,13 @@ namespace NodeLibvirt {
             Handle<Value> suspend();
             Handle<Value> resume();
             Handle<Value> shutdown();
+            Handle<Value> set_vcpus(unsigned int vcpus);
+            Handle<Value> attach_device(const char* xml, unsigned int flags);
             Handle<Value> destroy();
         private:
             virDomainPtr domain_;
-            static v8::Persistent<v8::FunctionTemplate> constructor_template;
-            Handle<Value> new_js_instance();
+            static Persistent<FunctionTemplate> constructor_template;
+            Local<Object> new_js_instance();
     };
 
 }  // namespace NodeLibvirt
