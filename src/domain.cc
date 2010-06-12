@@ -93,11 +93,10 @@ namespace NodeLibvirt {
                                       Domain::RevertToSnapshot);*/
         NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",
                                       Domain::AttachDevice);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",
-                                      Domain::DetachDevice);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",
+                                      Domain::DetachDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "destroy",
                                       Domain::Destroy);
-
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
                                       Domain::Undefine);
 
@@ -882,6 +881,54 @@ namespace NodeLibvirt {
             ret = virDomainAttachDeviceFlags(domain_, xml, flags);
         } else {
             ret = virDomainAttachDevice(domain_, xml);
+        }
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+        return True();
+    }
+
+    Handle<Value> Domain::DetachDevice(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+
+        int argsl = args.Length();
+
+        if(argsl == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string")));
+        }
+
+        if(argsl == 2 && !args[1]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an object with flags")));
+        }
+
+        String::Utf8Value xml_(args[0]->ToString());
+
+        const char* xml = ToCString(xml_);
+
+        //flags
+        Local<Array> flags_ = Local<Array>::Cast(args[1]);
+        unsigned int length = flags_->Length();
+
+        for (int i = 0; i < length; i++) {
+            flags |= flags_->Get(Integer::New(i))->Int32Value();
+        }
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->detach_device(xml, flags);
+    }
+
+    Handle<Value> Domain::detach_device(const char* xml, unsigned int flags) {
+        int ret = -1;
+
+        if(flags > 0) {
+            ret = virDomainDetachDeviceFlags(domain_, xml, flags);
+        } else {
+            ret = virDomainDetachDevice(domain_, xml);
         }
 
         if(ret == -1) {

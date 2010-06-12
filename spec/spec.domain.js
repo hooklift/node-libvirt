@@ -129,5 +129,29 @@ describe 'Domain'
     it 'should dynamically change the number of virtual CPUs used by the domain'
         domain.setVcpus(4).should_be true
     end
+
+    it 'should attach a device'
+        var device = fixture('device.xml');
+        //no supported by test driver
+        try {
+            domain.attachDevice(device);
+        } catch(error){
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+        //domain.attachDevice(device).should_be true
+    end
+
+    it 'should detach a device'
+        var device = fixture('device.xml');
+        //no supported by test driver
+        try {
+            domain.detachDevice(device).should_be true
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+
+    end
+
 end
 

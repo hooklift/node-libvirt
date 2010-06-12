@@ -119,6 +119,7 @@ namespace NodeLibvirt {
             Handle<Value> start();
             Handle<Value> set_vcpus(unsigned int vcpus);
             Handle<Value> attach_device(const char* xml, unsigned int flags);
+            Handle<Value> detach_device(const char* xml, unsigned int flags);
             Handle<Value> destroy();
         private:
             virDomainPtr domain_;
