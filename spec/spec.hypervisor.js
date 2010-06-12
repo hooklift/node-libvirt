@@ -107,7 +107,7 @@ describe 'Hypervisor'
     end
 
     it 'should list names of defined but inactive domains'
-        //TODO We need to create domains and list them for a better
+        //TODO We need to create domains and list them for a better spec
         var domains = hypervisor.getDefinedDomains()
         domains.should_be_an_instance_of Array
     end
@@ -140,15 +140,6 @@ describe 'Hypervisor'
         interfaces.should_be_an_instance_of Array
     end
 
-    it 'should list names of network filters'
-        var nwfilters = hypervisor.getNetworkFilters();
-        nwfilters.should_be_an_instance_of Array
-        /*for(filter in nwfilters) {
-            sys.puts('======\n');
-            sys.puts(nwfilters[filter]);
-        }*/
-    end
-
     it 'should list names of active networks'
         var networks = hypervisor.getActiveNetworks();
         networks.should_be_an_instance_of Array
@@ -159,8 +150,8 @@ describe 'Hypervisor'
     end
 
     it 'should list UUIDs names of defined secrets'
-        var uuids = hypervisor.getSecrets();
-        uuids.should_be_an_instance_of Array
+        //no supported by test driver
+        -{hypervisor.getSecrets()}.should.throw_error
     end
 
     it 'should list names of active storage pools'
@@ -190,41 +181,37 @@ describe 'Hypervisor'
 
     it 'should return the number of active domains'
         var num = hypervisor.getNumberOfActiveDomains();
-        num.should_be 0
+        num.should_be 1
     end
 
     it 'should return the number of active interfaces on the physical host'
         var num = hypervisor.getNumberOfActiveInterfaces();
-        num.should_be 0
-    end
-
-    it 'should return the number of network filters'
-        var num = hypervisor.getNumberOfNetworkFilters();
-        num.should_be 0
+        num.should_be 1
     end
 
     it 'should return the number of active networks'
         var num = hypervisor.getNumberOfActiveNetworks();
-        num.should_be 0
+        num.should_be 1
     end
 
     it 'should return the number of currently defined secrets'
-        var num;
-        -{num = hypervisor.getNumberOfSecrets()}.should_not.throw_error
-        num.should_be 0
+        //no supported by test driver
+        -{hypervisor.getNumberOfSecrets()}.should.throw_error
     end
 
     it 'should return the number of active storage pools'
         var num = hypervisor.getNumberOfActiveStoragePools();
-        num.should_be 0
+        num.should_be 1
     end
 
     it 'should return the number of network filters'
+        //no supported by test driver
         -{hypervisor.getNumberOfNetworkFilters()}.should.throw_error
     end
 
     it 'should list names of network filters'
-        -{hypervisor.getNetworkFilters()}.should.throw_error;
+        //no supported by test driver
+        -{hypervisor.getNetworkFilters()}.should.throw_error
     end
 
     it 'should have the constant VIR_CRED_USERNAME'
@@ -299,14 +286,14 @@ describe 'Hypervisor'
 
         xmlCPUs = [cpu1, cpu2]
 
-        var baseline = hypervisor.getBaselineCPU(xmlCPUs)
-        baseline.should_not_be null
+        //no supported by test driver
+        -{hypervisor.getBaselineCPU(xmlCPUs)}.should.throw_error
     end
 
     it 'should compare given cpu description with host CPU'
         var cpu = fixture('cpu1.xml')
-        var result = hypervisor.compareCPU(cpu)
-        result.should_not_be null
+        //no supported by test driver
+        -{hypervisor.compareCPU(cpu)}.should.throw_error
     end
 end
 

@@ -5,9 +5,8 @@
 #include "hypervisor.h"
 
 #define GET_LIST_OF(numof_function, list_function)                      \
-({ \
-   \
-   \
+({                                                                      \
+                                                                        \
     char **_names = NULL;                                               \
     int numInactiveItems;                                               \
                                                                         \
@@ -46,7 +45,6 @@
 })
 
 namespace NodeLibvirt {
-    //Persistent<FunctionTemplate> Hypervisor::constructor_template;
 
     void Hypervisor::Initialize(Handle<Object> target) {
         HandleScope scope;
