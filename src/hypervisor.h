@@ -4,6 +4,7 @@
 
 #include "node_libvirt.h"
 #include "domain.h"
+#include "error.h"
 
 namespace NodeLibvirt {
 

@@ -1,6 +1,5 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include "domain.h"
-#include "error.h"
 
 namespace NodeLibvirt {
     Persistent<FunctionTemplate> Domain::constructor_template;
@@ -85,11 +84,12 @@ namespace NodeLibvirt {
                                       Domain::Save);
         NODE_SET_PROTOTYPE_METHOD(t, "shutdown",
                                       Domain::Shutdown);
+        NODE_SET_PROTOTYPE_METHOD(t, "start",
+                                      Domain::Start);
         NODE_SET_PROTOTYPE_METHOD(t, "suspend",
                                       Domain::Suspend);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "undefine",
-                                      Domain::Undefine);
-        NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
+
+        /*NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
                                       Domain::RevertToSnapshot);*/
         NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",
                                       Domain::AttachDevice);
@@ -801,6 +801,24 @@ namespace NodeLibvirt {
         return True();
     }
 
+    Handle<Value> Domain::Start(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->start();
+    }
+
+    Handle<Value> Domain::start() {
+        int ret = virDomainCreate(domain_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+        return True();
+    }
+
+
     Handle<Value> Domain::SetVcpus(const Arguments& args) {
         HandleScope scope;
 
@@ -892,6 +910,7 @@ namespace NodeLibvirt {
             if(domain_ != NULL) {
                 virDomainFree(domain_);
             }
+            //delete this; //FIXME, refactor
             return True();
         }
     }

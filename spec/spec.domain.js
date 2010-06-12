@@ -6,13 +6,14 @@ Hypervisor = libvirt.Hypervisor;
 
 describe 'Domain'
     before
-        var xml = fixture('domain.xml')
-        hypervisor = new Hypervisor('test:///default')
-        hypervisor.createDomain(xml);
+        hypervisor = new Hypervisor('test:///default');
     end
 
     before_each
-        domain = hypervisor.lookupDomainByName('test_node_libvirt');
+        domain = hypervisor.lookupDomainByName('test');
+        if(!domain.isActive()) {
+            domain.start();
+        }
     end
 
     after_each
@@ -29,8 +30,14 @@ describe 'Domain'
     end
 
     it 'should create a persistent Domain from its XML Description'
-        var dom = hypervisor.lookupDomainByName('demo3');
-        dom.getName().should_be 'demo3'
+        var xml = fixture('domain.xml')
+        hypervisor = new Hypervisor('test:///default')
+        hypervisor.createDomain(xml);
+
+        var dom = hypervisor.lookupDomainByName('libvirt');
+        dom.getName().should_be 'libvirt'
+        dom.destroy().should_be true
+        //dom.getId().should_be undefined
     end
 
     it 'should return the id'
@@ -60,13 +67,14 @@ describe 'Domain'
         domain.getUUID().should_not_be null
     end
 
-    it 'should show autostart is enable'
+    it 'should show if autostart is enable'
         domain.getAutostart().should_be true
     end
 
-    it 'should set autostart'
+    it 'should enable or disable autostart'
         domain.setAutostart(false).should_be true
         domain.getAutostart().should_be false
+
         domain.setAutostart(true).should_be true
         domain.getAutostart().should_be true
     end
@@ -103,41 +111,23 @@ describe 'Domain'
         domain.reboot().should_be true
     end
 
-    it 'should suspend and save the domain memory content to a file on disk'
-        var name = domain.getName();
-        domain.save('/tmp/'+name+'-saved.img').should_be true
+    it 'should save and restore the domain'
+        var path = '/tmp/' + domain.getName() + '-saved.img';
+        domain.save(path);
+        hypervisor.restoreDomain(path).should_be true
     end
 
-    it 'should restore a suspended and saved domain'
-        var name = domain.getName();
-        //test driver return exception because it really doesn't save a domain
-        hypervisor.restoreDomain('/tmp/'+name+'-saved.img').should_be true
-    end
-
-    it 'should suspend a domain'
+    it 'should suspend and resume the domain'
         domain.suspend().should_be true
-    end
-
-    it 'should resume a suspended domain'
         domain.resume().should_be true
     end
 
-    it 'should shutdown a domain'
+    it 'should shutdown the domain'
         domain.shutdown().should_be true
     end
 
     it 'should dynamically change the number of virtual CPUs used by the domain'
         domain.setVcpus(4).should_be true
-        domain.getVcpus().should_be 4
     end
-
-    /*it 'should create a non persistent Domain from its XML Description'
-        var xml = fixture('domain.xml')
-        var domain = hypervisor.createDomain(xml);
-        domain.should_not_be undefined
-        domain.should_not_be null
-        sys.puts('domain: ' + sys.inspect(domain))
-        sys.puts('object: ' + domain.toString());
-    end*/
 end
 

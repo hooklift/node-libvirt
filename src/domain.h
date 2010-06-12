@@ -4,6 +4,7 @@
 
 #include "node_libvirt.h"
 #include "hypervisor.h"
+#include "error.h"
 
 namespace NodeLibvirt {
 
@@ -48,6 +49,7 @@ namespace NodeLibvirt {
             static Handle<Value> Suspend(const Arguments& args);
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
+            static Handle<Value> Start(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
 
             static Handle<Value> AttachDevice(const Arguments& args);
@@ -114,6 +116,7 @@ namespace NodeLibvirt {
             Handle<Value> suspend();
             Handle<Value> resume();
             Handle<Value> shutdown();
+            Handle<Value> start();
             Handle<Value> set_vcpus(unsigned int vcpus);
             Handle<Value> attach_device(const char* xml, unsigned int flags);
             Handle<Value> destroy();

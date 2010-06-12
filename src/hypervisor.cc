@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hypervisor.h"
-#include "domain.h"
-#include "error.h"
 
 #define GET_LIST_OF(numof_function, list_function)                      \
 ({ \
