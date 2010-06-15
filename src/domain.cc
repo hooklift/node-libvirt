@@ -78,9 +78,9 @@ namespace NodeLibvirt {
         /*NODE_SET_PROTOTYPE_METHOD(t, "migrate",
                                       Domain::Migrate);
         NODE_SET_PROTOTYPE_METHOD(t, "migrateSetMaxDowntime",
-                                      Domain::MigrateSetMaxDowntime);
+                                      Domain::MigrateSetMaxDowntime);*/
         NODE_SET_PROTOTYPE_METHOD(t, "pinVcpu",
-                                      Domain::PinVcpu);*/
+                                      Domain::PinVcpu);
         NODE_SET_PROTOTYPE_METHOD(t, "reboot",
                                       Domain::Reboot);
         NODE_SET_PROTOTYPE_METHOD(t, "resume",
@@ -203,7 +203,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor instance")));
         }
         String::Utf8Value xml(args[0]->ToString());
 
@@ -260,7 +260,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor instance")));
         }
 
         int id = args[0]->Int32Value();
@@ -305,7 +305,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor instance")));
         }
 
         String::Utf8Value name_(args[0]->ToString());
@@ -352,7 +352,7 @@ namespace NodeLibvirt {
 
         if(!Hypervisor::HasInstance(hyp_obj)) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor object instance")));
+            String::New("You must specify a Hypervisor instance")));
         }
 
         String::Utf8Value uuid_(args[0]->ToString());
@@ -846,14 +846,14 @@ namespace NodeLibvirt {
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
-            return False();
+            return Null();
         }
 
         ret = virNodeGetInfo(virDomainGetConnect(domain_), &nodeinfo); //FIXME
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
-            return False();
+            return Null();
         }
 
         cpuinfo = (virVcpuInfoPtr) malloc(sizeof(*cpuinfo) * info.nrVirtCpu);
@@ -928,6 +928,83 @@ namespace NodeLibvirt {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+        return True();
+    }
+
+    Handle<Value> Domain::PinVcpu(const Arguments& args) {
+        HandleScope scope;
+        virNodeInfo nodeinfo;
+        unsigned char *cpumap = NULL;
+        int cpumaplen;
+        int vcpu;
+        int ret = -1;
+
+        if(args.Length() < 2) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify two arguments")));
+        }
+
+        if(!args[0]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("The first argument must be an integer")));
+        }
+
+        if(!args[1]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("The second argument must be an array of objects")));
+        }
+
+        vcpu = args[0]->Int32Value();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virNodeGetInfo(virDomainGetConnect(domain->domain_), &nodeinfo);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        int maxcpus = VIR_NODEINFO_MAXCPUS(nodeinfo);
+
+        cpumaplen = VIR_CPU_MAPLEN(maxcpus);
+        cpumap = (unsigned char*)malloc(cpumaplen);
+        if(cpumap == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return False();
+        }
+
+        Local<Array> cpus = Local<Array>::Cast(args[1]);
+        int ncpus = cpus->Length();
+
+        for(int i = 0; i < ncpus; i++) {
+            if(i > maxcpus) {
+                break;
+            }
+
+            if(!cpus->Get(Integer::New(i))->IsObject()) {
+                return ThrowException(Exception::TypeError(
+                String::New("The second argument must be an array of objects")));
+            }
+
+            Local<Object> cpu = cpus->Get(Integer::New(i))->ToObject();
+            bool usable = cpu->Get(usable_symbol)->IsTrue();
+
+            if(usable) {
+                VIR_USE_CPU(cpumap, cpu->Get(cpu_symbol)->Int32Value());
+            } else {
+                VIR_UNUSE_CPU(cpumap, cpu->Get(cpu_symbol)->Int32Value());
+            }
+        }
+
+        ret = virDomainPinVcpu(domain->domain_, vcpu, cpumap, cpumaplen);
+        free(cpumap);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
         return True();
     }
 
@@ -1050,6 +1127,8 @@ namespace NodeLibvirt {
             return True();
         }
     }
+
+
 
 } //namespace NodeLibvirt
 

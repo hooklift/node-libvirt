@@ -131,7 +131,7 @@ describe 'Domain'
     end
 
     it 'should get information about vcpus'
-        var vcpus = domain.getVcpus(); //return an array
+        var vcpus = domain.getVcpus();
         vcpus.should_be_an_instance_of Array
         vcpus[0].number.should_not_be undefined
         vcpus[0].state.should_not_be undefined
@@ -140,7 +140,27 @@ describe 'Domain'
         vcpus[0].affinity.should_be_an_instance_of Array
 
         var affinity = vcpus[0].affinity;
-        affinity[0].usable.should_not_be undefined
+        var real_cpu = 0; //pedagogical purpose
+        affinity[real_cpu].usable.should_not_be undefined
+    end
+
+    it 'should allow to change real CPUs, which can be allocated to a virtual CPU'
+        var vcpus = domain.getVcpus();
+        var affinity = vcpus[0].affinity;
+        affinity[0].usable = false;
+        affinity[1].usable = false;
+        domain.pinVcpu(vcpus[0].number, affinity).should_be true
+
+        var vcpus2 = domain.getVcpus();
+        var affinity2 = vcpus2[0].affinity;
+        affinity2[0].usable.should_be false
+        affinity2[1].usable.should_be false
+
+        -{domain.pinVcpu()}.should_throw_error
+        -{domain.pinVcpu(vcpus[0].number, 2)}.should_throw_error
+        -{domain.pinVcpu('test', affinity)}.should_throw_error
+        -{domain.pinVcpu(vcpus[0].number)}.should_throw_error
+        -{domain.pinVcpu(vcpus[0].number, [''])}.should_throw_error
     end
 
     it 'should attach a device'

@@ -23,7 +23,7 @@ readFile = function(path) {
         var file = 'spec/spec.' + spec + '.js';
         path.exists(file, function(exists){
             if(!exists) {
-                sys.puts(file + ": Spec file does not exists");        
+                sys.puts(file + ": Spec file does not exist");        
             } else {
                 JSpec.exec(file).run({  reporter: JSpec.reporters.Terminal, 
                                         fixturePath: 'spec/fixtures',
