@@ -1,4 +1,5 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
+#include <stdlib.h>
 #include "domain.h"
 
 namespace NodeLibvirt {
@@ -9,6 +10,10 @@ namespace NodeLibvirt {
     static Persistent<String> memory_symbol;
     static Persistent<String> vcpus_number_symbol;
     static Persistent<String> cpu_time_symbol;
+    static Persistent<String> number_symbol;
+    static Persistent<String> cpu_symbol;
+    static Persistent<String> affinity_symbol;
+    static Persistent<String> usable_symbol;
 
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
@@ -48,8 +53,8 @@ namespace NodeLibvirt {
                                       Domain::GetSecurityLabel);*/
         NODE_SET_PROTOTYPE_METHOD(t, "getUUID",
                                       Domain::GetUUID);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",
-                                      Domain::GetVcpus);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",
+                                      Domain::GetVcpus);
         NODE_SET_PROTOTYPE_METHOD(t, "setVcpus",
                                       Domain::SetVcpus);
         /*NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
@@ -109,6 +114,10 @@ namespace NodeLibvirt {
         memory_symbol       = NODE_PSYMBOL("memory");
         vcpus_number_symbol = NODE_PSYMBOL("vcpus_number");
         cpu_time_symbol     = NODE_PSYMBOL("cpu_time");
+        number_symbol       = NODE_PSYMBOL("number");
+        cpu_symbol          = NODE_PSYMBOL("cpu");
+        affinity_symbol     = NODE_PSYMBOL("affinity");
+        usable_symbol       = NODE_PSYMBOL("usable");
     }
 
     Domain::~Domain() {
@@ -817,6 +826,86 @@ namespace NodeLibvirt {
         return True();
     }
 
+    Handle<Value> Domain::GetVcpus(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        return domain->get_vcpus();
+    }
+
+    Handle<Value> Domain::get_vcpus() {
+        virDomainInfo info;
+        virNodeInfo nodeinfo;
+        virVcpuInfoPtr cpuinfo = NULL;
+        unsigned char *cpumap = NULL;
+        int ncpus;
+        int cpumaplen;
+        int ret = -1;
+
+        ret = virDomainGetInfo(domain_, &info);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        ret = virNodeGetInfo(virDomainGetConnect(domain_), &nodeinfo); //FIXME
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        cpuinfo = (virVcpuInfoPtr) malloc(sizeof(*cpuinfo) * info.nrVirtCpu);
+        if(cpuinfo == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+
+        cpumaplen = VIR_CPU_MAPLEN(VIR_NODEINFO_MAXCPUS(nodeinfo));
+
+        cpumap = (unsigned char*)malloc(info.nrVirtCpu * cpumaplen);
+        if(cpumap == NULL) {
+            free(cpuinfo);
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+
+        ncpus = virDomainGetVcpus(domain_, cpuinfo, info.nrVirtCpu, cpumap, cpumaplen);
+
+        if(ncpus < 0) {
+            free(cpuinfo);
+            free(cpumap);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Array> vcpus = Array::New(info.nrVirtCpu);
+        for(int i = 0; i < info.nrVirtCpu; i++) {
+            Local<Object> obj = Object::New();
+            obj->Set(number_symbol, Integer::New(cpuinfo[i].number));
+            obj->Set(state_symbol, Integer::New(cpuinfo[i].state));
+            obj->Set(cpu_time_symbol, Number::New(cpuinfo[i].cpuTime)); //nanoseconds
+            obj->Set(cpu_symbol, Integer::New(cpuinfo[i].cpu));
+
+            int maxcpus =  VIR_NODEINFO_MAXCPUS(nodeinfo);
+            Local<Array> affinity = Array::New(maxcpus);
+            for(int j = 0; j < maxcpus; j++) {
+                Local<Object> cpu = Object::New();
+                cpu->Set(cpu_symbol, Integer::New(j));
+                cpu->Set(usable_symbol, Boolean::New(VIR_CPU_USABLE(cpumap, cpumaplen, i, j)));
+
+                affinity->Set(Integer::New(j), cpu);
+            }
+            obj->Set(affinity_symbol, affinity);
+
+            vcpus->Set(Integer::New(i), obj);
+        }
+        free(cpuinfo);
+        free(cpumap);
+
+        return vcpus;
+    }
 
     Handle<Value> Domain::SetVcpus(const Arguments& args) {
         HandleScope scope;

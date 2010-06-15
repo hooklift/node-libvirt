@@ -130,6 +130,19 @@ describe 'Domain'
         domain.setVcpus(4).should_be true
     end
 
+    it 'should get information about vcpus'
+        var vcpus = domain.getVcpus(); //return an array
+        vcpus.should_be_an_instance_of Array
+        vcpus[0].number.should_not_be undefined
+        vcpus[0].state.should_not_be undefined
+        vcpus[0].cpu_time.should_not_be undefined
+        vcpus[0].cpu.should_not_be undefined
+        vcpus[0].affinity.should_be_an_instance_of Array
+
+        var affinity = vcpus[0].affinity;
+        affinity[0].usable.should_not_be undefined
+    end
+
     it 'should attach a device'
         var device = fixture('device.xml');
         //no supported by test driver
