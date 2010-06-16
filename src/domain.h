@@ -70,10 +70,10 @@ namespace NodeLibvirt {
             static Handle<Value> ManagedSaveRemove(const Arguments& args);
             static Handle<Value> MemoryPeek(const Arguments& args);
             static Handle<Value> GetMemoryStats(const Arguments& args);
+            static Handle<Value> PinVcpu(const Arguments& args);
             static Handle<Value> Migrate(const Arguments& args);
             static Handle<Value> MigrateSetMaxDowntime(const Arguments& args);
-            static Handle<Value> MigrateToURI(const Arguments& args);
-            static Handle<Value> PinVcpu(const Arguments& args);
+
 
             static Handle<Value> RevertToSnapshot(const Arguments& args);
             static Handle<Value> SetSchedulerParameters(const Arguments& args);
@@ -125,7 +125,6 @@ namespace NodeLibvirt {
         private:
             virDomainPtr domain_;
             static Persistent<FunctionTemplate> constructor_template;
-            Local<Object> new_js_instance();
     };
 
 }  // namespace NodeLibvirt

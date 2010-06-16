@@ -186,5 +186,37 @@ describe 'Domain'
 
     end
 
+    it 'should migrate a domain to another hypervisor through a hypervisor connection'
+        var hypervisor2 = new Hypervisor('test:///default');
+        var flags = [ domain.VIR_MIGRATE_LIVE,
+                      domain.VIR_MIGRATE_PEER2PEER,
+                      domain.VIR_MIGRATE_PAUSED,
+                      domain.VIR_MIGRATE_PERSIST_DEST];
+
+        //bandwidth in Mbps
+        domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }).should_be true
+
+        //list domains on hypervisor2
+        //search migrated domain by name
+
+    end
+
+    it 'should migrate a domain to another hypervisor through an uri'
+        var flags = [ domain.VIR_MIGRATE_LIVE,
+                      domain.VIR_MIGRATE_PEER2PEER,
+                      domain.VIR_MIGRATE_PAUSED,
+                      domain.VIR_MIGRATE_PERSIST_DEST];
+
+        //bandwidth in Mbps
+        -{domain.migrateToUri({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags })}.should.throw_error
+
+        //test driver doesn't support this function
+    end
+
+    it 'should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration'
+        //Milliseconds
+        domain.setMaxDowntime(100000).should_be true
+    end
+
 end
 

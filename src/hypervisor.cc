@@ -168,6 +168,26 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",
                                       Domain::LookupByUUID);
 
+        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+
+        //Constants initialization
+        //virConnectCredentialType
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_USERNAME);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_AUTHNAME);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_LANGUAGE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_CNONCE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_PASSPHRASE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_ECHOPROMPT);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_NOECHOPROMPT);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_REALM);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CRED_EXTERNAL);
+
+        //virCPUCompareResult
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_ERROR);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_INCOMPATIBLE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_IDENTICAL);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_SUPERSET);
+
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
@@ -213,27 +233,7 @@ namespace NodeLibvirt {
         }
 
         Hypervisor *hypervisor = new Hypervisor(args[0]->ToString(), args[1]->IsTrue());
-        //hypervisor->openConnection(args) google code style, no work in constructors
         Local<Object> obj = args.This();
-
-        //Constants initialization
-        //virConnectCredentialType
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_USERNAME);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_AUTHNAME);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_LANGUAGE);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_CNONCE);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_PASSPHRASE);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_ECHOPROMPT);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_NOECHOPROMPT);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_REALM);
-        NODE_DEFINE_CONSTANT(obj, VIR_CRED_EXTERNAL);
-
-        //virCPUCompareResult
-        NODE_DEFINE_CONSTANT(obj, VIR_CPU_COMPARE_ERROR);
-        NODE_DEFINE_CONSTANT(obj, VIR_CPU_COMPARE_INCOMPATIBLE);
-        NODE_DEFINE_CONSTANT(obj, VIR_CPU_COMPARE_IDENTICAL);
-        NODE_DEFINE_CONSTANT(obj, VIR_CPU_COMPARE_SUPERSET);
-
         hypervisor->Wrap(obj);
 
         return obj;

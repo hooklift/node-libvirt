@@ -14,6 +14,11 @@ namespace NodeLibvirt {
     static Persistent<String> cpu_symbol;
     static Persistent<String> affinity_symbol;
     static Persistent<String> usable_symbol;
+    static Persistent<String> migration_uri_symbol;
+    static Persistent<String> migration_name_symbol;
+    static Persistent<String> migration_bandwidth_symbol;
+    static Persistent<String> migration_flags_symbol;
+    static Persistent<String> migration_hypervisor_symbol;
 
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
@@ -75,9 +80,9 @@ namespace NodeLibvirt {
                                       Domain::MemoryPeek);
         NODE_SET_PROTOTYPE_METHOD(t, "memoryStats",
                                       Domain::GetMemoryStats);*/
-        /*NODE_SET_PROTOTYPE_METHOD(t, "migrate",
+        NODE_SET_PROTOTYPE_METHOD(t, "migrate",
                                       Domain::Migrate);
-        NODE_SET_PROTOTYPE_METHOD(t, "migrateSetMaxDowntime",
+        /*NODE_SET_PROTOTYPE_METHOD(t, "migrateSetMaxDowntime",
                                       Domain::MigrateSetMaxDowntime);*/
         NODE_SET_PROTOTYPE_METHOD(t, "pinVcpu",
                                       Domain::PinVcpu);
@@ -109,6 +114,33 @@ namespace NodeLibvirt {
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Domain"));
 
+        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+
+        //Constants initialization
+        //virDomainState
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_NOSTATE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_RUNNING);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_BLOCKED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_PAUSED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SHUTDOWN);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SHUTOFF);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_CRASHED);
+
+        //virDomainDeviceModifyFlags
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
+
+        //virDomainMigrateFlags
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_LIVE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PEER2PEER);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_TUNNELLED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PERSIST_DEST);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_UNDEFINE_SOURCE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PAUSED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_DISK);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_INC);
+
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
         memory_symbol       = NODE_PSYMBOL("memory");
@@ -118,6 +150,11 @@ namespace NodeLibvirt {
         cpu_symbol          = NODE_PSYMBOL("cpu");
         affinity_symbol     = NODE_PSYMBOL("affinity");
         usable_symbol       = NODE_PSYMBOL("usable");
+        migration_uri_symbol            = NODE_PSYMBOL("dest_uri");
+        migration_name_symbol           = NODE_PSYMBOL("dest_name");
+        migration_bandwidth_symbol      = NODE_PSYMBOL("bandwidth");
+        migration_flags_symbol          = NODE_PSYMBOL("flags");
+        migration_hypervisor_symbol     = NODE_PSYMBOL("dest_hypervisor");
     }
 
     Domain::~Domain() {
@@ -179,7 +216,7 @@ namespace NodeLibvirt {
         if(domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
         } else {
-            return new_js_instance();
+            return constructor_template->GetFunction()->NewInstance();
         }
     }
 
@@ -225,7 +262,7 @@ namespace NodeLibvirt {
         if(domain_ == NULL) {
            ThrowException(Error::New(virGetLastError()));
         } else {
-            return new_js_instance();
+            return constructor_template->GetFunction()->NewInstance();
         }
     }
 
@@ -287,7 +324,7 @@ namespace NodeLibvirt {
         if(domain_ == NULL) {
            ThrowException(Error::New(virGetLastError()));
         } else {
-            return new_js_instance();
+            return constructor_template->GetFunction()->NewInstance();
         }
     }
 
@@ -334,7 +371,7 @@ namespace NodeLibvirt {
         if(domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
         } else {
-            return new_js_instance();
+            return constructor_template->GetFunction()->NewInstance();
         }
     }
 
@@ -382,29 +419,8 @@ namespace NodeLibvirt {
         if(domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
         } else {
-            return new_js_instance();
+            return constructor_template->GetFunction()->NewInstance();
         }
-    }
-
-    Local<Object> Domain::new_js_instance() {
-        Local<Object> object = constructor_template->GetFunction()->NewInstance();
-
-        //Constants initialization
-        //virDomainState
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_NOSTATE);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_RUNNING);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_BLOCKED);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_PAUSED);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_SHUTDOWN);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_SHUTOFF);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_CRASHED);
-
-        //virDomainDeviceModifyFlags
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
-        NODE_DEFINE_CONSTANT(object, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
-
-        return object;
     }
 
     Handle<Value> Domain::GetId(const Arguments& args) {
@@ -931,6 +947,95 @@ namespace NodeLibvirt {
         return True();
     }
 
+    Handle<Value> Domain::Migrate(const Arguments& args) {
+        HandleScope scope;
+        const char* dest_uri = NULL;
+        const char* dest_name = NULL;
+        unsigned long flags = 0;
+        unsigned long bandwidth = 0;
+        int ret = -1;
+
+        if(args.Length() == 0) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsObject()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an object as first argument")));
+        }
+
+        Local<Object> args_ = args[0]->ToObject();
+
+        if(!args_->Has(migration_uri_symbol)) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must have set property dest_uri in the object")));
+        }
+
+        //dest_uri
+        String::Utf8Value dest_uri_(args_->Get(migration_uri_symbol));
+        dest_uri = ToCString(dest_uri_);
+
+        //dest_name
+        if(args_->Has(migration_name_symbol)) {
+            String::Utf8Value dest_name_(args_->Get(migration_name_symbol));
+            dest_name = ToCString(dest_name_);
+        }
+
+        //flags
+        if(args_->Has(migration_flags_symbol)){
+            Local<Array> flags_ = Local<Array>::Cast(args_->Get(migration_flags_symbol));
+            unsigned int length = flags_->Length();
+
+            for (int i = 0; i < length; i++) {
+                flags |= flags_->Get(Integer::New(i))->Int32Value();
+            }
+        }
+
+        //bandwidth (Mbps)
+        if(args_->Has(migration_bandwidth_symbol)) {
+            bandwidth = args_->Get(migration_bandwidth_symbol)->Int32Value();
+        }
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        if(args_->Has(migration_hypervisor_symbol)) {
+            Local<Object> hyp_obj = args_->Get(migration_hypervisor_symbol)->ToObject();
+
+            if(!Hypervisor::HasInstance(hyp_obj)) {
+                return ThrowException(Exception::TypeError(
+                String::New("You must specify a Hypervisor object instance")));
+            }
+
+            Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+
+            Domain *migrated_domain = new Domain();
+            migrated_domain->domain_ = virDomainMigrate(domain->domain_,
+                                                        hypervisor->connection(),
+                                                        flags,
+                                                        dest_name,
+                                                        dest_uri,
+                                                        bandwidth);
+
+            if(migrated_domain->domain_ == NULL) {
+                return False();
+            }
+
+            migrated_domain->Wrap(args.This());
+
+            return migrated_domain->constructor_template->GetFunction()->NewInstance();
+        } else {
+            ret = virDomainMigrateToURI(domain->domain_, dest_uri, flags, dest_name, bandwidth);
+        }
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
     Handle<Value> Domain::PinVcpu(const Arguments& args) {
         HandleScope scope;
         virNodeInfo nodeinfo;
@@ -1103,8 +1208,6 @@ namespace NodeLibvirt {
         }
         return True();
     }
-
-    //virDomainMigrate
 
     Handle<Value> Domain::Destroy(const Arguments& args) {
         HandleScope scope;
