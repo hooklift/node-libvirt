@@ -1,6 +1,6 @@
 <devices>
   <disk type='file' device='cdrom'>
-    <source file='/tmp/boot.iso'/>
+    <source file='/tmp/boot2.iso'/>
     <target dev='hdc'/>
     <readonly/>
   </disk>

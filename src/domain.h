@@ -22,6 +22,7 @@ namespace NodeLibvirt {
                 return constructor_template->HasInstance(object);
             }
             virtual ~Domain();
+
         protected:
             //static Handle<Value> New(const Arguments& args);
             static Handle<Value> Create(const Arguments& args);
@@ -50,34 +51,32 @@ namespace NodeLibvirt {
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
             static Handle<Value> Start(const Arguments& args);
+            static Handle<Value> GetVcpus(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
-
+            static Handle<Value> Migrate(const Arguments& args);
+            static Handle<Value> SetMigrationMaxDowntime(const Arguments& args);
+            static Handle<Value> PinVcpu(const Arguments& args);
             static Handle<Value> AttachDevice(const Arguments& args);
             static Handle<Value> DetachDevice(const Arguments& args);
+            static Handle<Value> UpdateDevice(const Arguments& args);
+            static Handle<Value> Destroy(const Arguments& args);
 
-            //unimplemented
             static Handle<Value> GetXMLDesc(const Arguments& args);
-            static Handle<Value> GetVcpus(const Arguments& args);
             static Handle<Value> GetJobInfo(const Arguments& args);
             static Handle<Value> GetSchedParams(const Arguments& args);
             static Handle<Value> SetSchedParams(const Arguments& args);
             static Handle<Value> GetSchedType(const Arguments& args);
             static Handle<Value> GetSecurityLabel(const Arguments& args);
-            static Handle<Value> HasCurrentSnapshot(const Arguments& args);
+
             static Handle<Value> HasManagedSaveImage(const Arguments& args);
             static Handle<Value> GetInterfaceStats(const Arguments& args);
             static Handle<Value> ManagedSave(const Arguments& args);
             static Handle<Value> ManagedSaveRemove(const Arguments& args);
             static Handle<Value> MemoryPeek(const Arguments& args);
             static Handle<Value> GetMemoryStats(const Arguments& args);
-            static Handle<Value> PinVcpu(const Arguments& args);
-            static Handle<Value> Migrate(const Arguments& args);
-            static Handle<Value> SetMigrationMaxDowntime(const Arguments& args);
 
-
+            static Handle<Value> HasCurrentSnapshot(const Arguments& args);
             static Handle<Value> RevertToSnapshot(const Arguments& args);
-            static Handle<Value> SetSchedulerParameters(const Arguments& args);
-
             static Handle<Value> CreateSnapshotXml(const Arguments& args);
             static Handle<Value> GetCurrentSnapshot(const Arguments& args);
             static Handle<Value> DeleteSnapshot(const Arguments& args);
@@ -87,47 +86,15 @@ namespace NodeLibvirt {
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshotsCount(const Arguments& args);
 
-            static Handle<Value> UpdateDeviceFlags(const Arguments& args);
-            static Handle<Value> Destroy(const Arguments& args);
 
 
-            Local<Object> create(const char* xml, virConnectPtr conn, unsigned int flags);
-            Local<Object> define(const char* xml, virConnectPtr conn);
-            Handle<Value> undefine();
-            Local<Object> lookup_by_id(virConnectPtr conn, int id);
-            Local<Object> lookup_by_name(virConnectPtr conn, const char* name);
-            Local<Object> lookup_by_uuid(virConnectPtr conn, const char* uuid);
-            Handle<Value> get_id();
-            Handle<Value> get_info();
-            Handle<Value> get_name();
-            Handle<Value> get_uuid();
-            Handle<Value> get_autostart();
-            Handle<Value> set_autostart(bool autostart);
-            Handle<Value> get_os_type();
-            Handle<Value> get_max_memory();
-            Handle<Value> set_max_memory(unsigned long memory);
-            Handle<Value> set_memory(unsigned long memory);
-            Handle<Value> get_max_vcpus();
-            Handle<Value> is_active();
-            Handle<Value> is_persistent();
-            Handle<Value> reboot(unsigned int flags);
-            Handle<Value> save(const char* path);
-            Handle<Value> restore(virConnectPtr conn, const char* path);
-            Handle<Value> suspend();
-            Handle<Value> resume();
-            Handle<Value> shutdown();
-            Handle<Value> start();
-            Handle<Value> set_vcpus(unsigned int vcpus);
-            Handle<Value> get_vcpus();
-            Handle<Value> attach_device(const char* xml, unsigned int flags);
-            Handle<Value> detach_device(const char* xml, unsigned int flags);
-            Handle<Value> destroy();
+
         private:
             virDomainPtr domain_;
             static Persistent<FunctionTemplate> constructor_template;
     };
 
-}  // namespace NodeLibvirt
+}  //namespace NodeLibvirt
 
 #endif  // SRC_DOMAIN_H
 

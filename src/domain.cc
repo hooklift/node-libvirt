@@ -105,6 +105,8 @@ namespace NodeLibvirt {
                                       Domain::AttachDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",
                                       Domain::DetachDevice);
+        NODE_SET_PROTOTYPE_METHOD(t, "updateDevice",
+                                      Domain::UpdateDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "destroy",
                                       Domain::Destroy);
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
@@ -174,8 +176,8 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Create(const Arguments& args) {
         HandleScope scope;
-        virConnectPtr conn = NULL;
         unsigned int flags = 0;
+        const char* xml = NULL;
 
         int argsl = args.Length();
 
@@ -195,35 +197,29 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a Hypervisor object instance")));
         }
-        String::Utf8Value xml(args[0]->ToString());
+        String::Utf8Value xml_(args[0]->ToString());
+        xml = ToCString(xml_);
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
         Domain *domain = new Domain();
-        Local<Object> domain_obj = domain->create(ToCString(xml), conn, flags);
+        domain->domain_ = virDomainCreateXML(hypervisor->connection(), xml, flags);
 
+        if(domain->domain_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
         domain->Wrap(domain_obj);
 
         return scope.Close(domain_obj);
     }
 
-    Local<Object> Domain::create(const char* xml, virConnectPtr conn,
-                                 unsigned int flags) {
-        domain_ = virDomainCreateXML(conn, xml, flags);
-
-        if(domain_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-        } else {
-            return constructor_template->GetFunction()->NewInstance();
-        }
-    }
-
     Handle<Value> Domain::Define(const Arguments& args) {
         HandleScope scope;
-        virConnectPtr conn = NULL;
 
+        const char* xml = NULL;
         int argsl = args.Length();
 
         if(argsl == 0) {
@@ -242,44 +238,39 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a Hypervisor instance")));
         }
-        String::Utf8Value xml(args[0]->ToString());
+
+        String::Utf8Value xml_(args[0]->ToString());
+        xml = ToCString(xml_);
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
         Domain *domain = new Domain();
-        Local<Object> domain_obj = domain->define(ToCString(xml), conn);
+        domain->domain_ = virDomainDefineXML(hypervisor->connection(), xml);
+
+        if(domain->domain_) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
 
         domain->Wrap(domain_obj);
 
         return scope.Close(domain_obj);
     }
 
-    Local<Object> Domain::define(const char* xml, virConnectPtr conn) {
-        domain_ = virDomainDefineXML(conn, xml);
-
-        if(domain_ == NULL) {
-           ThrowException(Error::New(virGetLastError()));
-        } else {
-            return constructor_template->GetFunction()->NewInstance();
-        }
-    }
-
     Handle<Value> Domain::Undefine(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->undefine();
-    }
-
-    Handle<Value> Domain::undefine() {
-        int ret = virDomainUndefine(domain_);
+        ret = virDomainUndefine(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
@@ -287,6 +278,7 @@ namespace NodeLibvirt {
         HandleScope scope;
 
         virConnectPtr conn = NULL;
+        int id = -1;
 
         if(args.Length() == 0 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
@@ -300,38 +292,28 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        int id = args[0]->Int32Value();
+        id = args[0]->Int32Value();
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
         Domain *domain = new Domain();
-        Local<Object> domain_obj = domain->lookup_by_id(conn, id);
-
+        domain->domain_ = virDomainLookupByID(hypervisor->connection(), id);
         if(domain->domain_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
 
         domain->Wrap(domain_obj);
 
         return scope.Close(domain_obj);
     }
 
-    Local<Object> Domain::lookup_by_id(virConnectPtr conn, int id) {
-        domain_ = virDomainLookupByID(conn, id);
-
-        if(domain_ == NULL) {
-           ThrowException(Error::New(virGetLastError()));
-        } else {
-            return constructor_template->GetFunction()->NewInstance();
-        }
-    }
-
     Handle<Value> Domain::LookupByName(const Arguments& args) {
         HandleScope scope;
 
-        virConnectPtr conn = NULL;
+        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -347,38 +329,28 @@ namespace NodeLibvirt {
 
         String::Utf8Value name_(args[0]->ToString());
 
-        const char* name = ToCString(name_);
+        name = ToCString(name_);
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
         Domain *domain = new Domain();
-        Local<Object> domain_obj = domain->lookup_by_name(conn, name);
+        domain->domain_ = virDomainLookupByName(hypervisor->connection(), name);
 
         if(domain->domain_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
 
         domain->Wrap(domain_obj);
 
         return scope.Close(domain_obj);
     }
 
-    Local<Object> Domain::lookup_by_name(virConnectPtr conn, const char* name) {
-        domain_ = virDomainLookupByName(conn, name);
-
-        if(domain_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-        } else {
-            return constructor_template->GetFunction()->NewInstance();
-        }
-    }
-
     Handle<Value> Domain::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-
-        virConnectPtr conn = NULL;
+        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -394,44 +366,32 @@ namespace NodeLibvirt {
 
         String::Utf8Value uuid_(args[0]->ToString());
 
-        const char* uuid = ToCString(uuid_);
+        uuid = ToCString(uuid_);
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
         Domain *domain = new Domain();
-        Local<Object> domain_obj = domain->lookup_by_uuid(conn, uuid);
+        domain->domain_ = virDomainLookupByUUIDString(hypervisor->connection(), uuid);
 
         if(domain->domain_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
             return Null();
         }
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
 
         domain->Wrap(domain_obj);
 
         return scope.Close(domain_obj);
     }
 
-    Local<Object> Domain::lookup_by_uuid(virConnectPtr conn, const char* uuid) {
-
-        domain_ = virDomainLookupByUUIDString(conn, uuid);
-
-        if(domain_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-        } else {
-            return constructor_template->GetFunction()->NewInstance();
-        }
-    }
-
     Handle<Value> Domain::GetId(const Arguments& args) {
         HandleScope scope;
+        unsigned int id = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_id();
-    }
 
-    Handle<Value> Domain::get_id() {
-        unsigned int id = virDomainGetID(domain_);
+        id = virDomainGetID(domain->domain_);
 
         if(id == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -443,14 +403,12 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetInfo(const Arguments& args) {
         HandleScope scope;
+        virDomainInfo info;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_info();
-    }
 
-    Handle<Value> Domain::get_info() {
-        virDomainInfo info;
-        int ret = virDomainGetInfo(domain_, &info);
+        ret = virDomainGetInfo(domain->domain_, &info);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -469,13 +427,11 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetName(const Arguments& args) {
         HandleScope scope;
+        const char *name = NULL;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_name();
-    }
 
-    Handle<Value> Domain::get_name() {
-        const char *name = virDomainGetName(domain_);
+        name = virDomainGetName(domain->domain_);
 
         if(name == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -487,15 +443,12 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetUUID(const Arguments& args) {
         HandleScope scope;
-
-        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_uuid();
-    }
-
-    Handle<Value> Domain::get_uuid() {
+        int ret = -1;
         char *uuid = new char[VIR_UUID_STRING_BUFLEN];
 
-        int ret = virDomainGetUUIDString(domain_, uuid);
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainGetUUIDString(domain->domain_, uuid);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -512,15 +465,13 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetAutostart(const Arguments& args) {
         HandleScope scope;
-
-        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_autostart();
-    }
-
-    Handle<Value> Domain::get_autostart() {
+        int ret = -1;
         int autostart_;
 
-        int ret = virDomainGetAutostart(domain_, &autostart_);
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainGetAutostart(domain->domain_, &autostart_);
+
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
@@ -533,6 +484,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::SetAutostart(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsBoolean()) {
             return ThrowException(Exception::TypeError(
@@ -542,28 +494,24 @@ namespace NodeLibvirt {
         bool autostart = args[0]->IsTrue();
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->set_autostart(autostart);
-    }
 
-    Handle<Value> Domain::set_autostart(bool autostart) {
-        int ret = virDomainSetAutostart(domain_, autostart ? 0 : 1);
+        ret = virDomainSetAutostart(domain->domain_, autostart ? 0 : 1);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::GetMaxMemory(const Arguments& args) {
         HandleScope scope;
+        unsigned long memory = 0;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_max_memory();
-    }
 
-    Handle<Value> Domain::get_max_memory() {
-        unsigned long memory = virDomainGetMaxMemory(domain_);
+        memory = virDomainGetMaxMemory(domain->domain_);
 
         if(memory == 0) {
             ThrowException(Error::New(virGetLastError()));
@@ -575,60 +523,58 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::SetMaxMemory(const Arguments& args) {
         HandleScope scope;
+        unsigned long memory = 0;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid amount of memory")));
         }
 
-        unsigned long memory = args[0]->Int32Value();
+        memory = args[0]->Int32Value();
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->set_max_memory(memory);
-    }
 
-    Handle<Value> Domain::set_max_memory(unsigned long memory) {
-        int ret = virDomainSetMaxMemory(domain_, memory);
+        ret = virDomainSetMaxMemory(domain->domain_, memory);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
-      Handle<Value> Domain::SetMemory(const Arguments& args) {
+    Handle<Value> Domain::SetMemory(const Arguments& args) {
         HandleScope scope;
+        unsigned long memory = 0;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid amount of memory")));
         }
 
-        unsigned long memory = args[0]->Int32Value();
+        memory = args[0]->Int32Value();
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->set_memory(memory);
-    }
 
-    Handle<Value> Domain::set_memory(unsigned long memory) {
-        int ret = virDomainSetMemory(domain_, memory);
+        ret = virDomainSetMemory(domain->domain_, memory);
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::GetOsType(const Arguments& args) {
         HandleScope scope;
+        char *os_type = NULL;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_os_type();
-    }
 
-    Handle<Value> Domain::get_os_type() {
-        char *os_type = virDomainGetOSType(domain_);
+        os_type = virDomainGetOSType(domain->domain_);
 
         if(os_type == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -640,13 +586,11 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetMaxVcpus(const Arguments& args) {
         HandleScope scope;
+        int vcpus = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_max_vcpus();
-    }
 
-    Handle<Value> Domain::get_max_vcpus() {
-        int vcpus = virDomainGetMaxVcpus(domain_);
+        vcpus = virDomainGetMaxVcpus(domain->domain_);
 
         if(vcpus == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -658,13 +602,11 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::IsActive(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->is_active();
-    }
 
-    Handle<Value> Domain::is_active() {
-        int ret = virDomainIsActive(domain_);
+        ret = virDomainIsActive(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -677,13 +619,11 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::IsPersistent(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->is_persistent();
-    }
 
-    Handle<Value> Domain::is_persistent() {
-        int ret = virDomainIsPersistent(domain_);
+        ret = virDomainIsPersistent(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -697,23 +637,24 @@ namespace NodeLibvirt {
     Handle<Value> Domain::Reboot(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->reboot(flags);
-    }
 
-    Handle<Value> Domain::reboot(unsigned int flags) {
-        int ret = virDomainReboot(domain_, flags);
+        ret = virDomainReboot(domain->domain_, flags);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::Save(const Arguments& args) {
         HandleScope scope;
+        const char* path = NULL;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -721,25 +662,24 @@ namespace NodeLibvirt {
         }
 
         String::Utf8Value path_(args[0]->ToString());
-        const char *path = ToCString(path_);
+        path = ToCString(path_);
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->save(path);
-    }
 
-    Handle<Value> Domain::save(const char* path) {
-        int ret = virDomainSave(domain_, path);
+        ret = virDomainSave(domain->domain_, path);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::Restore(const Arguments& args) {
         HandleScope scope;
-        virConnectPtr conn = NULL;
+        const char *path = NULL;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -753,53 +693,44 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor object instance")));
         }
 
+        String::Utf8Value path_(args[0]->ToString());
+        path = ToCString(path_);
+
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        conn = hypervisor->connection();
-
-        String::Utf8Value path_(args[0]->ToString());
-        const char *path = ToCString(path_);
-
-        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return scope.Close(domain->restore(conn, path));
-    }
-
-    Handle<Value> Domain::restore(virConnectPtr conn, const char* path) {
-        int ret = virDomainRestore(conn, path);
+        ret = virDomainRestore(hypervisor->connection(), path);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
-            return False();
+            return scope.Close(False());
         }
-        return True();
+
+        return scope.Close(True());
     }
 
     Handle<Value> Domain::Suspend(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->suspend();
-    }
 
-    Handle<Value> Domain::suspend() {
-        int ret = virDomainSuspend(domain_);
+        ret = virDomainSuspend(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::Resume(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->resume();
-    }
 
-    Handle<Value> Domain::resume() {
-        int ret = virDomainResume(domain_);
+        ret = virDomainResume(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -810,30 +741,26 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Shutdown(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->shutdown();
-    }
-
-    Handle<Value> Domain::shutdown() {
-        int ret = virDomainShutdown(domain_);
+        ret = virDomainShutdown(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::Start(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->start();
-    }
 
-    Handle<Value> Domain::start() {
-        int ret = virDomainCreate(domain_);
+        ret = virDomainCreate(domain->domain_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -845,11 +772,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::GetVcpus(const Arguments& args) {
         HandleScope scope;
 
-        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->get_vcpus();
-    }
-
-    Handle<Value> Domain::get_vcpus() {
         virDomainInfo info;
         virNodeInfo nodeinfo;
         virVcpuInfoPtr cpuinfo = NULL;
@@ -858,14 +780,16 @@ namespace NodeLibvirt {
         int cpumaplen;
         int ret = -1;
 
-        ret = virDomainGetInfo(domain_, &info);
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainGetInfo(domain->domain_, &info);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        ret = virNodeGetInfo(virDomainGetConnect(domain_), &nodeinfo); //FIXME
+        ret = virNodeGetInfo(virDomainGetConnect(domain->domain_), &nodeinfo);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -887,7 +811,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        ncpus = virDomainGetVcpus(domain_, cpuinfo, info.nrVirtCpu, cpumap, cpumaplen);
+        ncpus = virDomainGetVcpus(domain->domain_, cpuinfo, info.nrVirtCpu, cpumap, cpumaplen);
 
         if(ncpus < 0) {
             free(cpuinfo);
@@ -925,25 +849,25 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::SetVcpus(const Arguments& args) {
         HandleScope scope;
+        unsigned int vcpus = 0;
+        int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a number")));
         }
 
-        unsigned int vcpus = args[0]->Int32Value();
+        vcpus = args[0]->Int32Value();
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->set_vcpus(vcpus);
-    }
 
-    Handle<Value> Domain::set_vcpus(unsigned int vcpus) {
-        int ret = virDomainSetVcpus(domain_, vcpus);
+        ret = virDomainSetVcpus(domain->domain_, vcpus);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
@@ -1146,6 +1070,8 @@ namespace NodeLibvirt {
     Handle<Value> Domain::AttachDevice(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
+        const char* xml = NULL;
+        int ret = -1;
 
         int argsl = args.Length();
 
@@ -1161,7 +1087,7 @@ namespace NodeLibvirt {
 
         String::Utf8Value xml_(args[0]->ToString());
 
-        const char* xml = ToCString(xml_);
+        xml = ToCString(xml_);
 
         //flags
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
@@ -1172,28 +1098,26 @@ namespace NodeLibvirt {
         }
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->attach_device(xml, flags);
-    }
-
-    Handle<Value> Domain::attach_device(const char* xml, unsigned int flags) {
-        int ret = -1;
 
         if(flags > 0) {
-            ret = virDomainAttachDeviceFlags(domain_, xml, flags);
+            ret = virDomainAttachDeviceFlags(domain->domain_, xml, flags);
         } else {
-            ret = virDomainAttachDevice(domain_, xml);
+            ret = virDomainAttachDevice(domain->domain_, xml);
         }
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+
         return True();
     }
 
     Handle<Value> Domain::DetachDevice(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
+        const char* xml = NULL;
+        int ret = -1;
 
         int argsl = args.Length();
 
@@ -1209,7 +1133,7 @@ namespace NodeLibvirt {
 
         String::Utf8Value xml_(args[0]->ToString());
 
-        const char* xml = ToCString(xml_);
+        xml = ToCString(xml_);
 
         //flags
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
@@ -1220,16 +1144,11 @@ namespace NodeLibvirt {
         }
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->detach_device(xml, flags);
-    }
-
-    Handle<Value> Domain::detach_device(const char* xml, unsigned int flags) {
-        int ret = -1;
 
         if(flags > 0) {
-            ret = virDomainDetachDeviceFlags(domain_, xml, flags);
+            ret = virDomainDetachDeviceFlags(domain->domain_, xml, flags);
         } else {
-            ret = virDomainDetachDevice(domain_, xml);
+            ret = virDomainDetachDevice(domain->domain_, xml);
         }
 
         if(ret == -1) {
@@ -1239,29 +1158,69 @@ namespace NodeLibvirt {
         return True();
     }
 
-    Handle<Value> Domain::Destroy(const Arguments& args) {
+    Handle<Value> Domain::UpdateDevice(const Arguments& args) {
         HandleScope scope;
+        const char* xml = NULL;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        if(args.Length() < 2) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify two arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as first argument")));
+        }
+
+        if(!args[1]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an array as second argument")));
+        }
+
+        String::Utf8Value xml_(args[0]->ToString());
+
+        xml = ToCString(xml_);
+
+        //flags
+        Local<Array> flags_ = Local<Array>::Cast(args[1]);
+        unsigned int length = flags_->Length();
+
+        for (int i = 0; i < length; i++) {
+            flags |= flags_->Get(Integer::New(i))->Int32Value();
+        }
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        return domain->destroy();
-    }
 
-    Handle<Value> Domain::destroy() {
-        int ret = virDomainDestroy(domain_);
+        ret = virDomainUpdateDeviceFlags(domain->domain_, xml, flags);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();
-        } else {
-            if(domain_ != NULL) {
-                virDomainFree(domain_);
-            }
-            //delete this; //FIXME, refactor
-            return True();
         }
+
+        return True();
     }
 
+    Handle<Value> Domain::Destroy(const Arguments& args) {
+        HandleScope scope;
+        int ret = -1;
 
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
+        ret = virDomainDestroy(domain->domain_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        if(domain->domain_ != NULL) {
+            virDomainFree(domain->domain_);
+        }
+
+        return True();
+    }
 } //namespace NodeLibvirt
 

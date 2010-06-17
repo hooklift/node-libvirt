@@ -169,6 +169,7 @@ describe 'Domain'
         try {
             domain.attachDevice(device);
         } catch(error){
+            error.code.should_not_be undefined
             error.code.should_be error.VIR_ERR_NO_SUPPORT
         }
         //domain.attachDevice(device).should_be true
@@ -186,6 +187,18 @@ describe 'Domain'
 
     end
 
+    it 'should update a device'
+        var device = fixture('device_update.xml');
+        var flags = [libvirt.VIR_DOMAIN_DEVICE_MODIFY_CONFIG];
+
+        try {
+            domain.updateDevice(device, flags);
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
     it 'should migrate a domain to another hypervisor through a hypervisor connection'
         var hypervisor2 = new Hypervisor('test:///default');
         var flags = [ domain.VIR_MIGRATE_LIVE,
@@ -195,8 +208,12 @@ describe 'Domain'
 
         //test driver doesn't support this function
         //bandwidth in Mbps
-        -{domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags })}.should.throw_error
-
+        try {
+            domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags });
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should migrate a domain to another hypervisor through an uri'
@@ -207,14 +224,23 @@ describe 'Domain'
 
         //test driver doesn't support this function
         //bandwidth in Mbps
-        -{domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags })}.should.throw_error
-
+        try {
+            domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags });
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration'
         //test driver doesn't support this function
         //Milliseconds
-        -{domain.setMigrationMaxDowntime(100000)}.should.throw_error
+        try {
+            domain.setMigrationMaxDowntime(100000);
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
 end

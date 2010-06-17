@@ -172,13 +172,13 @@ namespace NodeLibvirt {
     Handle<Value> Error::New(virErrorPtr error) {
         HandleScope scope;
 
-        Local<Object> object = constructor_template->GetFunction()->NewInstance();
-
         if(error == NULL) {
             return Undefined();
         }
 
         Error *err = new Error(error);
+        Local<Object> object = err->constructor_template->GetFunction()->NewInstance();
+
         err->Wrap(object);
 
         return scope.Close(object);
