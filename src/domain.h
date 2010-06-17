@@ -61,20 +61,20 @@ namespace NodeLibvirt {
             static Handle<Value> UpdateDevice(const Arguments& args);
             static Handle<Value> Destroy(const Arguments& args);
             static Handle<Value> ToXml(const Arguments& args);
-
-
             static Handle<Value> GetJobInfo(const Arguments& args);
+            static Handle<Value> GetSchedType(const Arguments& args);
             static Handle<Value> GetSchedParams(const Arguments& args);
             static Handle<Value> SetSchedParams(const Arguments& args);
-            static Handle<Value> GetSchedType(const Arguments& args);
             static Handle<Value> GetSecurityLabel(const Arguments& args);
 
+
             static Handle<Value> HasManagedSaveImage(const Arguments& args);
-            static Handle<Value> GetInterfaceStats(const Arguments& args);
             static Handle<Value> ManagedSave(const Arguments& args);
             static Handle<Value> ManagedSaveRemove(const Arguments& args);
+
             static Handle<Value> MemoryPeek(const Arguments& args);
             static Handle<Value> GetMemoryStats(const Arguments& args);
+            static Handle<Value> GetInterfaceStats(const Arguments& args);
 
             static Handle<Value> HasCurrentSnapshot(const Arguments& args);
             static Handle<Value> RevertToSnapshot(const Arguments& args);
@@ -86,9 +86,6 @@ namespace NodeLibvirt {
             static Handle<Value> ListSnapshotsNames(const Arguments& args);
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshotsCount(const Arguments& args);
-
-
-
 
         private:
             virDomainPtr domain_;

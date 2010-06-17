@@ -251,6 +251,48 @@ describe 'Domain'
         xml.should_match /<name>test<\/name>/
     end
 
+    it 'should extract information about progress of a background job on the domain'
+        //test driver doesn't support this function
+        try {
+            var info = domain.getJobInfo();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+
+//        info.type.should_not_be undefined
+//        info.time.elapsed.should_not_be undefined
+//        info.time.remaining.should_not_be undefined
+//        info.data.total.should_not_be undefined
+//        info.data.processed.should_not_be undefined
+//        info.data.remaining.should_not_be undefined
+//        info.memory.total.should_not_be undefined
+//        info.memory.processed.should_not_be undefined
+//        info.memory.remaining.should_not_be undefined
+//        info.file.total.should_not_be undefined
+//        info.file.processed.should_not_be undefined
+//        info.file.remaining.should_not_be undefined
+    end
+
+    it 'should get the domain scheduler parameters'
+        var params = domain.getSchedParams();
+        params.weight.should_be 50
+    end
+
+    it 'should set the domain scheduler parameters'
+
+    end
+
+    it 'should return the domain security labels'
+        try {
+            var info = domain.getSecurityLabel();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+        //info.label.should_not_be undefined
+        //info.enforcing.should_not_be undefined
+    end
 
 
 end

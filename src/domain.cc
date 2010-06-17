@@ -1,5 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include <stdlib.h>
+#include <string.h>
 #include "domain.h"
 
 namespace NodeLibvirt {
@@ -19,6 +20,19 @@ namespace NodeLibvirt {
     static Persistent<String> migration_bandwidth_symbol;
     static Persistent<String> migration_flags_symbol;
     static Persistent<String> migration_hypervisor_symbol;
+    //Jobinfo symbols
+    static Persistent<String> type_symbol;
+    static Persistent<String> time_symbol;
+    static Persistent<String> data_symbol;
+    static Persistent<String> file_symbol;
+    static Persistent<String> elapsed_symbol;
+    static Persistent<String> remaining_symbol;
+    static Persistent<String> total_symbol;
+    static Persistent<String> processed_symbol;
+
+    //SecurityLabel symbols
+    static Persistent<String> label_symbol;
+    static Persistent<String> enforcing_symbol;
 
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
@@ -28,12 +42,10 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "getId",
                                       Domain::GetId);
-        NODE_SET_PROTOTYPE_METHOD(t, "getInfo",
-                                      Domain::GetInfo);
         NODE_SET_PROTOTYPE_METHOD(t, "toXml",
                                       Domain::ToXml);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "getJobInfo",
-                                      Domain::GetJobInfo);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "getJobInfo",
+                                      Domain::GetJobInfo);
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxMemory",
                                       Domain::GetMaxMemory);
         NODE_SET_PROTOTYPE_METHOD(t, "setMaxMemory",
@@ -50,14 +62,16 @@ namespace NodeLibvirt {
                                       Domain::GetName);
         NODE_SET_PROTOTYPE_METHOD(t, "getOsType",
                                       Domain::GetOsType);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "getSchedParams",
+        NODE_SET_PROTOTYPE_METHOD(t, "getInfo",
+                                      Domain::GetInfo);
+        NODE_SET_PROTOTYPE_METHOD(t, "getSchedParams",
                                       Domain::GetSchedParams);
-        NODE_SET_PROTOTYPE_METHOD(t, "setSchedParams",
+        /*NODE_SET_PROTOTYPE_METHOD(t, "setSchedParams",
                                       Domain::SetSchedParams);
         NODE_SET_PROTOTYPE_METHOD(t, "getSchedType",
-                                      Domain::GetSchedType);
+                                      Domain::GetSchedType); */
         NODE_SET_PROTOTYPE_METHOD(t, "getSecurityLabel",
-                                      Domain::GetSecurityLabel);*/
+                                      Domain::GetSecurityLabel);
         NODE_SET_PROTOTYPE_METHOD(t, "getUUID",
                                       Domain::GetUUID);
         NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",
@@ -150,6 +164,14 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_INACTIVE);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_UPDATE_CPU);
 
+        //virDomainJobType
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_NONE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_BOUNDED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_UNBOUNDED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_COMPLETED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_FAILED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_CANCELLED);
+
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
         memory_symbol       = NODE_PSYMBOL("memory");
@@ -164,6 +186,18 @@ namespace NodeLibvirt {
         migration_bandwidth_symbol      = NODE_PSYMBOL("bandwidth");
         migration_flags_symbol          = NODE_PSYMBOL("flags");
         migration_hypervisor_symbol     = NODE_PSYMBOL("dest_hypervisor");
+
+        type_symbol         = NODE_PSYMBOL("type");
+        time_symbol         = NODE_PSYMBOL("time");
+        data_symbol         = NODE_PSYMBOL("data");
+        file_symbol         = NODE_PSYMBOL("file");
+        elapsed_symbol      = NODE_PSYMBOL("elapsed");
+        remaining_symbol    = NODE_PSYMBOL("remaining");
+        total_symbol        = NODE_PSYMBOL("total");
+        processed_symbol    = NODE_PSYMBOL("processed");
+
+        label_symbol = NODE_PSYMBOL("label");
+        enforcing_symbol = NODE_PSYMBOL("enforcing");
     }
 
     Domain::~Domain() {
@@ -808,6 +842,7 @@ namespace NodeLibvirt {
             LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
             return Null();
         }
+        memset(cpuinfo, 0, sizeof(*cpuinfo) * info.nrVirtCpu);
 
         cpumaplen = VIR_CPU_MAPLEN(VIR_NODEINFO_MAXCPUS(nodeinfo));
 
@@ -817,6 +852,7 @@ namespace NodeLibvirt {
             LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
             return Null();
         }
+        memset(cpumap, 0, info.nrVirtCpu * cpumaplen);
 
         ncpus = virDomainGetVcpus(domain->domain_, cpuinfo, info.nrVirtCpu, cpumap, cpumaplen);
 
@@ -1039,6 +1075,7 @@ namespace NodeLibvirt {
             LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
             return False();
         }
+        memset(cpumap, 0, cpumaplen);
 
         Local<Array> cpus = Local<Array>::Cast(args[1]);
         int ncpus = cpus->Length();
@@ -1261,6 +1298,149 @@ namespace NodeLibvirt {
         free(xml_);
 
         return xml;
+    }
+
+    Handle<Value> Domain::GetJobInfo(const Arguments& args) {
+        HandleScope scope;
+        virDomainJobInfo info_;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainGetJobInfo(domain->domain_, &info_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> info = Object::New();
+        info->Set(type_symbol, Integer::New(info_.type));
+
+        //time
+        Local<Object> time = Object::New();
+        time->Set(elapsed_symbol, Number::New(info_.timeElapsed));
+        time->Set(remaining_symbol, Number::New(info_.timeRemaining));
+
+        //data
+        Local<Object> data = Object::New();
+        data->Set(total_symbol, Number::New(info_.dataTotal));
+        data->Set(processed_symbol, Number::New(info_.dataProcessed));
+        data->Set(remaining_symbol, Number::New(info_.dataRemaining));
+
+        //memory
+        Local<Object> memory = Object::New();
+        memory->Set(total_symbol, Number::New(info_.memTotal));
+        memory->Set(processed_symbol, Number::New(info_.memProcessed));
+        memory->Set(remaining_symbol, Number::New(info_.memRemaining));
+
+        //file
+        Local<Object> file = Object::New();
+        file->Set(total_symbol, Number::New(info_.fileTotal));
+        file->Set(processed_symbol, Number::New(info_.fileProcessed));
+        file->Set(remaining_symbol, Number::New(info_.fileRemaining));
+
+        info->Set(time_symbol, time);
+        info->Set(data_symbol, data);
+        info->Set(memory_symbol, memory);
+        info->Set(file_symbol, file);
+
+        return info;
+    }
+
+    Handle<Value> Domain::GetSchedType(const Arguments& args) {
+        HandleScope scope;
+    }
+
+    Handle<Value> Domain::GetSchedParams(const Arguments& args) {
+        HandleScope scope;
+        int nparams = 0;
+        int ret = -1;
+        char *type_ret = NULL;
+        virSchedParameterPtr params_;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        type_ret = virDomainGetSchedulerType(domain->domain_, &nparams);
+
+        if(type_ret == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+        free(type_ret);
+
+        params_ = (virSchedParameterPtr) malloc(sizeof(params_) * nparams);
+
+        if(params_ == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+        memset(params_, 0, sizeof(params_) * nparams);
+
+        ret = virDomainGetSchedulerParameters(domain->domain_, params_, &nparams);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            free(params_);
+            return Null();
+        }
+
+        Local<Object> params = Object::New();
+
+        for(int i = 0; i < nparams; i++) {
+            Local<Value> value = Local<Value>::New(Null());
+
+            switch(params_[i].type) {
+                case VIR_DOMAIN_SCHED_FIELD_INT:
+                    value = Integer::New(params_[i].value.i);
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_UINT:
+                    value = Integer::New(params_[i].value.ui);
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_LLONG:
+                    value = Number::New(params_[i].value.l);
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_ULLONG:
+                    value = Number::New(params_[i].value.ul);
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_DOUBLE:
+                    value = Number::New(params_[i].value.d);
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_BOOLEAN:
+                    value = Number::New(params_[i].value.b);
+                    break;
+            }
+
+            params->Set(String::New(params_[i].field), value);
+        }
+        free(params_);
+
+        return params;
+    }
+
+    Handle<Value> Domain::SetSchedParams(const Arguments& args) {
+        HandleScope scope;
+    }
+
+    Handle<Value> Domain::GetSecurityLabel(const Arguments& args) {
+        HandleScope scope;
+        virSecurityLabel label_;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        memset(&label_, 0, sizeof label_);
+        ret = virDomainGetSecurityLabel(domain->domain_, &label_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> label = Object::New();
+        label->Set(label_symbol, String::New(label_.label));
+        label->Set(enforcing_symbol, Boolean::New(label_.enforcing));
+
+        return label;
     }
 
 } //namespace NodeLibvirt
