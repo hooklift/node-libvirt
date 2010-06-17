@@ -30,6 +30,8 @@ namespace NodeLibvirt {
                                       Domain::GetId);
         NODE_SET_PROTOTYPE_METHOD(t, "getInfo",
                                       Domain::GetInfo);
+        NODE_SET_PROTOTYPE_METHOD(t, "toXml",
+                                      Domain::ToXml);
         /*NODE_SET_PROTOTYPE_METHOD(t, "getJobInfo",
                                       Domain::GetJobInfo);*/
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxMemory",
@@ -142,6 +144,11 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PAUSED);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_DISK);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_INC);
+
+        //virDomainXMLFlags
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_SECURE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_INACTIVE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_UPDATE_CPU);
 
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
@@ -1222,5 +1229,39 @@ namespace NodeLibvirt {
 
         return True();
     }
+
+    Handle<Value> Domain::ToXml(const Arguments& args) {
+        HandleScope scope;
+        char* xml_ = NULL;
+        int flags = 0;
+
+        if(args.Length() == 0 || !args[0]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an array as argument to invoke this function")));
+        }
+
+        //flags
+        Local<Array> flags_ = Local<Array>::Cast(args[0]);
+        unsigned int length = flags_->Length();
+
+        for (int i = 0; i < length; i++) {
+            flags |= flags_->Get(Integer::New(i))->Int32Value();
+        }
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        xml_ = virDomainGetXMLDesc(domain->domain_, flags);
+
+        if(xml_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<String> xml = String::New(xml_);
+
+        free(xml_);
+
+        return xml;
+    }
+
 } //namespace NodeLibvirt
 

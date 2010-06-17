@@ -60,8 +60,9 @@ namespace NodeLibvirt {
             static Handle<Value> DetachDevice(const Arguments& args);
             static Handle<Value> UpdateDevice(const Arguments& args);
             static Handle<Value> Destroy(const Arguments& args);
+            static Handle<Value> ToXml(const Arguments& args);
 
-            static Handle<Value> GetXMLDesc(const Arguments& args);
+
             static Handle<Value> GetJobInfo(const Arguments& args);
             static Handle<Value> GetSchedParams(const Arguments& args);
             static Handle<Value> SetSchedParams(const Arguments& args);

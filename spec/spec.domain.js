@@ -243,5 +243,15 @@ describe 'Domain'
         }
     end
 
+    it 'should return domain xml representation'
+        var flags = [ libvirt.VIR_DOMAIN_XML_SECURE,
+                      libvirt.VIR_DOMAIN_XML_INACTIVE];
+
+        var xml = domain.toXml(flags);
+        xml.should_match /<name>test<\/name>/
+    end
+
+
+
 end
 
