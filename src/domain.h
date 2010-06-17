@@ -72,7 +72,7 @@ namespace NodeLibvirt {
             static Handle<Value> GetMemoryStats(const Arguments& args);
             static Handle<Value> PinVcpu(const Arguments& args);
             static Handle<Value> Migrate(const Arguments& args);
-            static Handle<Value> MigrateSetMaxDowntime(const Arguments& args);
+            static Handle<Value> SetMigrationMaxDowntime(const Arguments& args);
 
 
             static Handle<Value> RevertToSnapshot(const Arguments& args);

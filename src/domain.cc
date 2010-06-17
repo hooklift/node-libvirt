@@ -82,8 +82,8 @@ namespace NodeLibvirt {
                                       Domain::GetMemoryStats);*/
         NODE_SET_PROTOTYPE_METHOD(t, "migrate",
                                       Domain::Migrate);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "migrateSetMaxDowntime",
-                                      Domain::MigrateSetMaxDowntime);*/
+        NODE_SET_PROTOTYPE_METHOD(t, "setMigrationMaxDowntime",
+                                      Domain::SetMigrationMaxDowntime);
         NODE_SET_PROTOTYPE_METHOD(t, "pinVcpu",
                                       Domain::PinVcpu);
         NODE_SET_PROTOTYPE_METHOD(t, "reboot",
@@ -1018,6 +1018,7 @@ namespace NodeLibvirt {
                                                         bandwidth);
 
             if(migrated_domain->domain_ == NULL) {
+                ThrowException(Error::New(virGetLastError()));
                 return False();
             }
 
@@ -1028,6 +1029,35 @@ namespace NodeLibvirt {
             ret = virDomainMigrateToURI(domain->domain_, dest_uri, flags, dest_name, bandwidth);
         }
 
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::SetMigrationMaxDowntime(const Arguments& args) {
+        HandleScope scope;
+        long long downtime = 0;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        if(args.Length() == 0) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a number as first argument")));
+        }
+
+        downtime = args[0]->Int32Value();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainMigrateSetMaxDowntime(domain->domain_, downtime, flags);
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return False();

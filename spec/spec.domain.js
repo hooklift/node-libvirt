@@ -193,11 +193,9 @@ describe 'Domain'
                       domain.VIR_MIGRATE_PAUSED,
                       domain.VIR_MIGRATE_PERSIST_DEST];
 
+        //test driver doesn't support this function
         //bandwidth in Mbps
-        domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }).should_be true
-
-        //list domains on hypervisor2
-        //search migrated domain by name
+        -{domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags })}.should.throw_error
 
     end
 
@@ -207,15 +205,16 @@ describe 'Domain'
                       domain.VIR_MIGRATE_PAUSED,
                       domain.VIR_MIGRATE_PERSIST_DEST];
 
-        //bandwidth in Mbps
-        -{domain.migrateToUri({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags })}.should.throw_error
-
         //test driver doesn't support this function
+        //bandwidth in Mbps
+        -{domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags })}.should.throw_error
+
     end
 
     it 'should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration'
+        //test driver doesn't support this function
         //Milliseconds
-        domain.setMaxDowntime(100000).should_be true
+        -{domain.setMigrationMaxDowntime(100000)}.should.throw_error
     end
 
 end
