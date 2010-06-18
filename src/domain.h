@@ -66,14 +66,15 @@ namespace NodeLibvirt {
             static Handle<Value> GetSchedParams(const Arguments& args);
             static Handle<Value> SetSchedParams(const Arguments& args);
             static Handle<Value> GetSecurityLabel(const Arguments& args);
-
-
-            static Handle<Value> HasManagedSaveImage(const Arguments& args);
-            static Handle<Value> ManagedSave(const Arguments& args);
-            static Handle<Value> ManagedSaveRemove(const Arguments& args);
-
+            static Handle<Value> SaveManagedImage(const Arguments& args);
+            static Handle<Value> RemoveManagedImage(const Arguments& args);
+            static Handle<Value> HasManagedImage(const Arguments& args);
             static Handle<Value> MemoryPeek(const Arguments& args);
             static Handle<Value> GetMemoryStats(const Arguments& args);
+            static Handle<Value> BlockPeek(const Arguments& args);
+            static Handle<Value> GetBlockStats(const Arguments& args);
+
+            static Handle<Value> CoreDump(const Arguments& args);
             static Handle<Value> GetInterfaceStats(const Arguments& args);
 
             static Handle<Value> HasCurrentSnapshot(const Arguments& args);

@@ -1,6 +1,7 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include <stdlib.h>
 #include <string.h>
+#include <node_buffer.h>
 #include "domain.h"
 
 namespace NodeLibvirt {
@@ -34,6 +35,21 @@ namespace NodeLibvirt {
     static Persistent<String> label_symbol;
     static Persistent<String> enforcing_symbol;
 
+    //memory stat symbols
+    static Persistent<String> memory_stat_swap_in_symbol;
+    static Persistent<String> memory_stat_swap_out_symbol;
+    static Persistent<String> memory_stat_major_fault_symbol;
+    static Persistent<String> memory_stat_minor_fault_symbol;
+    static Persistent<String> memory_stat_unused_symbol;
+    static Persistent<String> memory_stat_available_symbol;
+
+    //block stat symbols
+    static Persistent<String> block_stat_rd_req_symbol;
+    static Persistent<String> block_stat_rd_bytes_symbol;
+    static Persistent<String> block_stat_wr_req_symbol;
+    static Persistent<String> block_stat_wr_bytes_symbol;
+    static Persistent<String> block_stat_errs_symbol;
+
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
@@ -66,36 +82,43 @@ namespace NodeLibvirt {
                                       Domain::GetInfo);
         NODE_SET_PROTOTYPE_METHOD(t, "getSchedParams",
                                       Domain::GetSchedParams);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "setSchedParams",
+        NODE_SET_PROTOTYPE_METHOD(t, "setSchedParams",
                                       Domain::SetSchedParams);
-        NODE_SET_PROTOTYPE_METHOD(t, "getSchedType",
-                                      Domain::GetSchedType); */
+        /*NODE_SET_PROTOTYPE_METHOD(t, "getSchedType",
+                                      Domain::GetSchedType); */ //Is really necessary this function from javascript ?
         NODE_SET_PROTOTYPE_METHOD(t, "getSecurityLabel",
                                       Domain::GetSecurityLabel);
+        NODE_SET_PROTOTYPE_METHOD(t, "hasManagedImage",
+                                      Domain::HasManagedImage);
+        NODE_SET_PROTOTYPE_METHOD(t, "saveManagedImage",
+                                      Domain::SaveManagedImage);
+        NODE_SET_PROTOTYPE_METHOD(t, "removeManagedImage",
+                                      Domain::RemoveManagedImage);
+        NODE_SET_PROTOTYPE_METHOD(t, "memoryPeek",
+                                      Domain::MemoryPeek);
+        NODE_SET_PROTOTYPE_METHOD(t, "getMemoryStats",
+                                      Domain::GetMemoryStats);
+        NODE_SET_PROTOTYPE_METHOD(t, "blockPeek",
+                                      Domain::BlockPeek);
+        NODE_SET_PROTOTYPE_METHOD(t, "getBlockStats",
+                                      Domain::GetBlockStats);
         NODE_SET_PROTOTYPE_METHOD(t, "getUUID",
                                       Domain::GetUUID);
         NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",
                                       Domain::GetVcpus);
         NODE_SET_PROTOTYPE_METHOD(t, "setVcpus",
                                       Domain::SetVcpus);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
-                                      Domain::HasCurrentSnapshot);
-        NODE_SET_PROTOTYPE_METHOD(t, "hasManagedSaveImage",
-                                      Domain::HasManagedSaveImage);
-        NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",
-                                      Domain::GetInterfaceStats);*/
         NODE_SET_PROTOTYPE_METHOD(t, "isActive",
                                       Domain::IsActive);
         NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",
                                       Domain::IsPersistent);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "managedSave",
-                                      Domain::ManagedSave);
-        NODE_SET_PROTOTYPE_METHOD(t, "managedSaveRemove",
-                                      Domain::ManagedSaveRemove);
-        NODE_SET_PROTOTYPE_METHOD(t, "memoryPeek",
-                                      Domain::MemoryPeek);
-        NODE_SET_PROTOTYPE_METHOD(t, "memoryStats",
-                                      Domain::GetMemoryStats);*/
+        /*NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
+                                      Domain::HasCurrentSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
+                                      Domain::RevertToSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",
+                                      Domain::GetInterfaceStats);
+        */
         NODE_SET_PROTOTYPE_METHOD(t, "migrate",
                                       Domain::Migrate);
         NODE_SET_PROTOTYPE_METHOD(t, "setMigrationMaxDowntime",
@@ -114,9 +137,6 @@ namespace NodeLibvirt {
                                       Domain::Start);
         NODE_SET_PROTOTYPE_METHOD(t, "suspend",
                                       Domain::Suspend);
-
-        /*NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
-                                      Domain::RevertToSnapshot);*/
         NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",
                                       Domain::AttachDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",
@@ -127,7 +147,6 @@ namespace NodeLibvirt {
                                       Domain::Destroy);
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
                                       Domain::Undefine);
-
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Domain"));
@@ -172,6 +191,10 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_FAILED);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_CANCELLED);
 
+        //virDomainMemoryFlags
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_VIRTUAL);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_PHYSICAL);
+
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
         memory_symbol       = NODE_PSYMBOL("memory");
@@ -198,6 +221,19 @@ namespace NodeLibvirt {
 
         label_symbol = NODE_PSYMBOL("label");
         enforcing_symbol = NODE_PSYMBOL("enforcing");
+
+        memory_stat_swap_in_symbol = NODE_PSYMBOL("swap_in");
+        memory_stat_swap_out_symbol = NODE_PSYMBOL("swap_out");
+        memory_stat_major_fault_symbol = NODE_PSYMBOL("major_fault");
+        memory_stat_minor_fault_symbol = NODE_PSYMBOL("minor_fault");
+        memory_stat_unused_symbol = NODE_PSYMBOL("unused");
+        memory_stat_available_symbol = NODE_PSYMBOL("available");
+
+        block_stat_rd_req_symbol = NODE_PSYMBOL("read_requests");
+        block_stat_rd_bytes_symbol = NODE_PSYMBOL("read_bytes");
+        block_stat_wr_req_symbol = NODE_PSYMBOL("write_requests");
+        block_stat_wr_bytes_symbol = NODE_PSYMBOL("write_bytes");
+        block_stat_errs_symbol = NODE_PSYMBOL("errors");
     }
 
     Domain::~Domain() {
@@ -1086,6 +1122,7 @@ namespace NodeLibvirt {
             }
 
             if(!cpus->Get(Integer::New(i))->IsObject()) {
+                free(cpumap);
                 return ThrowException(Exception::TypeError(
                 String::New("The second argument must be an array of objects")));
             }
@@ -1356,25 +1393,25 @@ namespace NodeLibvirt {
         HandleScope scope;
         int nparams = 0;
         int ret = -1;
-        char *type_ret = NULL;
+        char *type = NULL;
         virSchedParameterPtr params_;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        type_ret = virDomainGetSchedulerType(domain->domain_, &nparams);
+        type = virDomainGetSchedulerType(domain->domain_, &nparams);
 
-        if(type_ret == NULL) {
+        if(type == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
-        free(type_ret);
+        free(type);
 
-        params_ = (virSchedParameterPtr) malloc(sizeof(params_) * nparams);
+        params_ = (virSchedParameterPtr) malloc(sizeof(*params_) * nparams);
 
         if(params_ == NULL) {
             LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
             return Null();
         }
-        memset(params_, 0, sizeof(params_) * nparams);
+        memset(params_, 0, sizeof(*params_) * nparams);
 
         ret = virDomainGetSchedulerParameters(domain->domain_, params_, &nparams);
 
@@ -1406,7 +1443,7 @@ namespace NodeLibvirt {
                     value = Number::New(params_[i].value.d);
                     break;
                 case VIR_DOMAIN_SCHED_FIELD_BOOLEAN:
-                    value = Number::New(params_[i].value.b);
+                    value = Integer::New(params_[i].value.b);
                     break;
             }
 
@@ -1419,6 +1456,81 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::SetSchedParams(const Arguments& args) {
         HandleScope scope;
+        virSchedParameterPtr params = NULL;
+        int nparams = 0;
+        char *type = NULL;
+        int ret = -1;
+
+        if(args.Length() == 0 || !args[0]->IsObject()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an object as argument to invoke this function")));
+        }
+
+        Local<Object> newparams = args[0]->ToObject();
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        type = virDomainGetSchedulerType(domain->domain_, &nparams);
+
+        if(type == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+        free(type);
+
+        params = (virSchedParameterPtr) malloc(sizeof(*params) * nparams);
+        if(params == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return False();
+        }
+
+        memset(params, 0, sizeof(*params) * nparams);
+
+        ret = virDomainGetSchedulerParameters(domain->domain_, params, &nparams);
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            free(params);
+            return False();
+        }
+
+        for(int i = 0; i < nparams; i++) {
+            Local<String> field = String::New(params[i].field);
+            if(!newparams->Has(field)) {
+                continue;
+            }
+
+            Local<Value> value = newparams->Get(field);
+
+            switch (params[i].type) {
+                case VIR_DOMAIN_SCHED_FIELD_INT:
+                    params[i].value.i = value->Int32Value();
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_UINT:
+                    params[i].value.ui = value->Uint32Value();
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_LLONG:
+                    params[i].value.l = value->NumberValue();
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_ULLONG:
+                    params[i].value.ul = value->NumberValue();
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_DOUBLE:
+                    params[i].value.d = value->NumberValue();
+                    break;
+                case VIR_DOMAIN_SCHED_FIELD_BOOLEAN:
+                    params[i].value.b = value->Uint32Value();
+                    break;
+            }
+        }
+        ret = virDomainSetSchedulerParameters(domain->domain_, params, nparams);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            free(params);
+            return False();
+        }
+        free(params);
+
+        return True();
     }
 
     Handle<Value> Domain::GetSecurityLabel(const Arguments& args) {
@@ -1441,6 +1553,247 @@ namespace NodeLibvirt {
         label->Set(enforcing_symbol, Boolean::New(label_.enforcing));
 
         return label;
+    }
+
+    Handle<Value> Domain::SaveManagedImage(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainManagedSave(domain->domain_, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::RemoveManagedImage(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainManagedSaveRemove(domain->domain_, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::HasManagedImage(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainHasManagedSaveImage(domain->domain_, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return Boolean::New(ret);
+    }
+
+    Handle<Value> Domain::MemoryPeek(const Arguments& args) {
+        HandleScope scope;
+        unsigned long long start = 0;
+		size_t size = 0;
+		char * buffer_ = NULL;
+		unsigned int flags = 0;
+
+        if(args.Length() < 3) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify three arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsNumber() || !args[1]->IsNumber()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a number in the first and second argument")));
+        }
+
+        if(!args[2]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an array in the third argument")));
+        }
+
+        start = args[0]->NumberValue();
+        size = args[1]->NumberValue() * sizeof(char *);
+
+        //flags
+        Local<Array> flags_ = Local<Array>::Cast(args[2]);
+        unsigned int length = flags_->Length();
+
+        for (int i = 0; i < length; i++) {
+            flags |= flags_->Get(Integer::New(i))->Int32Value();
+        }
+
+        buffer_ = (char*) malloc(size);
+
+        if(buffer_ == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+
+        memset(buffer_, 0, size);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        int ret = virDomainMemoryPeek(domain->domain_, start, size, buffer_, flags);
+
+        if(ret == -1) {
+            free(buffer_);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Buffer *buffer = Buffer::New(size);
+        memcpy(buffer->data(), buffer_, size);
+        free(buffer_);
+
+        return buffer->handle_;
+    }
+
+    Handle<Value> Domain::GetMemoryStats(const Arguments& args) {
+        HandleScope scope;
+        unsigned int nr_stats = 0;
+        unsigned int flags = 0;
+        virDomainMemoryStatStruct stats_[VIR_DOMAIN_MEMORY_STAT_NR];
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        nr_stats = virDomainMemoryStats(domain->domain_, stats_,
+                                    VIR_DOMAIN_MEMORY_STAT_NR, flags);
+
+        if(nr_stats == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> stats = Object::New();
+
+        for(int i = 0; i < nr_stats; i++) {
+            switch (stats_[i].tag) {
+                case VIR_DOMAIN_MEMORY_STAT_SWAP_IN:
+                    stats->Set(memory_stat_swap_in_symbol, Number::New(stats_[i].val));
+                    break;
+                case VIR_DOMAIN_MEMORY_STAT_SWAP_OUT:
+                    stats->Set(memory_stat_swap_out_symbol, Number::New(stats_[i].val));
+                    break;
+                case VIR_DOMAIN_MEMORY_STAT_MAJOR_FAULT:
+                    stats->Set(memory_stat_major_fault_symbol, Number::New(stats_[i].val));
+                    break;
+                case VIR_DOMAIN_MEMORY_STAT_MINOR_FAULT:
+                    stats->Set(memory_stat_minor_fault_symbol, Number::New(stats_[i].val));
+                    break;
+                case VIR_DOMAIN_MEMORY_STAT_UNUSED:
+                    stats->Set(memory_stat_unused_symbol, Number::New(stats_[i].val));
+                    break;
+                case VIR_DOMAIN_MEMORY_STAT_AVAILABLE:
+                    stats->Set(memory_stat_available_symbol, Number::New(stats_[i].val));
+                    break;
+            }
+        }
+        return stats;
+    }
+
+    Handle<Value> Domain::BlockPeek(const Arguments& args) {
+        HandleScope scope;
+        unsigned long long start = 0;
+		size_t size = 0;
+		char * buffer_ = NULL;
+		const char * path = NULL;
+		unsigned int flags = 0;
+
+        if(args.Length() < 3) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify three arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string in the first and second argument")));
+        }
+
+        if(!args[1]->IsNumber() || !args[2]->IsNumber()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify numbers in the first and second argument")));
+        }
+
+        String::Utf8Value path_(args[0]->ToString());
+        path = ToCString(path_);
+
+        start = args[1]->NumberValue();
+        size = args[2]->NumberValue() * sizeof(char *);
+
+        buffer_ = (char*) malloc(size);
+
+        if(buffer_ == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+
+        memset(buffer_, 0, size);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        int ret = virDomainBlockPeek(domain->domain_, path, start, size, buffer_, flags);
+
+        if(ret == -1) {
+            free(buffer_);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Buffer *buffer = Buffer::New(size);
+        memcpy(buffer->data(), buffer_, size);
+        free(buffer_);
+
+        return buffer->handle_;
+    }
+
+    Handle<Value> Domain::GetBlockStats(const Arguments& args) {
+        HandleScope scope;
+        const char * path = NULL;
+        int ret = -1;
+        virDomainBlockStatsStruct stats_;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value path_(args[0]->ToString());
+        path = ToCString(path_);
+
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainBlockStats(domain->domain_, path, &stats_, sizeof(stats_));
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> stats = Object::New();
+        stats->Set(block_stat_rd_req_symbol, Number::New(stats_.rd_req));
+        stats->Set(block_stat_rd_bytes_symbol, Number::New(stats_.rd_bytes));
+        stats->Set(block_stat_wr_req_symbol, Number::New(stats_.wr_req));
+        stats->Set(block_stat_wr_bytes_symbol, Number::New(stats_.wr_bytes));
+        stats->Set(block_stat_errs_symbol, Number::New(stats_.errs));
+
+        return stats;
     }
 
 } //namespace NodeLibvirt

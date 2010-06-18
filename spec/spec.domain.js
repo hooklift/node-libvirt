@@ -280,7 +280,16 @@ describe 'Domain'
     end
 
     it 'should set the domain scheduler parameters'
+        //test driver has a bug, always return 50 as weight
+        // and it doesn't set new values for weight
+        var params = domain.getSchedParams();
+        params.weight.should_be 50
+        params.weight = 30;
 
+        domain.setSchedParams(params).should_be true
+        params = domain.getSchedParams();
+        //params.weight.should_be 30
+        params.weight.should_be 50
     end
 
     it 'should return the domain security labels'
@@ -294,6 +303,77 @@ describe 'Domain'
         //info.enforcing.should_not_be undefined
     end
 
+    it 'should save a managed image of the domain'
+        //test driver doesn't support these functions
+        try {
+            domain.saveManagedImage().should_be true
+            domain.hasManagedImage().should_be true
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should remove a managed image of the domain'
+        //test driver doesn't support these functions
+        try {
+            domain.removeManagedImage().should_be true
+            domain.hasManagedImage().should_be false
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should allow to read the domain\'s memory content and return it in a Buffer object'
+        var physical = [domain.VIR_MEMORY_PHYSICAL];
+        var virtual = [domain.VIR_MEMORY_VIRTUAL];
+
+        try {
+            var psegment = domain.memoryPeek(0, 1024, physical);
+            psegment.should_be_an_instance_of 'Buffer'
+
+            var vsegment = domain.memoryPeek(0, 1024, virtual);
+            vsegment.should_be_an_instance_of 'Buffer'
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should allow to read the content of a domain\'s disk device and return it in a Buffer object'
+        try {
+            var blocks = domain.blockPeek('/dev/sda', 0, 1024);
+            blocks.should_be_an_instance_of 'Buffer'
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should return domain\'s memory statistics'
+        //memory statistics in kbs
+        try {
+            var stats = domain.getMemoryStats();
+            stats.swap_in.should_not_be undefined
+            stats.swap_out.should_not_be undefined
+            stats.major_fault.should_not_be undefined
+            stats.minor_fault.should_not_be undefined
+            stats.unused.should_not_be undefined
+            stats.available.should_not_be undefined
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should return block device stats for block devices attached to the domain'
+//        var stats = domain.getBlockStats('');
+//        stats.read_requests.should_not_be undefined
+//        stats.read_bytes.should_not_be undefined
+//        stats.write_requests.should_not_be undefined
+//        stats.write_bytes.should_not_be undefined
+    end
 
 end
 
