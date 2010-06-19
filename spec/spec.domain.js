@@ -274,6 +274,16 @@ describe 'Domain'
 //        info.file.remaining.should_not_be undefined
     end
 
+    it 'should abort the current background job on the domain'
+        try {
+            domain.abortCurrentJob().should_be true
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+
+    end
+
     it 'should get the domain scheduler parameters'
         var params = domain.getSchedParams();
         params.weight.should_be 50
@@ -373,6 +383,23 @@ describe 'Domain'
 //        stats.read_bytes.should_not_be undefined
 //        stats.write_requests.should_not_be undefined
 //        stats.write_bytes.should_not_be undefined
+    end
+
+    it 'should return basic information about a domain\'s block device'
+        try {
+            var info = domain.getBlockInfo('/path');
+            info.capacity.should_not_be undefined
+            info.allocation.should_not_be undefined
+            info.physical.should_not_be undefined
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should dump the core of a domain on a given file for analysis'
+        var path = '/tmp/dumpcore-test.txt';
+        domain.coreDump(path).should_be true
     end
 
 end

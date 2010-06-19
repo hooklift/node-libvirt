@@ -62,6 +62,7 @@ namespace NodeLibvirt {
             static Handle<Value> Destroy(const Arguments& args);
             static Handle<Value> ToXml(const Arguments& args);
             static Handle<Value> GetJobInfo(const Arguments& args);
+            static Handle<Value> AbortCurrentJob(const Arguments& args);
             static Handle<Value> GetSchedType(const Arguments& args);
             static Handle<Value> GetSchedParams(const Arguments& args);
             static Handle<Value> SetSchedParams(const Arguments& args);
@@ -73,8 +74,9 @@ namespace NodeLibvirt {
             static Handle<Value> GetMemoryStats(const Arguments& args);
             static Handle<Value> BlockPeek(const Arguments& args);
             static Handle<Value> GetBlockStats(const Arguments& args);
-
+            static Handle<Value> GetBlockInfo(const Arguments& args);
             static Handle<Value> CoreDump(const Arguments& args);
+
             static Handle<Value> GetInterfaceStats(const Arguments& args);
 
             static Handle<Value> HasCurrentSnapshot(const Arguments& args);

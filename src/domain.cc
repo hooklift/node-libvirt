@@ -50,6 +50,11 @@ namespace NodeLibvirt {
     static Persistent<String> block_stat_wr_bytes_symbol;
     static Persistent<String> block_stat_errs_symbol;
 
+    //block info symbols
+    static Persistent<String> block_info_capacity_symbol;
+    static Persistent<String> block_info_allocation_symbol;
+    static Persistent<String> block_info_physical_symbol;
+
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
@@ -62,6 +67,8 @@ namespace NodeLibvirt {
                                       Domain::ToXml);
         NODE_SET_PROTOTYPE_METHOD(t, "getJobInfo",
                                       Domain::GetJobInfo);
+        NODE_SET_PROTOTYPE_METHOD(t, "abortCurrentJob",
+                                      Domain::AbortCurrentJob);
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxMemory",
                                       Domain::GetMaxMemory);
         NODE_SET_PROTOTYPE_METHOD(t, "setMaxMemory",
@@ -102,6 +109,8 @@ namespace NodeLibvirt {
                                       Domain::BlockPeek);
         NODE_SET_PROTOTYPE_METHOD(t, "getBlockStats",
                                       Domain::GetBlockStats);
+        NODE_SET_PROTOTYPE_METHOD(t, "getBlockInfo",
+                                      Domain::GetBlockInfo);
         NODE_SET_PROTOTYPE_METHOD(t, "getUUID",
                                       Domain::GetUUID);
         NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",
@@ -119,6 +128,8 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",
                                       Domain::GetInterfaceStats);
         */
+        NODE_SET_PROTOTYPE_METHOD(t, "coreDump",
+                                      Domain::CoreDump);
         NODE_SET_PROTOTYPE_METHOD(t, "migrate",
                                       Domain::Migrate);
         NODE_SET_PROTOTYPE_METHOD(t, "setMigrationMaxDowntime",
@@ -234,6 +245,10 @@ namespace NodeLibvirt {
         block_stat_wr_req_symbol = NODE_PSYMBOL("write_requests");
         block_stat_wr_bytes_symbol = NODE_PSYMBOL("write_bytes");
         block_stat_errs_symbol = NODE_PSYMBOL("errors");
+
+        block_info_capacity_symbol = NODE_PSYMBOL("capacity");
+        block_info_allocation_symbol = NODE_PSYMBOL("allocation");
+        block_info_physical_symbol = NODE_PSYMBOL("physical");
     }
 
     Domain::~Domain() {
@@ -1385,6 +1400,20 @@ namespace NodeLibvirt {
         return info;
     }
 
+    Handle<Value> Domain::AbortCurrentJob(const Arguments& args) {
+        HandleScope scope;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        ret = virDomainAbortJob(domain->domain_);
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
     Handle<Value> Domain::GetSchedType(const Arguments& args) {
         HandleScope scope;
     }
@@ -1776,7 +1805,6 @@ namespace NodeLibvirt {
         String::Utf8Value path_(args[0]->ToString());
         path = ToCString(path_);
 
-
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         ret = virDomainBlockStats(domain->domain_, path, &stats_, sizeof(stats_));
@@ -1794,6 +1822,61 @@ namespace NodeLibvirt {
         stats->Set(block_stat_errs_symbol, Number::New(stats_.errs));
 
         return stats;
+    }
+
+    Handle<Value> Domain::GetBlockInfo(const Arguments& args) {
+        HandleScope scope;
+        virDomainBlockInfo info_;
+        const char *path;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value path_(args[0]->ToString());
+        path = ToCString(path_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainGetBlockInfo(domain->domain_, path, &info_, flags);
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> info = Object::New();
+        info->Set(block_info_capacity_symbol, Number::New(info_.capacity));
+        info->Set(block_info_allocation_symbol, Number::New(info_.allocation));
+        info->Set(block_info_physical_symbol, Number::New(info_.physical));
+
+        return info;
+    }
+
+    Handle<Value> Domain::CoreDump(const Arguments& args) {
+        HandleScope scope;
+        const char* path = NULL;
+        int flags = 0;
+        int ret = -1;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value path_(args[0]->ToString());
+        path = ToCString(path_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainCoreDump(domain->domain_, path, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
     }
 
 } //namespace NodeLibvirt
