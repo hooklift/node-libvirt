@@ -55,6 +55,16 @@ namespace NodeLibvirt {
     static Persistent<String> block_info_allocation_symbol;
     static Persistent<String> block_info_physical_symbol;
 
+    //domain network interface statistics symbols
+    static Persistent<String> nwiface_stat_rx_bytes_symbol;
+    static Persistent<String> nwiface_stat_rx_packets_symbol;
+    static Persistent<String> nwiface_stat_rx_errors_symbol;
+    static Persistent<String> nwiface_stat_rx_drop_symbol;
+    static Persistent<String> nwiface_stat_tx_bytes_symbol;
+    static Persistent<String> nwiface_stat_tx_packets_symbol;
+    static Persistent<String> nwiface_stat_tx_errors_symbol;
+    static Persistent<String> nwiface_stat_tx_drop_symbol;
+
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
@@ -92,7 +102,7 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "setSchedParams",
                                       Domain::SetSchedParams);
         /*NODE_SET_PROTOTYPE_METHOD(t, "getSchedType",
-                                      Domain::GetSchedType); */ //Is really necessary this function from javascript ?
+                                      Domain::GetSchedType); */ //It's necessary this function?
         NODE_SET_PROTOTYPE_METHOD(t, "getSecurityLabel",
                                       Domain::GetSecurityLabel);
         NODE_SET_PROTOTYPE_METHOD(t, "hasManagedImage",
@@ -121,13 +131,8 @@ namespace NodeLibvirt {
                                       Domain::IsActive);
         NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",
                                       Domain::IsPersistent);
-        /*NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
-                                      Domain::HasCurrentSnapshot);
-        NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
-                                      Domain::RevertToSnapshot);
         NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",
                                       Domain::GetInterfaceStats);
-        */
         NODE_SET_PROTOTYPE_METHOD(t, "coreDump",
                                       Domain::CoreDump);
         NODE_SET_PROTOTYPE_METHOD(t, "migrate",
@@ -158,6 +163,10 @@ namespace NodeLibvirt {
                                       Domain::Destroy);
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
                                       Domain::Undefine);
+        NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
+                                      DomainSnapshot::HasCurrentSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
+                                      DomainSnapshot::RevertToSnapshot);
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Domain"));
@@ -249,6 +258,15 @@ namespace NodeLibvirt {
         block_info_capacity_symbol = NODE_PSYMBOL("capacity");
         block_info_allocation_symbol = NODE_PSYMBOL("allocation");
         block_info_physical_symbol = NODE_PSYMBOL("physical");
+
+        nwiface_stat_rx_bytes_symbol = NODE_PSYMBOL("rx_bytes");
+        nwiface_stat_rx_packets_symbol = NODE_PSYMBOL("rx_packets");
+        nwiface_stat_rx_errors_symbol = NODE_PSYMBOL("rx_errors");
+        nwiface_stat_rx_drop_symbol = NODE_PSYMBOL("rx_drop");
+        nwiface_stat_tx_bytes_symbol = NODE_PSYMBOL("tx_bytes");
+        nwiface_stat_tx_packets_symbol = NODE_PSYMBOL("tx_packets");
+        nwiface_stat_tx_errors_symbol = NODE_PSYMBOL("tx_errors");
+        nwiface_stat_tx_drop_symbol = NODE_PSYMBOL("tx_drop");
     }
 
     Domain::~Domain() {
@@ -1852,6 +1870,40 @@ namespace NodeLibvirt {
         info->Set(block_info_physical_symbol, Number::New(info_.physical));
 
         return info;
+    }
+
+    Handle<Value> Domain::GetInterfaceStats(const Arguments& args) {
+        HandleScope scope;
+        const char *device = NULL;
+        struct _virDomainInterfaceStats stats_;
+        int ret = -1;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value device_(args[0]->ToString());
+        device = ToCString(device_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainInterfaceStats(domain->domain_, device, &stats_, sizeof(stats_));
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> stats = Object::New();
+        stats->Set(nwiface_stat_rx_bytes_symbol, Number::New(stats_.rx_bytes));
+        stats->Set(nwiface_stat_rx_packets_symbol, Number::New(stats_.rx_packets));
+        stats->Set(nwiface_stat_rx_errors_symbol, Number::New(stats_.rx_errs));
+        stats->Set(nwiface_stat_rx_drop_symbol, Number::New(stats_.rx_drop));
+        stats->Set(nwiface_stat_tx_bytes_symbol, Number::New(stats_.tx_bytes));
+        stats->Set(nwiface_stat_tx_packets_symbol, Number::New(stats_.tx_packets));
+        stats->Set(nwiface_stat_tx_errors_symbol, Number::New(stats_.tx_errs));
+        stats->Set(nwiface_stat_tx_drop_symbol, Number::New(stats_.tx_drop));
+
+        return stats;
     }
 
     Handle<Value> Domain::CoreDump(const Arguments& args) {

@@ -4,13 +4,18 @@
 #include <string.h>
 #include "hypervisor.h"
 
-#define GET_LIST_OF(numof_function, list_function)                      \
-({                                                                      \
+#define GET_LIST_OF(name, numof_function, list_function)                \
                                                                         \
+Handle<Value> Hypervisor::name(const Arguments& args) {                 \
+    HandleScope scope;                                                  \
     char **_names = NULL;                                               \
     int numInactiveItems;                                               \
+    virConnectPtr connection;                                           \
                                                                         \
-    numInactiveItems = numof_function(conn_);                           \
+    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());                                                                    \
+    connection = hypervisor->conn_;                                     \
+                                                                        \
+    numInactiveItems = numof_function(connection);                      \
                                                                         \
     if(numInactiveItems == -1) {                                        \
         ThrowException(Error::New(virGetLastError()));                  \
@@ -23,7 +28,7 @@
         return Null();                                                  \
     }                                                                   \
                                                                         \
-    int ret = list_function(conn_, _names, numInactiveItems);           \
+    int ret = list_function(connection, _names, numInactiveItems);\
                                                                         \
     if(ret == -1) {                                                     \
         ThrowException(Error::New(virGetLastError()));                  \
@@ -32,17 +37,23 @@
     }                                                                   \
                                                                         \
     TO_V8_ARRAY(numInactiveItems, _names);                              \
-})
+}
 
-#define GET_NUM_OF(function)                                            \
-({                                                                      \
-    int ret = function(conn_);                                          \
-    if(ret == -1) {                                                     \
-        ThrowException(Error::New(virGetLastError()));                  \
-        return Null();                                                  \
-    }                                                                   \
-    return Integer::New(ret);                                           \
-})
+
+#define GET_NUM_OF(name, function)                                         \
+                                                                            \
+Handle<Value> Hypervisor::name(const Arguments& args) {                     \
+    HandleScope scope;                                                      \
+    Hypervisor *hypervisor =                                                \
+    ObjectWrap::Unwrap<Hypervisor>(args.This());                            \
+                                                                            \
+    int ret = function(hypervisor->conn_);                                  \
+    if(ret == -1) {                                                         \
+        ThrowException(Error::New(virGetLastError()));                      \
+        return Null();                                                      \
+    }                                                                       \
+    return Integer::New(ret);                                               \
+}                                                                           \
 
 namespace NodeLibvirt {
 
@@ -241,84 +252,72 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
         HandleScope scope;
+        char* capabilities_ = NULL;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return hypervisor->get_capabilities();
-    }
+        capabilities_ = virConnectGetCapabilities(hypervisor->conn_);
 
-    Handle<Value> Hypervisor::get_capabilities() {
-        char *cap = virConnectGetCapabilities(conn_);
-
-        if(cap == NULL) {
+        if(capabilities_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        Local<String> capabilities = String::New((const char*)cap);
-        free(cap);
+        Local<String> capabilities = String::New((const char*)capabilities_);
+        free(capabilities_);
 
         return capabilities;
     }
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
         HandleScope scope;
+        char* hostname_ = NULL;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return hypervisor->get_hostname();
-    }
+        hostname_ = virConnectGetHostname(hypervisor->conn_);
 
-    Handle<Value> Hypervisor::get_hostname() {
-        char *hn = virConnectGetHostname(conn_);
-
-        if(hn == NULL) {
+        if(hostname_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        Local<String> hostname = String::New((const char*)hn);
-        free(hn);
+        Local<String> hostname = String::New((const char*)hostname_);
+        free(hostname_);
 
         return hostname;
     }
 
     Handle<Value> Hypervisor::CloseConnection(const Arguments& args) {
         HandleScope scope;
+        int is_closed = -1;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->close_connection();
-    }
 
-    Handle<Value> Hypervisor::close_connection() {
-        int isClosed = -1;
-        if(conn_ != NULL) {
-            isClosed = virConnectClose(conn_);
+        if(hypervisor->conn_ != NULL) {
+            is_closed = virConnectClose(hypervisor->conn_);
 
-            if(isClosed == -1) {
+            if(is_closed == -1) {
                 return False();
             }
         }
-        conn_ = NULL;
+        hypervisor->conn_ = NULL;
         return True();
     }
 
     Handle<Value> Hypervisor::GetLibVirtVersion(const Arguments& args) {
         HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->get_libvirt_version();
-    }
-
-    Handle<Value> Hypervisor::get_libvirt_version() {
-        unsigned long *libVer;
-        unsigned int major;
-        unsigned int minor;
-        unsigned int rel;
+        unsigned long *libVer = NULL;
+        unsigned int major = 0;
+        unsigned int minor = 0;
+        unsigned int rel = 0;
+        int ret = -1;
 
         libVer = new unsigned long;
 
-        int ret = virConnectGetLibVersion(conn_, libVer);
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        ret = virConnectGetLibVersion(hypervisor->conn_, libVer);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -337,93 +336,85 @@ namespace NodeLibvirt {
         Local<String> version = String::New(vrs);
 
         return version;
-    }
 
+    }
 
     Handle<Value> Hypervisor::GetType(const Arguments& args) {
         HandleScope scope;
+        const char* type_ = NULL;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->get_type();
-    }
 
-    Handle<Value> Hypervisor::get_type() {
-        const char *t = virConnectGetType(conn_);
+        type_ = virConnectGetType(hypervisor->conn_);
 
-        if(t == NULL) {
+        if(type_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        Local<String> type = String::New(t);
+        Local<String> type = String::New(type_);
 
         return type;
     }
 
     Handle<Value> Hypervisor::GetMaxVcpus(const Arguments& args) {
         HandleScope scope;
+        const char *type = NULL;
+        int maxvcpus_ = 0;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->get_max_vcpus();
-    }
 
-    Handle<Value> Hypervisor::get_max_vcpus() {
-        const char *type = virConnectGetType(conn_);
+        type = virConnectGetType(hypervisor->conn_);
 
         if(type == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        int m = virConnectGetMaxVcpus(conn_, type);
+        maxvcpus_ = virConnectGetMaxVcpus(hypervisor->conn_, type);
 
-        if(m == -1) {
+        if(maxvcpus_ == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        Local<Number> max = Number::New(m);
+        Local<Number> maxvcpus = Number::New(maxvcpus_);
 
-        return max;
+        return maxvcpus;
+
     }
 
     Handle<Value> Hypervisor::GetConnectionUri(const Arguments& args) {
         HandleScope scope;
+        char *uri_ = NULL;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->get_connection_uri();
-    }
 
-    Handle<Value> Hypervisor::get_connection_uri() {
-        char *u = virConnectGetURI(conn_);
+        uri_ = virConnectGetURI(hypervisor->conn_);
 
-        if(u == NULL) {
+        if(uri_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
-        Local<String> uri = String::New(u);
-        free(u);
+        Local<String> uri = String::New(uri_);
+        free(uri_);
 
         return uri;
     }
 
     Handle<Value> Hypervisor::GetVersion(const Arguments& args) {
         HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->get_version();
-    }
-
-    Handle<Value> Hypervisor::get_version() {
-        unsigned long *hvVer;
-        unsigned int major;
-        unsigned int minor;
-        unsigned int rel;
+        unsigned long *hvVer = NULL;
+        unsigned int major = 0;
+        unsigned int minor = 0;
+        unsigned int rel = 0;
+        int ret = -1;
 
         hvVer = new unsigned long;
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        int ret = virConnectGetVersion(conn_, hvVer);
+        ret = virConnectGetVersion(hypervisor->conn_, hvVer);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -442,23 +433,21 @@ namespace NodeLibvirt {
         rel = *hvVer % 1000;
         delete hvVer;
 
-        char vrs[10];
-        sprintf(vrs, "%d.%d.%d", major, minor, rel);
+        char version_[10];
+        sprintf(version_, "%d.%d.%d", major, minor, rel);
 
-        Local<String> version = String::New(vrs);
+        Local<String> version = String::New(version_);
 
         return version;
     }
 
     Handle<Value> Hypervisor::IsConnectionEncrypted(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->is_connection_encrypted();
-    }
 
-    Handle<Value> Hypervisor::is_connection_encrypted() {
-        int ret = virConnectIsEncrypted(conn_);
+        ret = virConnectIsEncrypted(hypervisor->conn_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -469,17 +458,16 @@ namespace NodeLibvirt {
         }
 
        return False();
+
     }
 
     Handle<Value> Hypervisor::IsConnectionSecure(const Arguments& args) {
         HandleScope scope;
+        int ret = -1;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        return hypervisor->is_connection_secure();
-    }
 
-    Handle<Value> Hypervisor::is_connection_secure() {
-        int ret = virConnectIsSecure(conn_);
+        ret = virConnectIsSecure(hypervisor->conn_);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -492,10 +480,9 @@ namespace NodeLibvirt {
        return False();
     }
 
-     Handle<Value> Hypervisor::GetBaselineCPU(const Arguments& args) {
+    Handle<Value> Hypervisor::GetBaselineCPU(const Arguments& args) {
         HandleScope scope;
-
-        const char **xmlCPUs = NULL;
+        char **xmlCPUs = NULL;
         unsigned int ncpus = 0;
         unsigned int flags = 0;
 
@@ -506,21 +493,15 @@ namespace NodeLibvirt {
 
         Local<Array> xmls = Local<Array>::Cast(args[0]);
         ncpus = xmls->Length();
-        char **xmls1 = new char*[ncpus + 1];
-        xmls1[ncpus] = NULL;
+        xmlCPUs = new char*[ncpus + 1];
+        xmlCPUs[ncpus] = NULL;
         for (int i = 0; i < ncpus; i++) {
             String::Utf8Value cpu(xmls->Get(Integer::New(i))->ToString());
-            xmls1[i] = strdup(*cpu);
+            xmlCPUs[i] = strdup(*cpu);
         }
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return hypervisor->get_baseline_cpu(xmls1, ncpus, flags);
-    }
-
-    Handle<Value> Hypervisor::get_baseline_cpu( char **xmlCPUs,
-                                                unsigned int ncpus,
-                                                unsigned int flags) {
-        const char *x = virConnectBaselineCPU(conn_, (const char**)xmlCPUs, ncpus, flags);
+        const char *x = virConnectBaselineCPU(hypervisor->conn_, (const char**)xmlCPUs, ncpus, flags);
 
         for (int i = 0; i < ncpus; i++) {
             free(xmlCPUs[i]);
@@ -552,11 +533,7 @@ namespace NodeLibvirt {
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return hypervisor->compare_cpu(ToCString(cpu), flags);
-    }
-
-    Handle<Value> Hypervisor::compare_cpu( const char *xmlDesc, unsigned int flags) {
-        int ret = virConnectCompareCPU(conn_, xmlDesc, flags);
+        int ret = virConnectCompareCPU(hypervisor->conn_, ToCString(cpu), flags);
 
         if(ret == VIR_CPU_COMPARE_ERROR) {
             ThrowException(Error::New(virGetLastError()));
@@ -567,71 +544,14 @@ namespace NodeLibvirt {
         return result;
     }
 
-    Handle<Value> Hypervisor::GetDefinedDomains(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_defined_domains();
-    }
-
-    Handle<Value> Hypervisor::get_defined_domains() {
-        GET_LIST_OF(virConnectNumOfDefinedDomains,
-                    virConnectListDefinedDomains);
-    }
-
-    Handle<Value> Hypervisor::GetDefinedInterfaces(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_defined_interfaces();
-    }
-
-    Handle<Value> Hypervisor::get_defined_interfaces() {
-        GET_LIST_OF(virConnectNumOfDefinedInterfaces,
-                    virConnectListDefinedInterfaces);
-    }
-
-    Handle<Value> Hypervisor::GetDefinedNetworks(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_defined_networks();
-    }
-
-    Handle<Value> Hypervisor::get_defined_networks() {
-        GET_LIST_OF(virConnectNumOfDefinedNetworks,
-                    virConnectListDefinedNetworks);
-    }
-
-    Handle<Value> Hypervisor::GetDefinedStoragePools(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_defined_storage_pools();
-    }
-
-    Handle<Value> Hypervisor::get_defined_storage_pools() {
-        GET_LIST_OF(virConnectNumOfDefinedStoragePools,
-                    virConnectListDefinedStoragePools);
-    }
-
     Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
         HandleScope scope;
+        int *ids = NULL;
+        int numOfDomains = 0;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        return hypervisor->get_active_domains();
-    }
-
-    Handle<Value> Hypervisor::get_active_domains() {
-        int *ids = NULL;
-        int numOfDomains;
-
-        numOfDomains = virConnectNumOfDomains(conn_);
+        numOfDomains = virConnectNumOfDomains(hypervisor->conn_);
 
         if(numOfDomains == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -644,7 +564,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        int ret = virConnectListDomains(conn_, ids, numOfDomains);
+        int ret = virConnectListDomains(hypervisor->conn_, ids, numOfDomains);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -661,190 +581,61 @@ namespace NodeLibvirt {
         return v8Array;
     }
 
-    Handle<Value> Hypervisor::GetActiveInterfaces(const Arguments& args) {
-        HandleScope scope;
+    GET_LIST_OF( GetDefinedDomains,
+                 virConnectNumOfDefinedDomains,
+                 virConnectListDefinedDomains);
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+    GET_LIST_OF( GetDefinedInterfaces,
+                 virConnectNumOfDefinedInterfaces,
+                 virConnectListDefinedInterfaces);
 
-        return hypervisor->get_active_interfaces();
-    }
+    GET_LIST_OF( GetDefinedNetworks,
+                 virConnectNumOfDefinedNetworks,
+                 virConnectListDefinedNetworks);
 
-    Handle<Value> Hypervisor::get_active_interfaces() {
-        GET_LIST_OF(virConnectNumOfInterfaces,
-                    virConnectListInterfaces);
-    }
+    GET_LIST_OF( GetDefinedStoragePools,
+                 virConnectNumOfDefinedStoragePools,
+                 virConnectListDefinedStoragePools);
 
-    Handle<Value> Hypervisor::GetNetworkFilters(const Arguments& args) {
-        HandleScope scope;
+    GET_LIST_OF( GetActiveInterfaces,
+                 virConnectNumOfInterfaces,
+                 virConnectListInterfaces);
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+    GET_LIST_OF( GetNetworkFilters,
+                 virConnectNumOfNWFilters,
+                 virConnectListNWFilters);
 
-        return hypervisor->get_network_filters();
-    }
+    GET_LIST_OF( GetActiveNetworks,
+                 virConnectNumOfNetworks,
+                 virConnectListNetworks);
 
-    Handle<Value> Hypervisor::get_network_filters() {
-        GET_LIST_OF(virConnectNumOfNWFilters,
-                    virConnectListNWFilters);
-    }
+    GET_LIST_OF( GetSecrets,
+                 virConnectNumOfSecrets,
+                 virConnectListSecrets);
 
-    Handle<Value> Hypervisor::GetActiveNetworks(const Arguments& args) {
-        HandleScope scope;
+    GET_LIST_OF( GetActiveStoragePools,
+                 virConnectNumOfStoragePools,
+                 virConnectListStoragePools);
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+    GET_NUM_OF(GetNumberOfDefinedDomains, virConnectNumOfDefinedDomains);
 
-        return hypervisor->get_active_networks();
-    }
+    GET_NUM_OF(GetNumberOfDefinedInterfaces, virConnectNumOfDefinedInterfaces);
 
-    Handle<Value> Hypervisor::get_active_networks() {
-        GET_LIST_OF(virConnectNumOfNetworks,
-                    virConnectListNetworks);
-    }
+    GET_NUM_OF(GetNumberOfDefinedNetworks, virConnectNumOfDefinedNetworks);
 
-    Handle<Value> Hypervisor::GetSecrets(const Arguments& args) {
-        HandleScope scope;
+    GET_NUM_OF(GetNumberOfDefinedStoragePools, virConnectNumOfDefinedStoragePools);
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+    GET_NUM_OF(GetNumberOfActiveDomains, virConnectNumOfDomains);
 
-        return hypervisor->get_secrets();
-    }
+    GET_NUM_OF(GetNumberOfActiveInterfaces, virConnectNumOfInterfaces);
 
-    Handle<Value> Hypervisor::get_secrets() {
-        GET_LIST_OF(virConnectNumOfSecrets,
-                    virConnectListSecrets);
-    }
+    GET_NUM_OF(GetNumberOfActiveNetworks, virConnectNumOfNetworks);
 
-    Handle<Value> Hypervisor::GetActiveStoragePools(const Arguments& args) {
-        HandleScope scope;
+    GET_NUM_OF(GetNumberOfNetworkFilters, virConnectNumOfNWFilters);
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+    GET_NUM_OF(GetNumberOfSecrets, virConnectNumOfSecrets);
 
-        return hypervisor->get_active_storage_pools();
-    }
-
-    Handle<Value> Hypervisor::get_active_storage_pools() {
-        GET_LIST_OF(virConnectNumOfStoragePools,
-                    virConnectListStoragePools);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfDefinedDomains(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_defined_domains();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_defined_domains() {
-        GET_NUM_OF(virConnectNumOfDefinedDomains);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfDefinedInterfaces(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_defined_interfaces();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_defined_interfaces() {
-        GET_NUM_OF(virConnectNumOfDefinedInterfaces);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfDefinedNetworks(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_defined_networks();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_defined_networks() {
-        GET_NUM_OF(virConnectNumOfDefinedNetworks);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfDefinedStoragePools(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_defined_storage_pools();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_defined_storage_pools() {
-        GET_NUM_OF(virConnectNumOfDefinedStoragePools);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfActiveDomains(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_active_domains();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_active_domains() {
-        GET_NUM_OF(virConnectNumOfDomains);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfActiveInterfaces(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_active_interfaces();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_active_interfaces() {
-        GET_NUM_OF(virConnectNumOfInterfaces);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfActiveNetworks(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_active_networks();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_active_networks() {
-        GET_NUM_OF(virConnectNumOfNetworks);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfNetworkFilters(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_network_filters();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_network_filters() {
-        GET_NUM_OF(virConnectNumOfNWFilters);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfSecrets(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_secrets();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_secrets() {
-        GET_NUM_OF(virConnectNumOfSecrets);
-    }
-
-    Handle<Value> Hypervisor::GetNumberOfActiveStoragePools(const Arguments& args) {
-        HandleScope scope;
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        return hypervisor->get_number_of_active_storage_pools();
-    }
-
-    Handle<Value> Hypervisor::get_number_of_active_storage_pools() {
-        GET_NUM_OF(virConnectNumOfStoragePools);
-    }
+    GET_NUM_OF(GetNumberOfActiveStoragePools, virConnectNumOfStoragePools);
 
 } //namespace NodeLibvirt
 

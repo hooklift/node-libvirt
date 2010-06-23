@@ -402,5 +402,41 @@ describe 'Domain'
         domain.coreDump(path).should_be true
     end
 
+    it 'should return network interface statistics of the domain'
+        //FIXME, attach network device eth1 to the domain
+        try {
+            var stats = domain.getInterfaceStats('eth1');
+
+            stats.rx_bytes.should_not_be undefined
+            stats.rx_packets.should_not_be undefined
+            stats.rx_errors.should_not_be undefined
+            stats.rx_drop.should_not_be undefined
+            stats.tx_bytes.should_not_be undefined
+            stats.tx_packets.should_not_be undefined
+            stats.tx_errors.should_not_be undefined
+            stats.tx_drop.should_not_be undefined
+        } catch(error) {
+            error.code.should_not_be undefined
+        }
+    end
+
+    it 'should show if the domain has a current snapshot'
+        try {
+            domain.hasCurrentSnapshot().should_be false
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should revert the domain to a snapshot taken before'
+        //FIXME take domain snapshot
+        domain.revertToSnapshot('test-snapshot').should_be true
+    end
+
+    it 'should take a snapshot of the domain'
+
+    end
+
 end
 

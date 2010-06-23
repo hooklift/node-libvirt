@@ -4,16 +4,17 @@
 
 #include "node_libvirt.h"
 #include "hypervisor.h"
+#include "domain_snapshot.h"
 #include "error.h"
 
 namespace NodeLibvirt {
 
     class Domain : public EventEmitter {
+        friend class DomainSnapshot;
         friend class Hypervisor;
 
         public:
             static void Initialize();
-            //static Handle<Value> New(Hypervisor hypervisor);
             static inline bool HasInstance(v8::Handle<v8::Value> value) {
                 if (!value->IsObject()) {
                     return false;
@@ -24,7 +25,6 @@ namespace NodeLibvirt {
             virtual ~Domain();
 
         protected:
-            //static Handle<Value> New(const Arguments& args);
             static Handle<Value> Create(const Arguments& args);
             static Handle<Value> LookupById(const Arguments& args);
             static Handle<Value> LookupByName(const Arguments& args);
@@ -76,19 +76,7 @@ namespace NodeLibvirt {
             static Handle<Value> GetBlockStats(const Arguments& args);
             static Handle<Value> GetBlockInfo(const Arguments& args);
             static Handle<Value> CoreDump(const Arguments& args);
-
             static Handle<Value> GetInterfaceStats(const Arguments& args);
-
-            static Handle<Value> HasCurrentSnapshot(const Arguments& args);
-            static Handle<Value> RevertToSnapshot(const Arguments& args);
-            static Handle<Value> CreateSnapshotXml(const Arguments& args);
-            static Handle<Value> GetCurrentSnapshot(const Arguments& args);
-            static Handle<Value> DeleteSnapshot(const Arguments& args);
-            static Handle<Value> FreeSnapshot(const Arguments& args);// maybe yes maybe not ?
-            static Handle<Value> GetSnapshotXml(const Arguments& args);
-            static Handle<Value> ListSnapshotsNames(const Arguments& args);
-            static Handle<Value> LookupSnapshotByName(const Arguments& args);
-            static Handle<Value> GetSnapshotsCount(const Arguments& args);
 
         private:
             virDomainPtr domain_;

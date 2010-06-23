@@ -151,7 +151,12 @@ describe 'Hypervisor'
 
     it 'should list UUIDs names of defined secrets'
         //no supported by test driver
-        -{hypervisor.getSecrets()}.should.throw_error
+        try {
+            var uuids = hypervisor.getSecrets();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should list names of active storage pools'
@@ -196,7 +201,12 @@ describe 'Hypervisor'
 
     it 'should return the number of currently defined secrets'
         //no supported by test driver
-        -{hypervisor.getNumberOfSecrets()}.should.throw_error
+        try {
+            var num = hypervisor.getNumberOfSecrets();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should return the number of active storage pools'
@@ -206,12 +216,22 @@ describe 'Hypervisor'
 
     it 'should return the number of network filters'
         //no supported by test driver
-        -{hypervisor.getNumberOfNetworkFilters()}.should.throw_error
+        try {
+            var num = hypervisor.getNumberOfNetworkFilters();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should list names of network filters'
         //no supported by test driver
-        -{hypervisor.getNetworkFilters()}.should.throw_error
+        try {
+            var filters = hypervisor.getNetworkFilters();
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should have the constant VIR_CRED_USERNAME'
@@ -287,13 +307,23 @@ describe 'Hypervisor'
         xmlCPUs = [cpu1, cpu2]
 
         //no supported by test driver
-        -{hypervisor.getBaselineCPU(xmlCPUs)}.should.throw_error
+        try {
+            hypervisor.getBaselineCPU(xmlCPUs);
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 
     it 'should compare given cpu description with host CPU'
         var cpu = fixture('cpu1.xml')
         //no supported by test driver
-        -{hypervisor.compareCPU(cpu)}.should.throw_error
+        try {
+          hypervisor.compareCPU(cpu)
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
     end
 end
 

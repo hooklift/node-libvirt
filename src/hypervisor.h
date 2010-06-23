@@ -11,7 +11,6 @@ namespace NodeLibvirt {
     class Hypervisor : public EventEmitter {
         public:
             static void Initialize(Handle<Object> target);
-            //static inline bool HasInstance(v8::Handle<v8::Value> value);
             static inline bool HasInstance(v8::Handle<v8::Value> value) {
                 if (!value->IsObject()) {
                     return false;
@@ -63,45 +62,8 @@ namespace NodeLibvirt {
             Hypervisor(const Local<String>& uri, bool readOnly);
             ~Hypervisor();
 
-            Handle<Value> get_capabilities();
-            Handle<Value> get_hostname();
-            Handle<Value> get_type();
-            Handle<Value> get_connection_uri();
-            Handle<Value> get_version();
-            Handle<Value> get_libvirt_version();
-            Handle<Value> get_max_vcpus();
-            Handle<Value> get_baseline_cpu( char **xmlCPUs, unsigned int ncpus,
-                                            unsigned int flags);
-            Handle<Value> compare_cpu(const char *xmlDesc, unsigned int flags);
-            Handle<Value> is_connection_encrypted();
-            Handle<Value> is_connection_secure();
-            Handle<Value> close_connection();
-
-            Handle<Value> get_defined_domains();
-            Handle<Value> get_defined_interfaces();
-            Handle<Value> get_defined_networks();
-            Handle<Value> get_defined_storage_pools();
-            Handle<Value> get_active_domains();
-            Handle<Value> get_active_interfaces();
-            Handle<Value> get_active_networks();
-            Handle<Value> get_active_storage_pools();
-            Handle<Value> get_network_filters();
-            Handle<Value> get_secrets();
-
-            Handle<Value> get_number_of_defined_domains();
-            Handle<Value> get_number_of_defined_interfaces();
-            Handle<Value> get_number_of_defined_networks();
-            Handle<Value> get_number_of_defined_storage_pools();
-            Handle<Value> get_number_of_active_domains();
-            Handle<Value> get_number_of_active_interfaces();
-            Handle<Value> get_number_of_active_networks();
-            Handle<Value> get_number_of_active_storage_pools();
-            Handle<Value> get_number_of_network_filters();
-            Handle<Value> get_number_of_secrets();
-
         private:
             virConnectPtr conn_;
-            //static v8::Persistent<v8::FunctionTemplate> constructor_template;
     };
 
 }  // namespace NodeLibvirt
