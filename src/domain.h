@@ -77,6 +77,16 @@ namespace NodeLibvirt {
             static Handle<Value> GetBlockInfo(const Arguments& args);
             static Handle<Value> CoreDump(const Arguments& args);
             static Handle<Value> GetInterfaceStats(const Arguments& args);
+            static Handle<Value> HasCurrentSnapshot(const Arguments& args);
+            static Handle<Value> RevertToSnapshot(const Arguments& args);
+            static Handle<Value> TakeSnapshot(const Arguments& args);
+
+            static Handle<Value> GetCurrentSnapshot(const Arguments& args);
+            static Handle<Value> DeleteSnapshot(const Arguments& args);
+            static Handle<Value> GetSnapshotXml(const Arguments& args);
+            static Handle<Value> ListSnapshotsNames(const Arguments& args);
+            static Handle<Value> LookupSnapshotByName(const Arguments& args);
+            static Handle<Value> GetSnapshotsCount(const Arguments& args);
 
         private:
             virDomainPtr domain_;

@@ -164,9 +164,11 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
                                       Domain::Undefine);
         NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
-                                      DomainSnapshot::HasCurrentSnapshot);
+                                      Domain::HasCurrentSnapshot);
         NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",
-                                      DomainSnapshot::RevertToSnapshot);
+                                      Domain::RevertToSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "takeSnapshot",
+                                      Domain::TakeSnapshot);
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Domain"));
@@ -1924,6 +1926,77 @@ namespace NodeLibvirt {
         ret = virDomainCoreDump(domain->domain_, path, flags);
 
         if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::HasCurrentSnapshot(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainHasCurrentSnapshot(domain->domain_, flags);
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return ret == 1 ? True() : False();
+    }
+
+    Handle<Value> Domain::RevertToSnapshot(const Arguments& args) {
+        HandleScope scope;
+        virDomainSnapshotPtr snapshot;
+        const char* name = NULL;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value name_(args[0]->ToString());
+        name = ToCString(name_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        if(snapshot == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        ret = virDomainRevertToSnapshot(snapshot, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::TakeSnapshot(const Arguments& args) {
+        HandleScope scope;
+        virDomainSnapshotPtr snapshot;
+        unsigned int flags = 0;
+        const char* xml = NULL;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        if(args.Length() == 1 && args[0]->IsString()) {
+            String::Utf8Value xml_(args[0]->ToString());
+            xml = ToCString(xml_);
+            snapshot = virDomainSnapshotCreateXML(domain->domain_, xml, flags);
+        } else {
+            snapshot = virDomainSnapshotCurrent(domain->domain_, flags);
+        }
+
+        if(snapshot == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }

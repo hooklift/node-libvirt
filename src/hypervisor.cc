@@ -336,7 +336,6 @@ namespace NodeLibvirt {
         Local<String> version = String::New(vrs);
 
         return version;
-
     }
 
     Handle<Value> Hypervisor::GetType(const Arguments& args) {
@@ -381,7 +380,6 @@ namespace NodeLibvirt {
         Local<Number> maxvcpus = Number::New(maxvcpus_);
 
         return maxvcpus;
-
     }
 
     Handle<Value> Hypervisor::GetConnectionUri(const Arguments& args) {
@@ -458,7 +456,6 @@ namespace NodeLibvirt {
         }
 
        return False();
-
     }
 
     Handle<Value> Hypervisor::IsConnectionSecure(const Arguments& args) {
