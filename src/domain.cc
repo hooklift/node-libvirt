@@ -280,8 +280,9 @@ namespace NodeLibvirt {
     }
 
     Domain::~Domain() {
+        //wrong, relation between javascript instances and c++ instances isn't direct, isn't be one-to-one
         if(domain_ != NULL) {
-            virDomainFree(domain_);
+           // virDomainFree(domain_);
         }
     }
 
