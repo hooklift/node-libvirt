@@ -218,7 +218,7 @@ namespace NodeLibvirt {
     }
 
     Hypervisor::~Hypervisor(){
-        assert(conn_ == NULL);
+       //assert(conn_ == NULL);
     }
 
     virConnectPtr Hypervisor::connection() const {
