@@ -169,6 +169,14 @@ namespace NodeLibvirt {
                                       Domain::RevertToSnapshot);
         NODE_SET_PROTOTYPE_METHOD(t, "takeSnapshot",
                                       Domain::TakeSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "getCurrentSnapshot",
+                                      Domain::GetCurrentSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "deleteSnapshot",
+                                      Domain::DeleteSnapshot);
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupSnapshotByName",
+                                      Domain::LookupSnapshotByName);
+        NODE_SET_PROTOTYPE_METHOD(t, "getSnapshots",
+                                      Domain::GetSnapshots);
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Domain"));
@@ -1951,7 +1959,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::RevertToSnapshot(const Arguments& args) {
         HandleScope scope;
-        virDomainSnapshotPtr snapshot;
+        virDomainSnapshotPtr snapshot = NULL;
         const char* name = NULL;
         unsigned int flags = 0;
         int ret = -1;
@@ -1973,16 +1981,18 @@ namespace NodeLibvirt {
         ret = virDomainRevertToSnapshot(snapshot, flags);
 
         if(ret == -1) {
+            virDomainSnapshotFree(snapshot);
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+        virDomainSnapshotFree(snapshot);
 
         return True();
     }
 
     Handle<Value> Domain::TakeSnapshot(const Arguments& args) {
         HandleScope scope;
-        virDomainSnapshotPtr snapshot;
+        virDomainSnapshotPtr snapshot = NULL;
         unsigned int flags = 0;
         const char* xml = NULL;
 
@@ -2000,8 +2010,148 @@ namespace NodeLibvirt {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
+        virDomainSnapshotFree(snapshot);
 
         return True();
+    }
+
+    Handle<Value> Domain::GetCurrentSnapshot(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        virDomainSnapshotPtr snapshot = NULL;
+        char* xml_ = NULL;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        snapshot = virDomainSnapshotCurrent(domain->domain_, flags);
+
+        if(snapshot == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        xml_ = virDomainSnapshotGetXMLDesc(snapshot, flags);
+        if(xml_ == NULL) {
+            virDomainSnapshotFree(snapshot);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+        virDomainSnapshotFree(snapshot);
+        //TODO serialize to json
+
+        Local<String> xml = String::New(xml_);
+        free(xml_);
+
+        return xml;
+    }
+
+    Handle<Value> Domain::DeleteSnapshot(const Arguments& args) {
+        HandleScope scope;
+        const char* name = NULL;
+        unsigned int flags = 0;
+        virDomainSnapshotPtr snapshot = NULL;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value name_(args[0]->ToString());
+        name = ToCString(name_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        if(snapshot == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        int ret = virDomainSnapshotDelete(snapshot, flags);
+        if(ret == -1) {
+            virDomainSnapshotFree(snapshot);
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+        virDomainSnapshotFree(snapshot);
+
+        return True();
+    }
+
+    Handle<Value> Domain::LookupSnapshotByName(const Arguments& args) {
+        HandleScope scope;
+        const char* name = NULL;
+        char* xml_ = NULL;
+        unsigned int flags = 0;
+        virDomainSnapshotPtr snapshot = NULL;
+
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument to invoke this function")));
+        }
+        String::Utf8Value name_(args[0]->ToString());
+        name = ToCString(name_);
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        if(snapshot == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        xml_ = virDomainSnapshotGetXMLDesc(snapshot, flags);
+        if(xml_ == NULL) {
+            virDomainSnapshotFree(snapshot);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+        virDomainSnapshotFree(snapshot);
+        //TODO serialize to json
+
+        Local<String> xml = String::New(xml_);
+        free(xml_);
+
+        return xml;
+    }
+
+    Handle<Value> Domain::GetSnapshots(const Arguments& args) {
+        HandleScope scope;
+        char **snapshots_ = NULL;
+        unsigned int flags = 0;
+        int num_snapshots = 0;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        num_snapshots = virDomainSnapshotNum(domain->domain_, flags);
+
+        if(num_snapshots == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        snapshots_ = (char**) malloc(sizeof(*snapshots_) * num_snapshots);
+        if(snapshots_ == NULL) {
+            LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
+            return Null();
+        }
+
+        num_snapshots = virDomainSnapshotListNames(domain->domain_, snapshots_, num_snapshots, flags);
+        if(num_snapshots == -1) {
+            free(snapshots_);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Array> snapshots = Array::New(num_snapshots);
+        for (int i = 0; i < num_snapshots; i++) {
+            virDomainSnapshotPtr snapshot = virDomainSnapshotLookupByName(domain->domain_, snapshots_[i], flags);
+            char *xml = virDomainSnapshotGetXMLDesc(snapshot, flags);
+            virDomainSnapshotFree(snapshot);
+
+            snapshots->Set(Integer::New(i), String::New(xml));
+            free(snapshots_[i]);
+            free(xml);
+        }
+        free(snapshots_);
+
+        return snapshots;
     }
 
 } //namespace NodeLibvirt

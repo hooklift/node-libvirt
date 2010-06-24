@@ -462,5 +462,50 @@ describe 'Domain'
         }
     end
 
+    it 'should return information about the current domain snapshot'
+        try {
+            var fixture = fixture('snapshot.xml');
+            domain.takeSnapshot(fixture).should_be true
+
+            var xml = domain.getCurrentSnapshot();
+            xml.should_not_be undefined
+            xml.should_not_be null
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+
+    end
+
+    it 'should delete a snapshot'
+        try {
+            domain.deleteSnapshot('test-snapshot').should_be true
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should lookup a snapshot by name'
+        try {
+            var xml = domain.lookupSnapshotByName('test-snapshot');
+            xml.should_not_be undefined
+            xml.should_not_be null
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
+    it 'should return all the domain snapshots'
+        try {
+            var snapshots = domain.getSnapshots();
+            snapshots.should_be_an_instance_of Array
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
 end
 

@@ -4,13 +4,11 @@
 
 #include "node_libvirt.h"
 #include "hypervisor.h"
-#include "domain_snapshot.h"
 #include "error.h"
 
 namespace NodeLibvirt {
 
     class Domain : public EventEmitter {
-        friend class DomainSnapshot;
         friend class Hypervisor;
 
         public:
@@ -80,13 +78,10 @@ namespace NodeLibvirt {
             static Handle<Value> HasCurrentSnapshot(const Arguments& args);
             static Handle<Value> RevertToSnapshot(const Arguments& args);
             static Handle<Value> TakeSnapshot(const Arguments& args);
-
             static Handle<Value> GetCurrentSnapshot(const Arguments& args);
             static Handle<Value> DeleteSnapshot(const Arguments& args);
-            static Handle<Value> GetSnapshotXml(const Arguments& args);
-            static Handle<Value> ListSnapshotsNames(const Arguments& args);
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
-            static Handle<Value> GetSnapshotsCount(const Arguments& args);
+            static Handle<Value> GetSnapshots(const Arguments& args);
 
         private:
             virDomainPtr domain_;
