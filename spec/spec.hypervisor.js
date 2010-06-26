@@ -325,5 +325,38 @@ describe 'Hypervisor'
             error.code.should_be error.VIR_ERR_NO_SUPPORT
         }
     end
+
+    it 'should return the amount of node free memory in one or more NUMA cells'
+        var startCell = 0;
+        var maxCells = 2;
+        var memory = hypervisor.getNodeFreeMemoryInNumaCells(startCell, maxCells);
+        memory.should_be_an_instance_of Array
+
+        memory[0].should_be 2097152
+        memory[1].should_be 4194304
+    end
+
+    it 'should return the node information where hypervisor is running'
+        var info = hypervisor.getNodeInfo();
+        info.model.should_not_be null
+        info.memory.should_not_be null
+        info.cpus.should_not_be null
+        info.mhz.should_not_be null
+        info.nodes.should_not_be null
+        info.sockets.should_not_be null
+        info.cores.should_not_be null
+        info.threads.should_not_be null
+    end
+
+    it 'should return free memory of the physical node'
+        try {
+            var memory = hypervisor.getNodeFreeMemory();
+            memory.should_not_be null
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
+
 end
 

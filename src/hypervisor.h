@@ -59,6 +59,11 @@ namespace NodeLibvirt {
             static Handle<Value> GetNumberOfSecrets(const Arguments& args);
             static Handle<Value> GetNumberOfActiveStoragePools(const Arguments& args);
 
+            //Node functions
+            static Handle<Value> GetNodeFreeMemoryInNumaCells(const Arguments& args);
+            static Handle<Value> GetNodeFreeMemory(const Arguments& args);
+            static Handle<Value> GetNodeInfo(const Arguments& args);
+
             Hypervisor(const Local<String>& uri, bool readOnly);
             ~Hypervisor();
 

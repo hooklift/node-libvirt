@@ -57,6 +57,15 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                     \
 
 namespace NodeLibvirt {
 
+    static Persistent<String> node_info_model_symbol;
+    static Persistent<String> node_info_memory_symbol;
+    static Persistent<String> node_info_cpus_symbol;
+    static Persistent<String> node_info_mhz_symbol;
+    static Persistent<String> node_info_nodes_symbol;
+    static Persistent<String> node_info_sockets_symbol;
+    static Persistent<String> node_info_cores_symbol;
+    static Persistent<String> node_info_threads_symbol;
+
     void Hypervisor::Initialize(Handle<Object> target) {
         HandleScope scope;
 
@@ -179,6 +188,15 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",
                                       Domain::LookupByUUID);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemoryInNumaCells",
+                                      Hypervisor::GetNodeFreeMemoryInNumaCells);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory",
+                                      Hypervisor::GetNodeFreeMemory);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo",
+                                      Hypervisor::GetNodeInfo);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -198,6 +216,15 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_INCOMPATIBLE);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_IDENTICAL);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_SUPERSET);
+
+        node_info_model_symbol      = NODE_PSYMBOL("model");
+        node_info_memory_symbol     = NODE_PSYMBOL("memory");
+        node_info_cpus_symbol       = NODE_PSYMBOL("cpus");
+        node_info_mhz_symbol        = NODE_PSYMBOL("mhz");
+        node_info_nodes_symbol      = NODE_PSYMBOL("nodes");
+        node_info_sockets_symbol    = NODE_PSYMBOL("sockets");
+        node_info_cores_symbol      = NODE_PSYMBOL("cores");
+        node_info_threads_symbol    = NODE_PSYMBOL("threads");
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
@@ -576,6 +603,99 @@ namespace NodeLibvirt {
         }
         delete [] ids;
         return v8Array;
+    }
+
+    Handle<Value> Hypervisor::GetNodeFreeMemoryInNumaCells(const Arguments& args) {
+        HandleScope scope;
+        int start_cell = 0;
+        int max_cells = 0;
+
+        unsigned long long *free_memory = NULL;
+
+        if(args.Length() < 2) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify two arguments to call this function")));
+        }
+
+        if(!args[0]->IsInt32() || !args[1]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("The two arguments must be numeric")));
+        }
+
+        start_cell = args[0]->Int32Value();
+        max_cells = args[1]->Int32Value();
+
+        if ((start_cell < 0) || (max_cells <= 0) || (start_cell + max_cells > 10000)) {
+            LIBVIRT_THROW_EXCEPTION("Inconsistent cell bounds");
+            return Null();
+        }
+
+        free_memory = (unsigned long long*) malloc(max_cells * sizeof(*free_memory));
+        if(free_memory == NULL) {
+            LIBVIRT_THROW_EXCEPTION("Unable to allocate memory");
+            return Null();
+        }
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        int cells_ = virNodeGetCellsFreeMemory(hypervisor->conn_, free_memory, start_cell, max_cells);
+
+        if(cells_ == -1) {
+            free(free_memory);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Array> cells = Array::New(cells_);
+        for(int i = 0; i < cells_; i++) {
+            cells->Set(Integer::New(i), Number::New(free_memory[i]));
+        }
+
+        free(free_memory);
+
+        return cells;
+    }
+
+    Handle<Value> Hypervisor::GetNodeFreeMemory(const Arguments& args) {
+        HandleScope scope;
+        unsigned long long memory = 0;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        memory = virNodeGetFreeMemory(hypervisor->conn_);
+
+        if(memory == 0) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        return Number::New(memory);
+    }
+
+    Handle<Value> Hypervisor::GetNodeInfo(const Arguments& args) {
+        HandleScope scope;
+        virNodeInfo info_;
+        int ret = -1;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        ret = virNodeGetInfo(hypervisor->conn_, &info_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> info = Object::New();
+        info->Set(node_info_model_symbol, String::New(info_.model));
+        info->Set(node_info_memory_symbol, Number::New(info_.memory));
+        info->Set(node_info_cpus_symbol, Integer::New(info_.cpus));
+        info->Set(node_info_mhz_symbol, Integer::New(info_.mhz));
+        info->Set(node_info_nodes_symbol, Integer::New(info_.nodes));
+        info->Set(node_info_sockets_symbol, Integer::New(info_.sockets));
+        info->Set(node_info_cores_symbol, Integer::New(info_.cores));
+        info->Set(node_info_threads_symbol, Integer::New(info_.threads));
+
+        return info;
     }
 
     GET_LIST_OF( GetDefinedDomains,
