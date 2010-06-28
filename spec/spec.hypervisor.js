@@ -358,5 +358,20 @@ describe 'Hypervisor'
         }
     end
 
+    it 'should list node devices names'
+        var devices = hypervisor.getNodeDevicesNames();
+        devices.should_be_an_instance_of Array
+    end
+
+    it 'should return the node security model'
+        try {
+            var security = hypervisor.getNodeSecurityModel();
+            security.model.should_not_be undefined
+            security.doi.should_not_be undefined
+        } catch(error) {
+            error.code.should_not_be undefined
+            error.code.should_be error.VIR_ERR_NO_SUPPORT
+        }
+    end
 end
 

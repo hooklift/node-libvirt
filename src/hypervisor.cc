@@ -66,6 +66,10 @@ namespace NodeLibvirt {
     static Persistent<String> node_info_cores_symbol;
     static Persistent<String> node_info_threads_symbol;
 
+    static Persistent<String> security_model_symbol;
+    static Persistent<String> security_model_doi_symbol;
+
+
     void Hypervisor::Initialize(Handle<Object> target) {
         HandleScope scope;
 
@@ -197,6 +201,18 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo",
                                       Hypervisor::GetNodeInfo);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "getNodeDevicesNames",
+                                      Hypervisor::GetNodeDevicesNames);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel",
+                                      Hypervisor::GetNodeSecurityModel);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupNodeDeviceByName",
+                                      NodeDevice::LookupByName);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "createNodeDevice",
+                                      NodeDevice::Create);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -225,6 +241,9 @@ namespace NodeLibvirt {
         node_info_sockets_symbol    = NODE_PSYMBOL("sockets");
         node_info_cores_symbol      = NODE_PSYMBOL("cores");
         node_info_threads_symbol    = NODE_PSYMBOL("threads");
+
+        security_model_symbol       = NODE_PSYMBOL("model");
+        security_model_doi_symbol   = NODE_PSYMBOL("doi");
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
@@ -696,6 +715,72 @@ namespace NodeLibvirt {
         info->Set(node_info_threads_symbol, Integer::New(info_.threads));
 
         return info;
+    }
+
+    Handle<Value> Hypervisor::GetNodeDevicesNames(const Arguments& args) {
+        HandleScope scope;
+        const char *cap = NULL;
+        unsigned int flags = 0;
+        char **names = NULL;
+        int num_devices = -1;
+
+        if(args.Length() == 1 && !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as argument")));
+        }
+
+        String::Utf8Value cap_(args[0]->ToString());
+        cap = ToCString(cap_);
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        num_devices = virNodeNumOfDevices(hypervisor->conn_, cap, flags);
+
+        if(num_devices == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        names = (char **) malloc(sizeof(*names) * num_devices);
+        if(names == NULL) {
+            LIBVIRT_THROW_EXCEPTION("Unable to allocate memory");
+            return Null();
+        }
+
+        num_devices = virNodeListDevices(hypervisor->conn_, cap, names, num_devices, flags);
+        if(num_devices == -1) {
+            free(names);
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Array> devices = Array::New(num_devices);
+        for(int i = 0; i < num_devices; i++) {
+            devices->Set(Integer::New(i), String::New(names[num_devices]));
+            free(names[num_devices]);
+        }
+        free(names);
+
+        return devices;
+    }
+
+    Handle<Value> Hypervisor::GetNodeSecurityModel(const Arguments& args) {
+        HandleScope scope;
+        virSecurityModel secmodel;
+        int ret = -1;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        ret = virNodeGetSecurityModel(hypervisor->conn_, &secmodel);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> object = Object::New();
+        object->Set(security_model_symbol, String::New(secmodel.model));
+        object->Set(security_model_doi_symbol, String::New(secmodel.doi));
+
+        return object;
     }
 
     GET_LIST_OF( GetDefinedDomains,

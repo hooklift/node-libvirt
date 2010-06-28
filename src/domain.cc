@@ -21,6 +21,7 @@ namespace NodeLibvirt {
     static Persistent<String> migration_bandwidth_symbol;
     static Persistent<String> migration_flags_symbol;
     static Persistent<String> migration_hypervisor_symbol;
+
     //Jobinfo symbols
     static Persistent<String> type_symbol;
     static Persistent<String> time_symbol;
@@ -1328,6 +1329,7 @@ namespace NodeLibvirt {
         return True();
     }
 
+    //Really neccesary call destroy from javascript ???
     Handle<Value> Domain::Destroy(const Arguments& args) {
         HandleScope scope;
         int ret = -1;

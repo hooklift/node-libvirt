@@ -15,6 +15,7 @@ namespace NodeLibvirt {
 
         Hypervisor::Initialize(target);
         Domain::Initialize();
+        NodeDevice::Initialize();
         Error::Initialize();
         //Network::Initialize();
         //StoragePool::Initialize();
