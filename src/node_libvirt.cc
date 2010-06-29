@@ -3,10 +3,6 @@
 #include "node_libvirt.h"
 #include "hypervisor.h"
 #include "error.h"
-//#include "device.h"
-//#include "network.h"
-//#include "storage_pool.h"
-//#include "storage_volume.h"
 
 namespace NodeLibvirt {
     void InitializeLibvirt(Handle<Object> target) {
@@ -16,8 +12,8 @@ namespace NodeLibvirt {
         Hypervisor::Initialize(target);
         Domain::Initialize();
         NodeDevice::Initialize();
+        Network::Initialize();
         Error::Initialize();
-        //Network::Initialize();
         //StoragePool::Initialize();
         //StorageVolume::Initialize();
 

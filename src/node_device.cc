@@ -36,7 +36,7 @@ namespace NodeLibvirt {
                                       NodeDevice::GetCapabilities);
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
-        constructor_template->SetClassName(String::NewSymbol("Domain"));
+        constructor_template->SetClassName(String::NewSymbol("NodeDevice"));
 
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
         //Constants initialization

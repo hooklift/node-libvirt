@@ -213,6 +213,18 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "createNodeDevice",
                                       NodeDevice::Create);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "createNetwork",
+                                      Network::Create);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByName",
+                                      Network::LookupByName);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByUUID",
+                                      Network::LookupByUUID);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork",
+                                      Network::Define);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization

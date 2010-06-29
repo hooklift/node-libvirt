@@ -13,14 +13,6 @@ namespace NodeLibvirt {
 
         public:
             static void Initialize();
-            static inline bool HasInstance(v8::Handle<v8::Value> value) {
-                if (!value->IsObject()) {
-                    return false;
-                }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
-            }
-            virtual ~Domain();
 
         protected:
             static Handle<Value> Create(const Arguments& args);
@@ -83,6 +75,7 @@ namespace NodeLibvirt {
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshots(const Arguments& args);
 
+            virtual ~Domain();
         private:
             virDomainPtr domain_;
             static Persistent<FunctionTemplate> constructor_template;

@@ -5,6 +5,7 @@
 #include "node_libvirt.h"
 #include "domain.h"
 #include "node_device.h"
+#include "network.h"
 #include "error.h"
 
 namespace NodeLibvirt {
