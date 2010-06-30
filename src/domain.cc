@@ -280,22 +280,6 @@ namespace NodeLibvirt {
         nwiface_stat_tx_drop_symbol = NODE_PSYMBOL("tx_drop");
     }
 
-    Domain::~Domain() {
-        //wrong, relation between javascript instances and c++ instances isn't direct, isn't be one-to-one
-        if(domain_ != NULL) {
-           // virDomainFree(domain_);
-        }
-    }
-
-    /*Handle<Value> Domain::New(const Arguments& args) {
-        HandleScope scope;
-
-        Domain *domain = new Domain();
-        domain->Wrap(args.This());
-
-        return args.This();
-    }*/
-
     Handle<Value> Domain::Create(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;

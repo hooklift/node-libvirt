@@ -20,7 +20,6 @@ namespace NodeLibvirt {
                 v8::Local<v8::Object> object = value->ToObject();
                 return constructor_template->HasInstance(object);
             }
-            virtual ~NodeDevice();
 
         protected:
             static Handle<Value> Create(const Arguments& args);

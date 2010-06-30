@@ -1,0 +1,10 @@
+<interface type='ethernet' name='eth0'>
+  <start mode='onboot'/>
+  <mac address='ff:bb:cc:dd:ee:ff'/>
+  <mtu size='1492'/>
+  <protocol family='ipv4'>
+    <ip address='192.168.0.6' prefix='24'/>
+    <route gateway='192.168.0.1'/>
+  </protocol>
+</interface>
+

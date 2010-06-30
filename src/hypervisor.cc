@@ -225,6 +225,24 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork",
                                       Network::Define);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter",
+                                      NetworkFilter::Define);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName",
+                                      NetworkFilter::LookupByName);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID",
+                                      NetworkFilter::LookupByUUID);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByName",
+                                      Interface::LookupByName);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByMacAddress",
+                                      Interface::LookupByMacAddress);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "defineInterface",
+                                      Interface::Define);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -273,10 +291,6 @@ namespace NodeLibvirt {
         if(conn_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
         }
-    }
-
-    Hypervisor::~Hypervisor(){
-       //assert(conn_ == NULL);
     }
 
     virConnectPtr Hypervisor::connection() const {

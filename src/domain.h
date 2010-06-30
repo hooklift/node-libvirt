@@ -75,7 +75,6 @@ namespace NodeLibvirt {
             static Handle<Value> LookupSnapshotByName(const Arguments& args);
             static Handle<Value> GetSnapshots(const Arguments& args);
 
-            virtual ~Domain();
         private:
             virDomainPtr domain_;
             static Persistent<FunctionTemplate> constructor_template;

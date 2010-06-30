@@ -6,6 +6,8 @@
 #include "domain.h"
 #include "node_device.h"
 #include "network.h"
+#include "network_filter.h"
+#include "interface.h"
 #include "error.h"
 
 namespace NodeLibvirt {
@@ -69,7 +71,6 @@ namespace NodeLibvirt {
             static Handle<Value> GetNodeSecurityModel(const Arguments& args);
 
             Hypervisor(const Local<String>& uri, bool readOnly);
-            ~Hypervisor();
 
         private:
             virConnectPtr conn_;

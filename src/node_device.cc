@@ -42,9 +42,6 @@ namespace NodeLibvirt {
         //Constants initialization
     }
 
-    NodeDevice::~NodeDevice() {
-    }
-
     Handle<Value> NodeDevice::LookupByName(const Arguments& args) {
         HandleScope scope;
         const char* name = NULL;

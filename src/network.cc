@@ -36,14 +36,6 @@ namespace NodeLibvirt {
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Network"));
-
-        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
-
-        //Constants initialization
-
-    }
-
-    Network::~Network() {
     }
 
     Handle<Value> Network::Create(const Arguments& args) {
