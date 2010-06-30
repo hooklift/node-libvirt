@@ -46,6 +46,10 @@ describe 'Interface'
         interface.start().should_be true
     end
 
+    it 'should indicate if is active and running'
+        interface.isActive().should_be true
+    end
+
     it 'should return the name'
         interface.getName().should_be 'eth1'
     end
