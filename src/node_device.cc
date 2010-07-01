@@ -189,7 +189,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 
     Handle<Value> NodeDevice::GetParentName(const Arguments& args) {
@@ -204,7 +204,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 
     Handle<Value> NodeDevice::ToXml(const Arguments& args) {
@@ -220,7 +220,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(xml);
+        return scope.Close(String::New(xml));
     }
 
     Handle<Value> NodeDevice::GetCapabilities(const Arguments& args) {
@@ -258,7 +258,7 @@ namespace NodeLibvirt {
         }
         free(names_);
 
-        return names;
+        return scope.Close(names);
     }
 
 } //namespace NodeLibvirt

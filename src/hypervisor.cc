@@ -52,7 +52,7 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                     \
         ThrowException(Error::New(virGetLastError()));                      \
         return Null();                                                      \
     }                                                                       \
-    return Integer::New(ret);                                               \
+    return scope.Close(Integer::New(ret));                                               \
 }                                                                           \
 
 namespace NodeLibvirt {
@@ -243,6 +243,15 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "defineInterface",
                                       Interface::Define);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "defineSecret",
+                                      Secret::Define);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUsage",
+                                      Secret::LookupByUsage);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID",
+                                      Secret::LookupByUUID);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -262,6 +271,10 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_INCOMPATIBLE);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_IDENTICAL);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_CPU_COMPARE_SUPERSET);
+
+        //virSecretUsageType
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_SECRET_USAGE_TYPE_NONE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_SECRET_USAGE_TYPE_VOLUME);
 
         node_info_model_symbol      = NODE_PSYMBOL("model");
         node_info_memory_symbol     = NODE_PSYMBOL("memory");
@@ -338,7 +351,7 @@ namespace NodeLibvirt {
         Local<String> capabilities = String::New((const char*)capabilities_);
         free(capabilities_);
 
-        return capabilities;
+        return scope.Close(capabilities);
     }
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
@@ -357,7 +370,7 @@ namespace NodeLibvirt {
         Local<String> hostname = String::New((const char*)hostname_);
         free(hostname_);
 
-        return hostname;
+        return scope.Close(hostname);
     }
 
     Handle<Value> Hypervisor::CloseConnection(const Arguments& args) {
@@ -407,7 +420,7 @@ namespace NodeLibvirt {
 
         Local<String> version = String::New(vrs);
 
-        return version;
+        return scope.Close(version);
     }
 
     Handle<Value> Hypervisor::GetType(const Arguments& args) {
@@ -425,7 +438,7 @@ namespace NodeLibvirt {
 
         Local<String> type = String::New(type_);
 
-        return type;
+        return scope.Close(type);
     }
 
     Handle<Value> Hypervisor::GetMaxVcpus(const Arguments& args) {
@@ -451,7 +464,7 @@ namespace NodeLibvirt {
 
         Local<Number> maxvcpus = Number::New(maxvcpus_);
 
-        return maxvcpus;
+        return scope.Close(maxvcpus);
     }
 
     Handle<Value> Hypervisor::GetConnectionUri(const Arguments& args) {
@@ -470,7 +483,7 @@ namespace NodeLibvirt {
         Local<String> uri = String::New(uri_);
         free(uri_);
 
-        return uri;
+        return scope.Close(uri);
     }
 
     Handle<Value> Hypervisor::GetVersion(const Arguments& args) {
@@ -508,7 +521,7 @@ namespace NodeLibvirt {
 
         Local<String> version = String::New(version_);
 
-        return version;
+        return scope.Close(version);
     }
 
     Handle<Value> Hypervisor::IsConnectionEncrypted(const Arguments& args) {
@@ -584,7 +597,7 @@ namespace NodeLibvirt {
         }
 
         Local<String> xml = String::New(x);
-        return xml;
+        return scope.Close(xml);
     }
 
     Handle<Value> Hypervisor::CompareCPU(const Arguments& args) {
@@ -610,7 +623,7 @@ namespace NodeLibvirt {
         }
         Local<Number> result = Number::New(ret);
 
-        return result;
+        return scope.Close(result);
     }
 
     Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
@@ -647,7 +660,7 @@ namespace NodeLibvirt {
             //free(ids[i]);
         }
         delete [] ids;
-        return v8Array;
+        return scope.Close(v8Array);
     }
 
     Handle<Value> Hypervisor::GetNodeFreeMemoryInNumaCells(const Arguments& args) {
@@ -698,7 +711,7 @@ namespace NodeLibvirt {
 
         free(free_memory);
 
-        return cells;
+        return scope.Close(cells);
     }
 
     Handle<Value> Hypervisor::GetNodeFreeMemory(const Arguments& args) {
@@ -714,7 +727,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return Number::New(memory);
+        return scope.Close(Number::New(memory));
     }
 
     Handle<Value> Hypervisor::GetNodeInfo(const Arguments& args) {
@@ -740,7 +753,7 @@ namespace NodeLibvirt {
         info->Set(node_info_cores_symbol, Integer::New(info_.cores));
         info->Set(node_info_threads_symbol, Integer::New(info_.threads));
 
-        return info;
+        return scope.Close(info);
     }
 
     Handle<Value> Hypervisor::GetNodeDevicesNames(const Arguments& args) {
@@ -786,7 +799,7 @@ namespace NodeLibvirt {
         }
         free(names);
 
-        return devices;
+        return scope.Close(devices);
     }
 
     Handle<Value> Hypervisor::GetNodeSecurityModel(const Arguments& args) {
@@ -806,7 +819,7 @@ namespace NodeLibvirt {
         object->Set(security_model_symbol, String::New(secmodel.model));
         object->Set(security_model_doi_symbol, String::New(secmodel.doi));
 
-        return object;
+        return scope.Close(object);
     }
 
     GET_LIST_OF( GetDefinedDomains,

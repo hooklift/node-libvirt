@@ -504,7 +504,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return Integer::NewFromUnsigned(id);
+        return scope.Close(Integer::NewFromUnsigned(id));
     }
 
     Handle<Value> Domain::GetInfo(const Arguments& args) {
@@ -528,7 +528,7 @@ namespace NodeLibvirt {
         object->Set(vcpus_number_symbol, Integer::New(info.nrVirtCpu));
         object->Set(cpu_time_symbol, Number::New(info.cpuTime)); //nanoseconds
 
-        return object;
+        return scope.Close(object);
     }
 
     Handle<Value> Domain::GetName(const Arguments& args) {
@@ -544,7 +544,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 
     Handle<Value> Domain::GetUUID(const Arguments& args) {
@@ -566,7 +566,7 @@ namespace NodeLibvirt {
 
         delete[] uuid;
 
-        return uuid_str;
+        return scope.Close(uuid_str);
     }
 
     Handle<Value> Domain::GetAutostart(const Arguments& args) {
@@ -585,7 +585,7 @@ namespace NodeLibvirt {
 
         bool autostart = autostart_ == 0 ? true : false;
 
-        return Boolean::New(autostart);
+        return scope.Close(Boolean::New(autostart));
     }
 
     Handle<Value> Domain::SetAutostart(const Arguments& args) {
@@ -624,7 +624,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return Number::New(memory);
+        return scope.Close(Number::New(memory));
     }
 
     Handle<Value> Domain::SetMaxMemory(const Arguments& args) {
@@ -687,7 +687,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(os_type);
+        return scope.Close(String::New(os_type));
     }
 
     Handle<Value> Domain::GetMaxVcpus(const Arguments& args) {
@@ -703,7 +703,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return Integer::New(vcpus);
+        return scope.Close(Integer::New(vcpus));
     }
 
     Handle<Value> Domain::IsActive(const Arguments& args) {
@@ -720,7 +720,7 @@ namespace NodeLibvirt {
         }
         bool is_active = ret == 1 ? true : false;
 
-        return Boolean::New(is_active);
+        return scope.Close(Boolean::New(is_active));
     }
 
     Handle<Value> Domain::IsPersistent(const Arguments& args) {
@@ -737,7 +737,7 @@ namespace NodeLibvirt {
         }
         bool is_persistent = ret == 1 ? true : false;
 
-        return Boolean::New(is_persistent);
+        return scope.Close(Boolean::New(is_persistent));
     }
 
     Handle<Value> Domain::Reboot(const Arguments& args) {
@@ -811,7 +811,7 @@ namespace NodeLibvirt {
             return scope.Close(False());
         }
 
-        return scope.Close(True());
+        return True();
     }
 
     Handle<Value> Domain::Suspend(const Arguments& args) {
@@ -952,7 +952,7 @@ namespace NodeLibvirt {
         free(cpuinfo);
         free(cpumap);
 
-        return vcpus;
+        return scope.Close(vcpus);
     }
 
     Handle<Value> Domain::SetVcpus(const Arguments& args) {
@@ -1056,7 +1056,7 @@ namespace NodeLibvirt {
 
             migrated_domain->Wrap(args.This());
 
-            return migrated_domain->constructor_template->GetFunction()->NewInstance();
+            return scope.Close(migrated_domain->constructor_template->GetFunction()->NewInstance());
         } else {
             ret = virDomainMigrateToURI(domain->domain_, dest_uri, flags, dest_name, bandwidth);
         }
@@ -1364,7 +1364,7 @@ namespace NodeLibvirt {
 
         free(xml_);
 
-        return xml;
+        return scope.Close(xml);
     }
 
     Handle<Value> Domain::GetJobInfo(const Arguments& args) {
@@ -1412,7 +1412,7 @@ namespace NodeLibvirt {
         info->Set(memory_symbol, memory);
         info->Set(file_symbol, file);
 
-        return info;
+        return scope.Close(info);
     }
 
     Handle<Value> Domain::AbortCurrentJob(const Arguments& args) {
@@ -1495,7 +1495,7 @@ namespace NodeLibvirt {
         }
         free(params_);
 
-        return params;
+        return scope.Close(params);
     }
 
     Handle<Value> Domain::SetSchedParams(const Arguments& args) {
@@ -1596,7 +1596,7 @@ namespace NodeLibvirt {
         label->Set(label_symbol, String::New(label_.label));
         label->Set(enforcing_symbol, Boolean::New(label_.enforcing));
 
-        return label;
+        return scope.Close(label);
     }
 
     Handle<Value> Domain::SaveManagedImage(const Arguments& args) {
@@ -1647,7 +1647,7 @@ namespace NodeLibvirt {
             return False();
         }
 
-        return Boolean::New(ret);
+        return scope.Close(Boolean::New(ret));
     }
 
     Handle<Value> Domain::MemoryPeek(const Arguments& args) {
@@ -1706,7 +1706,7 @@ namespace NodeLibvirt {
         memcpy(buffer->data(), buffer_, size);
         free(buffer_);
 
-        return buffer->handle_;
+        return scope.Close(buffer->handle_);
     }
 
     Handle<Value> Domain::GetMemoryStats(const Arguments& args) {
@@ -1749,7 +1749,7 @@ namespace NodeLibvirt {
                     break;
             }
         }
-        return stats;
+        return scope.Close(stats);
     }
 
     Handle<Value> Domain::BlockPeek(const Arguments& args) {
@@ -1804,7 +1804,7 @@ namespace NodeLibvirt {
         memcpy(buffer->data(), buffer_, size);
         free(buffer_);
 
-        return buffer->handle_;
+        return scope.Close(buffer->handle_);
     }
 
     Handle<Value> Domain::GetBlockStats(const Arguments& args) {
@@ -1836,7 +1836,7 @@ namespace NodeLibvirt {
         stats->Set(block_stat_wr_bytes_symbol, Number::New(stats_.wr_bytes));
         stats->Set(block_stat_errs_symbol, Number::New(stats_.errs));
 
-        return stats;
+        return scope.Close(stats);
     }
 
     Handle<Value> Domain::GetBlockInfo(const Arguments& args) {
@@ -1866,7 +1866,7 @@ namespace NodeLibvirt {
         info->Set(block_info_allocation_symbol, Number::New(info_.allocation));
         info->Set(block_info_physical_symbol, Number::New(info_.physical));
 
-        return info;
+        return scope.Close(info);
     }
 
     Handle<Value> Domain::GetInterfaceStats(const Arguments& args) {
@@ -1900,7 +1900,7 @@ namespace NodeLibvirt {
         stats->Set(nwiface_stat_tx_errors_symbol, Number::New(stats_.tx_errs));
         stats->Set(nwiface_stat_tx_drop_symbol, Number::New(stats_.tx_drop));
 
-        return stats;
+        return scope.Close(stats);
     }
 
     Handle<Value> Domain::CoreDump(const Arguments& args) {
@@ -2028,7 +2028,7 @@ namespace NodeLibvirt {
         Local<String> xml = String::New(xml_);
         free(xml_);
 
-        return xml;
+        return scope.Close(xml);
     }
 
     Handle<Value> Domain::DeleteSnapshot(const Arguments& args) {
@@ -2095,7 +2095,7 @@ namespace NodeLibvirt {
         Local<String> xml = String::New(xml_);
         free(xml_);
 
-        return xml;
+        return scope.Close(xml);
     }
 
     Handle<Value> Domain::GetSnapshots(const Arguments& args) {
@@ -2138,7 +2138,7 @@ namespace NodeLibvirt {
         }
         free(snapshots_);
 
-        return snapshots;
+        return scope.Close(snapshots);
     }
 
 } //namespace NodeLibvirt

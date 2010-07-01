@@ -209,7 +209,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 
     Handle<Value> Network::GetUUID(const Arguments& args) {
@@ -231,7 +231,7 @@ namespace NodeLibvirt {
 
         delete[] uuid;
 
-        return uuid_str;
+        return scope.Close(uuid_str);
     }
 
      Handle<Value> Network::GetAutostart(const Arguments& args) {
@@ -250,7 +250,7 @@ namespace NodeLibvirt {
 
         bool autostart = autostart_ == 0 ? true : false;
 
-        return Boolean::New(autostart);
+        return scope.Close(Boolean::New(autostart));
     }
 
     Handle<Value> Network::SetAutostart(const Arguments& args) {
@@ -290,7 +290,7 @@ namespace NodeLibvirt {
         }
         bool is_active = ret == 1 ? true : false;
 
-        return Boolean::New(is_active);
+        return scope.Close(Boolean::New(is_active));
     }
 
     Handle<Value> Network::IsPersistent(const Arguments& args) {
@@ -307,7 +307,7 @@ namespace NodeLibvirt {
         }
         bool is_persistent = ret == 1 ? true : false;
 
-        return Boolean::New(is_persistent);
+        return scope.Close(Boolean::New(is_persistent));
     }
 
     Handle<Value> Network::Undefine(const Arguments& args) {
@@ -376,7 +376,7 @@ namespace NodeLibvirt {
 
         free(xml_);
 
-        return xml;
+        return scope.Close(xml);
     }
 
     Handle<Value> Network::GetBridgeName(const Arguments& args) {
@@ -392,7 +392,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 }
 

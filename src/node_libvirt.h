@@ -24,7 +24,7 @@ using namespace node;
             free(items[i]);                                         \
         }                                                           \
         free(items);                                                \
-        return v8Array;
+        return scope.Close(v8Array);
 
 namespace NodeLibvirt {
     const char* ToCString(const v8::String::Utf8Value& value);

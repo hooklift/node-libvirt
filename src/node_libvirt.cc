@@ -15,6 +15,7 @@ namespace NodeLibvirt {
         Interface::Initialize();
         Network::Initialize();
         NetworkFilter::Initialize();
+        Secret::Initialize();
         Error::Initialize();
         //StoragePool::Initialize();
         //StorageVolume::Initialize();

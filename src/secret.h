@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NETWORK_FILTER_H_
-#define SRC_NETWORK_FILTER_H_
+#ifndef SRC_SECRET_H_
+#define SRC_SECRET_H_
 
 #include "node_libvirt.h"
 #include "hypervisor.h"
@@ -8,27 +8,30 @@
 
 namespace NodeLibvirt {
 
-    class NetworkFilter : public EventEmitter {
+    class Secret : public EventEmitter {
         friend class Hypervisor;
 
         public:
             static void Initialize();
 
         protected:
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
             static Handle<Value> Define(const Arguments& args);
             static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
+            static Handle<Value> LookupByUsage(const Arguments& args);
+            static Handle<Value> LookupByUUID(const Arguments& args);
             static Handle<Value> GetUUID(const Arguments& args);
+            static Handle<Value> GetUsageId(const Arguments& args);
+            static Handle<Value> GetUsageType(const Arguments& args);
+            static Handle<Value> GetValue(const Arguments& args);
+            static Handle<Value> SetValue(const Arguments& args);
             static Handle<Value> ToXml(const Arguments& args);
 
         private:
-            virNWFilterPtr filter_;
+            virSecretPtr secret_;
             static Persistent<FunctionTemplate> constructor_template;
     };
 
-}  //namespace NodeLibvirt
+}  // namespace NodeLibvirt
 
-#endif  // SRC_NETWORK_FILTER_H_
+#endif  // SRC_SECRET_H_
 

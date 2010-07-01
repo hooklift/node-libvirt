@@ -213,7 +213,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(name);
+        return scope.Close(String::New(name));
     }
 
     Handle<Value> Interface::GetMacAddress(const Arguments& args) {
@@ -229,7 +229,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        return String::New(mac);
+        return scope.Close(String::New(mac));
     }
 
     Handle<Value> Interface::IsActive(const Arguments& args) {
@@ -246,7 +246,7 @@ namespace NodeLibvirt {
         }
         bool is_active = ret == 1 ? true : false;
 
-        return Boolean::New(is_active);
+        return scope.Close(Boolean::New(is_active));
     }
 
     Handle<Value> Interface::ToXml(const Arguments& args) {
@@ -279,7 +279,7 @@ namespace NodeLibvirt {
 
         free(xml_);
 
-        return xml;
+        return scope.Close(xml);
     }
 }
 

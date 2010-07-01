@@ -192,23 +192,23 @@ namespace NodeLibvirt {
         virErrorPtr error_ = error->error_;
 
         if(property == code_symbol) {
-            return Integer::New(error_->code);
+            return scope.Close(Integer::New(error_->code));
         } else if(property == domain_symbol) {
-            return Integer::New(error_->domain);
+            return scope.Close(Integer::New(error_->domain));
         } else if(property == message_symbol) {
-            return String::New(error_->message);
+            return scope.Close(String::New(error_->message));
         } else if(property == level_symbol) {
-            return Integer::New(error_->level);
+            return scope.Close(Integer::New(error_->level));
         } else if(property == str1_symbol) {
-            return String::New(error_->str1);
+            return scope.Close(String::New(error_->str1));
         } else if(property == str2_symbol) {
-            return String::New(error_->str2);
+            return scope.Close(String::New(error_->str2));
         } else if(property == str3_symbol) {
-            return String::New(error_->str3);
+            return scope.Close(String::New(error_->str3));
         } else if(property == int1_symbol) {
-            return Integer::New(error_->int1);
+            return scope.Close(Integer::New(error_->int1));
         } else if(property == int2_symbol) {
-            return Integer::New(error_->int2);
+            return scope.Close(Integer::New(error_->int2));
         }
     }
 
