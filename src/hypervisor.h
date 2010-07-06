@@ -9,6 +9,7 @@
 #include "network_filter.h"
 #include "interface.h"
 #include "secret.h"
+#include "storage_pool.h"
 #include "error.h"
 
 namespace NodeLibvirt {

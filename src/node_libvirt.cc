@@ -17,7 +17,8 @@ namespace NodeLibvirt {
         NetworkFilter::Initialize();
         Secret::Initialize();
         Error::Initialize();
-        //StoragePool::Initialize();
+        StoragePool::Initialize();
+        //Stream::Initialize();
         //StorageVolume::Initialize();
 
         target->Set(String::NewSymbol("version"),

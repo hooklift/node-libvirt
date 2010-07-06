@@ -353,7 +353,7 @@ namespace NodeLibvirt {
         Domain *domain = new Domain();
         domain->domain_ = virDomainDefineXML(hypervisor->connection(), xml);
 
-        if(domain->domain_) {
+        if(domain->domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }

@@ -40,7 +40,7 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                 \
 }
 
 
-#define GET_NUM_OF(name, function)                                         \
+#define GET_NUM_OF(name, function)                                          \
                                                                             \
 Handle<Value> Hypervisor::name(const Arguments& args) {                     \
     HandleScope scope;                                                      \
@@ -52,7 +52,7 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                     \
         ThrowException(Error::New(virGetLastError()));                      \
         return Null();                                                      \
     }                                                                       \
-    return scope.Close(Integer::New(ret));                                               \
+    return scope.Close(Integer::New(ret));                                  \
 }                                                                           \
 
 namespace NodeLibvirt {
@@ -251,6 +251,22 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID",
                                       Secret::LookupByUUID);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "createStoragePool",
+                                      StoragePool::Create);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "defineStoragePool",
+                                      StoragePool::Define);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByName",
+                                      StoragePool::LookupByName);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByUUID",
+                                      StoragePool::LookupByUUID);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByVolume",
+                                      StoragePool::LookupByVolume);
+
 
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 

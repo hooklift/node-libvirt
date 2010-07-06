@@ -1,0 +1,7 @@
+<pool type="dir">
+  <name>virtimages</name>
+  <target>
+    <path>/tmp</path>
+  </target>
+</pool>
+
