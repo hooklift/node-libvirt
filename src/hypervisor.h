@@ -10,6 +10,7 @@
 #include "interface.h"
 #include "secret.h"
 #include "storage_pool.h"
+#include "storage_volume.h"
 #include "error.h"
 
 namespace NodeLibvirt {

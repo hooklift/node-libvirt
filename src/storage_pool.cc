@@ -50,6 +50,10 @@ namespace NodeLibvirt {
                                       StoragePool::GetVolumes);
         NODE_SET_PROTOTYPE_METHOD(t, "refresh",
                                       StoragePool::Refresh);
+        NODE_SET_PROTOTYPE_METHOD(t, "createVolume",
+                                      StorageVolume::Create);
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupVolumeByName",
+                                      StorageVolume::LookupByName);
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("StoragePool"));
@@ -72,6 +76,10 @@ namespace NodeLibvirt {
         info_capacity_symbol     = NODE_PSYMBOL("capacity");
         info_allocation_symbol   = NODE_PSYMBOL("allocation");
         info_available_symbol    = NODE_PSYMBOL("available");
+    }
+
+    virStoragePoolPtr StoragePool::pool() const {
+        return pool_;
     }
 
     Handle<Value> StoragePool::Build(const Arguments& args) {

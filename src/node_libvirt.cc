@@ -18,6 +18,7 @@ namespace NodeLibvirt {
         Secret::Initialize();
         Error::Initialize();
         StoragePool::Initialize();
+        StorageVolume::Initialize();
         //Stream::Initialize();
         //StorageVolume::Initialize();
 

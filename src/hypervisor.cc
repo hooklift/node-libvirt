@@ -267,6 +267,11 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByVolume",
                                       StoragePool::LookupByVolume);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByKey",
+                                      StorageVolume::LookupByKey);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByPath",
+                                      StorageVolume::LookupByPath);
 
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 

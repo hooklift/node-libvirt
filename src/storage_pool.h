@@ -13,6 +13,14 @@ namespace NodeLibvirt {
 
         public:
             static void Initialize();
+            static inline bool HasInstance(v8::Handle<v8::Value> value) {
+                if (!value->IsObject()) {
+                    return false;
+                }
+                v8::Local<v8::Object> object = value->ToObject();
+                return constructor_template->HasInstance(object);
+            }
+        virStoragePoolPtr pool() const;
 
         protected:
             static Handle<Value> Build(const Arguments& args);
