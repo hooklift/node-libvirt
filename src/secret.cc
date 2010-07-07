@@ -35,7 +35,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Secret::Define(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
         unsigned int flags = 0;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
@@ -50,13 +49,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Secret *secret = new Secret();
-        secret->secret_ = virSecretDefineXML(hypervisor->connection(), xml, flags);
+        secret->secret_ = virSecretDefineXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(secret->secret_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -91,7 +89,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Secret::LookupByUsage(const Arguments& args) {
         HandleScope scope;
-        const char* usage_id = NULL;
         int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
 
         if(args.Length() < 2) {
@@ -118,13 +115,12 @@ namespace NodeLibvirt {
 
         usage_type = args[0]->Int32Value();
 
-        String::Utf8Value usage_id_(args[1]->ToString());
-        usage_id = ToCString(usage_id_);
+        String::Utf8Value usage_id(args[1]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Secret *secret = new Secret();
-        secret->secret_ = virSecretLookupByUsage(hypervisor->connection(), usage_type, usage_id);
+        secret->secret_ = virSecretLookupByUsage(hypervisor->connection(), usage_type, (const char *) *usage_id);
 
         if(secret->secret_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -140,7 +136,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Secret::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -154,14 +149,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value uuid_(args[0]->ToString());
-
-        uuid = ToCString(uuid_);
+        String::Utf8Value uuid(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Secret *secret = new Secret();
-        secret->secret_ = virSecretLookupByUUIDString(hypervisor->connection(), uuid);
+        secret->secret_ = virSecretLookupByUUIDString(hypervisor->connection(), (const char *) *uuid);
 
         if(secret->secret_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

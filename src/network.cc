@@ -40,7 +40,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Network::Create(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
 
         Local<Object> hyp_obj = args.This();
         if(!Hypervisor::HasInstance(hyp_obj)) {
@@ -52,13 +51,12 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as first argument")));
         }
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Network *network = new Network();
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        network->network_ = virNetworkCreateXML(hypervisor->connection(), xml);
+        network->network_ = virNetworkCreateXML(hypervisor->connection(), (const char *) *xml);
 
         if(network->network_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -88,7 +86,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Network::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -102,14 +99,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Network *network = new Network();
-        network->network_ = virNetworkLookupByName(hypervisor->connection(), name);
+        network->network_ = virNetworkLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(network->network_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -125,7 +120,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Network::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -139,14 +133,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value uuid_(args[0]->ToString());
-
-        uuid = ToCString(uuid_);
+        String::Utf8Value uuid(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Network *network = new Network();
-        network->network_ = virNetworkLookupByUUIDString(hypervisor->connection(), uuid);
+        network->network_ = virNetworkLookupByUUIDString(hypervisor->connection(), (const char *) *uuid);
 
         if(network->network_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -162,7 +154,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Network::Define(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -176,13 +167,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Network *network = new Network();
-        network->network_ = virNetworkDefineXML(hypervisor->connection(), xml);
+        network->network_ = virNetworkDefineXML(hypervisor->connection(), (const char *) *xml);
 
         if(network->network_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

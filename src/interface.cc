@@ -76,7 +76,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Interface::Define(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
         unsigned int flags = 0;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
@@ -91,13 +90,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Interface *interface = new Interface();
-        interface->interface_ = virInterfaceDefineXML(hypervisor->connection(), xml, flags);
+        interface->interface_ = virInterfaceDefineXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(interface->interface_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -128,7 +126,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Interface::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -142,14 +139,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Interface *interface = new Interface();
-        interface->interface_ = virInterfaceLookupByName(hypervisor->connection(), name);
+        interface->interface_ = virInterfaceLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(interface->interface_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -165,7 +160,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Interface::LookupByMacAddress(const Arguments& args) {
         HandleScope scope;
-        const char* mac = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -179,14 +173,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value mac_(args[0]->ToString());
-
-        mac = ToCString(mac_);
+        String::Utf8Value mac(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Interface *interface = new Interface();
-        interface->interface_ = virInterfaceLookupByMACString(hypervisor->connection(), mac);
+        interface->interface_ = virInterfaceLookupByMACString(hypervisor->connection(), (const char *) *mac);
 
         if(interface->interface_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

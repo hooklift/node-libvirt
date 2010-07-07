@@ -315,11 +315,10 @@ namespace NodeLibvirt {
 
     Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter() {
         HandleScope scope;
-        String::Utf8Value uriUtf8(uriStr);
-        const char *uri = ToCString(uriUtf8);
+        String::Utf8Value uri(uriStr);
 
         //FIXME receive auth Object
-        conn_ = virConnectOpenAuth(uri, virConnectAuthPtrDefault,
+        conn_ = virConnectOpenAuth((const char *)*uri, virConnectAuthPtrDefault,
                                    readOnly ? VIR_CONNECT_RO : 0);
 
         if(conn_ == NULL) {
@@ -632,11 +631,11 @@ namespace NodeLibvirt {
             String::New("You must specify a string as first argument")));
         }
 
-        String::Utf8Value cpu(args[0]->ToString());
-
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        int ret = virConnectCompareCPU(hypervisor->conn_, ToCString(cpu), flags);
+        String::Utf8Value cpu(args[0]->ToString());
+
+        int ret = virConnectCompareCPU(hypervisor->conn_, (const char *) *cpu, flags);
 
         if(ret == VIR_CPU_COMPARE_ERROR) {
             ThrowException(Error::New(virGetLastError()));
@@ -779,7 +778,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::GetNodeDevicesNames(const Arguments& args) {
         HandleScope scope;
-        const char *cap = NULL;
         unsigned int flags = 0;
         char **names = NULL;
         int num_devices = -1;
@@ -789,11 +787,10 @@ namespace NodeLibvirt {
             String::New("You must specify a string as argument")));
         }
 
-        String::Utf8Value cap_(args[0]->ToString());
-        cap = ToCString(cap_);
+        String::Utf8Value cap(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-        num_devices = virNodeNumOfDevices(hypervisor->conn_, cap, flags);
+        num_devices = virNodeNumOfDevices(hypervisor->conn_, (const char *) *cap, flags);
 
         if(num_devices == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -806,7 +803,7 @@ namespace NodeLibvirt {
             return Null();
         }
 
-        num_devices = virNodeListDevices(hypervisor->conn_, cap, names, num_devices, flags);
+        num_devices = virNodeListDevices(hypervisor->conn_, (const char *) *cap, names, num_devices, flags);
         if(num_devices == -1) {
             free(names);
             ThrowException(Error::New(virGetLastError()));

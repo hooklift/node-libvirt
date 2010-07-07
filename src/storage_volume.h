@@ -14,6 +14,13 @@ namespace NodeLibvirt {
 
         public:
             static void Initialize();
+            static inline bool HasInstance(v8::Handle<v8::Value> value) {
+                if (!value->IsObject()) {
+                    return false;
+                }
+                v8::Local<v8::Object> object = value->ToObject();
+                return constructor_template->HasInstance(object);
+            }
 
         protected:
             static Handle<Value> Create(const Arguments& args);
@@ -27,6 +34,7 @@ namespace NodeLibvirt {
             static Handle<Value> LookupByPath(const Arguments& args);
             static Handle<Value> Wipe(const Arguments& args);
             static Handle<Value> Delete(const Arguments& args);
+            static Handle<Value> Clone(const Arguments& args);
 
         private:
             virStorageVolPtr volume_;

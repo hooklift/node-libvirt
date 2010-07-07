@@ -52,6 +52,8 @@ namespace NodeLibvirt {
                                       StoragePool::Refresh);
         NODE_SET_PROTOTYPE_METHOD(t, "createVolume",
                                       StorageVolume::Create);
+        NODE_SET_PROTOTYPE_METHOD(t, "cloneVolume",
+                                      StorageVolume::Clone);
         NODE_SET_PROTOTYPE_METHOD(t, "lookupVolumeByName",
                                       StorageVolume::LookupByName);
 
@@ -101,7 +103,6 @@ namespace NodeLibvirt {
     Handle<Value> StoragePool::Create(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
-        const char* xml = NULL;
 
         int argsl = args.Length();
 
@@ -121,13 +122,12 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a Hypervisor object instance")));
         }
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StoragePool *pool = new StoragePool();
-        pool->pool_ = virStoragePoolCreateXML(hypervisor->connection(), xml, flags);
+        pool->pool_ = virStoragePoolCreateXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(pool->pool_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -142,7 +142,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StoragePool::Define(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
         unsigned int flags = 0;
 
         int argsl = args.Length();
@@ -164,13 +163,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StoragePool *pool = new StoragePool();
-        pool->pool_ = virStoragePoolDefineXML(hypervisor->connection(), xml, flags);
+        pool->pool_ = virStoragePoolDefineXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(pool->pool_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -201,7 +199,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StoragePool::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -215,14 +212,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StoragePool *pool = new StoragePool();
-        pool->pool_ = virStoragePoolLookupByName(hypervisor->connection(), name);
+        pool->pool_ = virStoragePoolLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(pool->pool_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -238,7 +233,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StoragePool::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -252,14 +246,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value uuid_(args[0]->ToString());
-
-        uuid = ToCString(uuid_);
+        String::Utf8Value uuid(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StoragePool *pool = new StoragePool();
-        pool->pool_ = virStoragePoolLookupByUUIDString(hypervisor->connection(), uuid);
+        pool->pool_ = virStoragePoolLookupByUUIDString(hypervisor->connection(), (const char *) *uuid);
 
         if(pool->pool_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

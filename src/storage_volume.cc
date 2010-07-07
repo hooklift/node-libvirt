@@ -51,7 +51,6 @@ namespace NodeLibvirt {
     Handle<Value> StorageVolume::Create(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
-        const char* xml = NULL;
 
         int argsl = args.Length();
 
@@ -71,13 +70,12 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a Hypervisor object instance")));
         }
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
 
         StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolCreateXML(pool->pool(), xml, flags);
+        volume->volume_ = virStorageVolCreateXML(pool->pool(), (const char *) *xml, flags);
 
         if(volume->volume_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -219,7 +217,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StorageVolume::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -233,14 +230,12 @@ namespace NodeLibvirt {
             String::New("You must specify a StoragePool instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
 
         StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByName(pool->pool(), name);
+        volume->volume_ = virStorageVolLookupByName(pool->pool(), (const char *) *name);
 
         if(volume->volume_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -256,7 +251,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StorageVolume::LookupByKey(const Arguments& args) {
         HandleScope scope;
-        const char* key = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -270,14 +264,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value key_(args[0]->ToString());
-
-        key = ToCString(key_);
+        String::Utf8Value key(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByKey(hypervisor->connection(), key);
+        volume->volume_ = virStorageVolLookupByKey(hypervisor->connection(), (const char *) *key);
 
         if(volume->volume_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -293,7 +285,6 @@ namespace NodeLibvirt {
 
     Handle<Value> StorageVolume::LookupByPath(const Arguments& args) {
         HandleScope scope;
-        const char* path = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -307,14 +298,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value path_(args[0]->ToString());
-
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByPath(hypervisor->connection(), path);
+        volume->volume_ = virStorageVolLookupByPath(hypervisor->connection(), (const char *) *path);
 
         if(volume->volume_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -326,6 +315,55 @@ namespace NodeLibvirt {
         volume->Wrap(volume_obj);
 
         return scope.Close(volume_obj);
+    }
+
+    Handle<Value> StorageVolume::Clone(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+
+        if(args.Length() < 2) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify two arguments to call this function")));
+        }
+
+        if(!StorageVolume::HasInstance(args[0])) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a StorageVolume instance as first argument")));
+        }
+
+        if(!args[1]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string as second argument")));
+        }
+
+        Local<Object> pool_obj = args.This();
+
+        if(!StoragePool::HasInstance(pool_obj)) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a StoragePool instance")));
+        }
+
+        String::Utf8Value xml(args[1]->ToString());
+
+        StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
+        StorageVolume *source_volume = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
+
+        StorageVolume *clone_volume = new StorageVolume();
+        clone_volume->volume_ = virStorageVolCreateXMLFrom(pool->pool(),
+                                                          (const char *) *xml,
+                                                          source_volume->volume_,
+                                                          flags);
+
+        if(clone_volume->volume_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<Object> clone_vol_obj = clone_volume->constructor_template->GetFunction()->NewInstance();
+
+        clone_volume->Wrap(clone_vol_obj);
+
+        return scope.Close(clone_vol_obj);
     }
 
 } //namespace NodeLibvirt

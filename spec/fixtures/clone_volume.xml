@@ -1,0 +1,9 @@
+<volume>
+  <name>sparse_clone.img</name>
+  <allocation>0</allocation>
+  <capacity unit="G">5</capacity>
+  <target>
+    <path>/tmp/sparse-clone.img</path>
+  </target>
+</volume>
+

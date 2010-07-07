@@ -26,7 +26,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NetworkFilter::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -40,14 +39,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         NetworkFilter *nwfilter = new NetworkFilter();
-        nwfilter->filter_ = virNWFilterLookupByName(hypervisor->connection(), name);
+        nwfilter->filter_ = virNWFilterLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(nwfilter->filter_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -63,7 +60,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NetworkFilter::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -77,14 +73,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value uuid_(args[0]->ToString());
-
-        uuid = ToCString(uuid_);
+        String::Utf8Value uuid(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         NetworkFilter *nwfilter = new NetworkFilter();
-        nwfilter->filter_ = virNWFilterLookupByUUIDString(hypervisor->connection(), uuid);
+        nwfilter->filter_ = virNWFilterLookupByUUIDString(hypervisor->connection(), (const char *) *uuid);
 
         if(nwfilter->filter_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -100,7 +94,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NetworkFilter::Define(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -114,13 +107,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         NetworkFilter *nwfilter = new NetworkFilter();
-        nwfilter->filter_ = virNWFilterDefineXML(hypervisor->connection(), xml);
+        nwfilter->filter_ = virNWFilterDefineXML(hypervisor->connection(), (const char *) *xml);
 
         if(nwfilter->filter_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

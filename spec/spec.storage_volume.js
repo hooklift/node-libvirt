@@ -22,6 +22,12 @@ describe 'StorageVolume'
         volume.getName().should_be 'sparse.img'
     end
 
+    it 'should clone an existent volume'
+        var xml = fixture('clone_volume.xml');
+        var clone_vol = pool.cloneVolume(volume, xml);
+        clone_vol.getName().should_be 'sparse_clone.img'
+    end
+
     it 'should return volume information'
         var info = volume.getInfo();
         info.type.should_be volume.VIR_STORAGE_VOL_FILE

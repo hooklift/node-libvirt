@@ -44,7 +44,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NodeDevice::LookupByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -58,14 +57,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         NodeDevice *device = new NodeDevice();
-        device->device_ = virNodeDeviceLookupByName(hypervisor->connection(), name);
+        device->device_ = virNodeDeviceLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(device->device_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -81,7 +78,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NodeDevice::Create(const Arguments& args) {
         HandleScope scope;
-        const char *xml = NULL;
         unsigned int flags = 0;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
@@ -96,13 +92,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         NodeDevice *device = new NodeDevice();
-        device->device_ = virNodeDeviceCreateXML(hypervisor->connection(), xml, flags);
+        device->device_ = virNodeDeviceCreateXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(device->device_ == NULL) {
             ThrowException(Error::New(virGetLastError()));

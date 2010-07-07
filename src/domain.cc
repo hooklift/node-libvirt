@@ -283,7 +283,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::Create(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
-        const char* xml = NULL;
 
         int argsl = args.Length();
 
@@ -303,13 +302,12 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a Hypervisor object instance")));
         }
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Domain *domain = new Domain();
-        domain->domain_ = virDomainCreateXML(hypervisor->connection(), xml, flags);
+        domain->domain_ = virDomainCreateXML(hypervisor->connection(), (const char *) *xml, flags);
 
         if(domain->domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -325,7 +323,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::Define(const Arguments& args) {
         HandleScope scope;
 
-        const char* xml = NULL;
         int argsl = args.Length();
 
         if(argsl == 0) {
@@ -345,13 +342,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Domain *domain = new Domain();
-        domain->domain_ = virDomainDefineXML(hypervisor->connection(), xml);
+        domain->domain_ = virDomainDefineXML(hypervisor->connection(), (const char *) *xml);
 
         if(domain->domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -419,8 +415,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::LookupByName(const Arguments& args) {
         HandleScope scope;
 
-        const char* name = NULL;
-
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid Domain name.")));
@@ -433,14 +427,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value name_(args[0]->ToString());
-
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Domain *domain = new Domain();
-        domain->domain_ = virDomainLookupByName(hypervisor->connection(), name);
+        domain->domain_ = virDomainLookupByName(hypervisor->connection(), (const char *) *name);
 
         if(domain->domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -456,7 +448,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::LookupByUUID(const Arguments& args) {
         HandleScope scope;
-        const char* uuid = NULL;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
@@ -470,14 +461,12 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor instance")));
         }
 
-        String::Utf8Value uuid_(args[0]->ToString());
-
-        uuid = ToCString(uuid_);
+        String::Utf8Value uuid(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
         Domain *domain = new Domain();
-        domain->domain_ = virDomainLookupByUUIDString(hypervisor->connection(), uuid);
+        domain->domain_ = virDomainLookupByUUIDString(hypervisor->connection(), (const char *) *uuid);
 
         if(domain->domain_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -759,7 +748,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Save(const Arguments& args) {
         HandleScope scope;
-        const char* path = NULL;
         int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
@@ -767,12 +755,11 @@ namespace NodeLibvirt {
             String::New("You must specify a string as function argument")));
         }
 
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainSave(domain->domain_, path);
+        ret = virDomainSave(domain->domain_, (const char *) *path);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -784,7 +771,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Restore(const Arguments& args) {
         HandleScope scope;
-        const char *path = NULL;
         int ret = -1;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
@@ -799,12 +785,11 @@ namespace NodeLibvirt {
             String::New("You must specify a Hypervisor object instance")));
         }
 
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-        ret = virDomainRestore(hypervisor->connection(), path);
+        ret = virDomainRestore(hypervisor->connection(), (const char *) *path);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -981,10 +966,9 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::Migrate(const Arguments& args) {
         HandleScope scope;
-        const char* dest_uri = NULL;
-        const char* dest_name = NULL;
         unsigned long flags = 0;
         unsigned long bandwidth = 0;
+//        const char* dest_name = NULL;
         int ret = -1;
 
         if(args.Length() == 0) {
@@ -1005,14 +989,13 @@ namespace NodeLibvirt {
         }
 
         //dest_uri
-        String::Utf8Value dest_uri_(args_->Get(migration_uri_symbol));
-        dest_uri = ToCString(dest_uri_);
+        String::Utf8Value dest_uri(args_->Get(migration_uri_symbol));
 
         //dest_name
-        if(args_->Has(migration_name_symbol)) {
-            String::Utf8Value dest_name_(args_->Get(migration_name_symbol));
-            dest_name = ToCString(dest_name_);
-        }
+        //if(args_->Has(migration_name_symbol)) {
+            String::Utf8Value dest_name(args_->Get(migration_name_symbol));
+            //dest_name = ToCString(dest_name_);
+        //}
 
         //flags
         if(args_->Has(migration_flags_symbol)){
@@ -1045,8 +1028,8 @@ namespace NodeLibvirt {
             migrated_domain->domain_ = virDomainMigrate(domain->domain_,
                                                         hypervisor->connection(),
                                                         flags,
-                                                        dest_name,
-                                                        dest_uri,
+                                                        (const char *) *dest_name,
+                                                        (const char *) *dest_uri,
                                                         bandwidth);
 
             if(migrated_domain->domain_ == NULL) {
@@ -1058,7 +1041,11 @@ namespace NodeLibvirt {
 
             return scope.Close(migrated_domain->constructor_template->GetFunction()->NewInstance());
         } else {
-            ret = virDomainMigrateToURI(domain->domain_, dest_uri, flags, dest_name, bandwidth);
+            ret = virDomainMigrateToURI(domain->domain_,
+                                        (const char *) *dest_uri,
+                                        flags,
+                                        (const char *) *dest_name,
+                                        bandwidth);
         }
 
         if(ret == -1) {
@@ -1180,7 +1167,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::AttachDevice(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
-        const char* xml = NULL;
         int ret = -1;
 
         int argsl = args.Length();
@@ -1195,9 +1181,7 @@ namespace NodeLibvirt {
             String::New("You must specify an object with flags")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         //flags
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
@@ -1210,9 +1194,9 @@ namespace NodeLibvirt {
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         if(flags > 0) {
-            ret = virDomainAttachDeviceFlags(domain->domain_, xml, flags);
+            ret = virDomainAttachDeviceFlags(domain->domain_, (const char *) *xml, flags);
         } else {
-            ret = virDomainAttachDevice(domain->domain_, xml);
+            ret = virDomainAttachDevice(domain->domain_, (const char *) *xml);
         }
 
         if(ret == -1) {
@@ -1226,7 +1210,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::DetachDevice(const Arguments& args) {
         HandleScope scope;
         unsigned int flags = 0;
-        const char* xml = NULL;
         int ret = -1;
 
         int argsl = args.Length();
@@ -1241,9 +1224,7 @@ namespace NodeLibvirt {
             String::New("You must specify an object with flags")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         //flags
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
@@ -1256,9 +1237,9 @@ namespace NodeLibvirt {
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         if(flags > 0) {
-            ret = virDomainDetachDeviceFlags(domain->domain_, xml, flags);
+            ret = virDomainDetachDeviceFlags(domain->domain_, (const char *) *xml, flags);
         } else {
-            ret = virDomainDetachDevice(domain->domain_, xml);
+            ret = virDomainDetachDevice(domain->domain_, (const char *) *xml);
         }
 
         if(ret == -1) {
@@ -1270,7 +1251,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::UpdateDevice(const Arguments& args) {
         HandleScope scope;
-        const char* xml = NULL;
         unsigned int flags = 0;
         int ret = -1;
 
@@ -1289,9 +1269,7 @@ namespace NodeLibvirt {
             String::New("You must specify an array as second argument")));
         }
 
-        String::Utf8Value xml_(args[0]->ToString());
-
-        xml = ToCString(xml_);
+        String::Utf8Value xml(args[0]->ToString());
 
         //flags
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
@@ -1303,7 +1281,7 @@ namespace NodeLibvirt {
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainUpdateDeviceFlags(domain->domain_, xml, flags);
+        ret = virDomainUpdateDeviceFlags(domain->domain_, (const char *) *xml, flags);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -1757,7 +1735,6 @@ namespace NodeLibvirt {
         unsigned long long start = 0;
 		size_t size = 0;
 		char * buffer_ = NULL;
-		const char * path = NULL;
 		unsigned int flags = 0;
 
         if(args.Length() < 3) {
@@ -1775,8 +1752,7 @@ namespace NodeLibvirt {
             String::New("You must specify numbers in the first and second argument")));
         }
 
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         start = args[1]->NumberValue();
         size = args[2]->NumberValue() * sizeof(char *);
@@ -1792,7 +1768,7 @@ namespace NodeLibvirt {
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        int ret = virDomainBlockPeek(domain->domain_, path, start, size, buffer_, flags);
+        int ret = virDomainBlockPeek(domain->domain_, (const char *) *path, start, size, buffer_, flags);
 
         if(ret == -1) {
             free(buffer_);
@@ -1809,7 +1785,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetBlockStats(const Arguments& args) {
         HandleScope scope;
-        const char * path = NULL;
         int ret = -1;
         virDomainBlockStatsStruct stats_;
 
@@ -1817,12 +1792,11 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainBlockStats(domain->domain_, path, &stats_, sizeof(stats_));
+        ret = virDomainBlockStats(domain->domain_, (const char *) *path, &stats_, sizeof(stats_));
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -1842,7 +1816,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::GetBlockInfo(const Arguments& args) {
         HandleScope scope;
         virDomainBlockInfo info_;
-        const char *path;
         unsigned int flags = 0;
         int ret = -1;
 
@@ -1850,12 +1823,11 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainGetBlockInfo(domain->domain_, path, &info_, flags);
+        ret = virDomainGetBlockInfo(domain->domain_, (const char *) *path, &info_, flags);
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
@@ -1871,7 +1843,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetInterfaceStats(const Arguments& args) {
         HandleScope scope;
-        const char *device = NULL;
         struct _virDomainInterfaceStats stats_;
         int ret = -1;
 
@@ -1879,12 +1850,11 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value device_(args[0]->ToString());
-        device = ToCString(device_);
+        String::Utf8Value device(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainInterfaceStats(domain->domain_, device, &stats_, sizeof(stats_));
+        ret = virDomainInterfaceStats(domain->domain_, (const char *) *device, &stats_, sizeof(stats_));
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
@@ -1905,7 +1875,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::CoreDump(const Arguments& args) {
         HandleScope scope;
-        const char* path = NULL;
         int flags = 0;
         int ret = -1;
 
@@ -1913,12 +1882,11 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value path_(args[0]->ToString());
-        path = ToCString(path_);
+        String::Utf8Value path(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainCoreDump(domain->domain_, path, flags);
+        ret = virDomainCoreDump(domain->domain_, (const char *) *path, flags);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
@@ -1947,7 +1915,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::RevertToSnapshot(const Arguments& args) {
         HandleScope scope;
         virDomainSnapshotPtr snapshot = NULL;
-        const char* name = NULL;
         unsigned int flags = 0;
         int ret = -1;
 
@@ -1955,11 +1922,10 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value name_(args[0]->ToString());
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, (const char *) *name, flags);
         if(snapshot == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return False();
@@ -1981,14 +1947,12 @@ namespace NodeLibvirt {
         HandleScope scope;
         virDomainSnapshotPtr snapshot = NULL;
         unsigned int flags = 0;
-        const char* xml = NULL;
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         if(args.Length() == 1 && args[0]->IsString()) {
-            String::Utf8Value xml_(args[0]->ToString());
-            xml = ToCString(xml_);
-            snapshot = virDomainSnapshotCreateXML(domain->domain_, xml, flags);
+            String::Utf8Value xml(args[0]->ToString());
+            snapshot = virDomainSnapshotCreateXML(domain->domain_, (const char *) *xml, flags);
         } else {
             snapshot = virDomainSnapshotCurrent(domain->domain_, flags);
         }
@@ -2033,7 +1997,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::DeleteSnapshot(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
         unsigned int flags = 0;
         virDomainSnapshotPtr snapshot = NULL;
 
@@ -2041,11 +2004,10 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value name_(args[0]->ToString());
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, (const char *) *name, flags);
         if(snapshot == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return False();
@@ -2064,7 +2026,6 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::LookupSnapshotByName(const Arguments& args) {
         HandleScope scope;
-        const char* name = NULL;
         char* xml_ = NULL;
         unsigned int flags = 0;
         virDomainSnapshotPtr snapshot = NULL;
@@ -2073,11 +2034,10 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as argument to invoke this function")));
         }
-        String::Utf8Value name_(args[0]->ToString());
-        name = ToCString(name_);
+        String::Utf8Value name(args[0]->ToString());
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-        snapshot = virDomainSnapshotLookupByName(domain->domain_, name, flags);
+        snapshot = virDomainSnapshotLookupByName(domain->domain_, (const char *) *name, flags);
         if(snapshot == NULL) {
             ThrowException(Error::New(virGetLastError()));
             return Null();

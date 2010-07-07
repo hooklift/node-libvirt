@@ -20,7 +20,7 @@ namespace NodeLibvirt {
         StoragePool::Initialize();
         StorageVolume::Initialize();
         //Stream::Initialize();
-        //StorageVolume::Initialize();
+        //Event::Initialize();
 
         target->Set(String::NewSymbol("version"),
                     String::New(NODE_LIBVIRT_VERSION));
