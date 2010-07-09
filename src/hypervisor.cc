@@ -69,6 +69,10 @@ namespace NodeLibvirt {
     static Persistent<String> security_model_symbol;
     static Persistent<String> security_model_doi_symbol;
 
+    static Persistent<String> domain_event_callback_symbol;
+    static Persistent<String> domain_event_type_symbol;
+    static Persistent<String> domain_event_symbol;
+    static Persistent<String> domain_event_hypervisor_symbol;
 
     void Hypervisor::Initialize(Handle<Object> target) {
         HandleScope scope;
@@ -273,6 +277,11 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByPath",
                                       StorageVolume::LookupByPath);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "registerDomainEvent",
+                                      Hypervisor::RegisterDomainEvent);
+        NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent",
+                                      Hypervisor::UnregisterDomainEvent);
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -297,6 +306,16 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_SECRET_USAGE_TYPE_NONE);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_SECRET_USAGE_TYPE_VOLUME);
 
+        //virDomainEventID
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_REBOOT);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_RTC_CHANGE);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_WATCHDOG);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_IO_ERROR);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_GRAPHICS);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LAST);
+
         node_info_model_symbol      = NODE_PSYMBOL("model");
         node_info_memory_symbol     = NODE_PSYMBOL("memory");
         node_info_cpus_symbol       = NODE_PSYMBOL("cpus");
@@ -308,6 +327,11 @@ namespace NodeLibvirt {
 
         security_model_symbol       = NODE_PSYMBOL("model");
         security_model_doi_symbol   = NODE_PSYMBOL("doi");
+
+        domain_event_callback_symbol    = NODE_PSYMBOL("callback");
+        domain_event_type_symbol        = NODE_PSYMBOL("type");
+        domain_event_symbol             = NODE_PSYMBOL("domain");
+        domain_event_hypervisor_symbol  = NODE_PSYMBOL("hypervisor");
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
@@ -838,6 +862,183 @@ namespace NodeLibvirt {
         object->Set(security_model_doi_symbol, String::New(secmodel.doi));
 
         return scope.Close(object);
+    }
+
+    Handle<Value> Hypervisor::RegisterDomainEvent(const Arguments& args) {
+        HandleScope scope;
+
+        if(args.Length() == 0 || !args[0]->IsObject()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a object as argument")));
+        }
+
+        Local<Object> arg_obj = args[0]->ToObject();
+
+        if( !arg_obj->Has(domain_event_type_symbol) ||
+            !arg_obj->Get(domain_event_type_symbol)->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an valid event type")));
+        }
+
+        if( !arg_obj->Has(domain_event_callback_symbol) ||
+            !arg_obj->Get(domain_event_callback_symbol)->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a valid callback function")));
+        }
+
+        Domain *domain = NULL;
+
+        if(arg_obj->Has(domain_event_symbol)) {
+            Local<Object> domain_obj = arg_obj->Get(domain_event_symbol)->ToObject();
+            if(!Domain::HasInstance(domain_obj)) {
+                return ThrowException(Exception::TypeError(
+                String::New("You must specify a Domain object instance")));
+            }
+
+            domain = ObjectWrap::Unwrap<Domain>(domain_obj);
+        }
+
+        virConnectDomainEventGenericCallback callback = NULL;
+        int evtype = arg_obj->Get(domain_event_type_symbol)->Int32Value();
+
+        switch (evtype) {
+            case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_lifecycle_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_REBOOT:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_rtcchange_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_WATCHDOG:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_watchdog_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_IO_ERROR:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_reason_callback);
+                break;
+            case VIR_DOMAIN_EVENT_ID_GRAPHICS:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_graphics_callback);
+                break;
+            default:
+                callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
+                break;
+        }
+
+        Local<Value> jscallback = arg_obj->Get(domain_event_callback_symbol);
+        Persistent<Object> opaque = Persistent<Object>::New(Object::New());
+
+        opaque->Set(domain_event_hypervisor_symbol, args.This());
+        opaque->Set(domain_event_symbol, arg_obj->Get(domain_event_symbol));
+        opaque->Set(domain_event_callback_symbol, jscallback);
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        int ret = virConnectDomainEventRegisterAny( hypervisor->conn_,
+                                                    domain->domain(),
+                                                    evtype, callback,
+                                                    &opaque, domain_event_free);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        return scope.Close(Integer::New(ret));
+    }
+
+    Handle<Value> Hypervisor::UnregisterDomainEvent(const Arguments& args) {
+        HandleScope scope;
+        return Null();
+    }
+
+    int Hypervisor::domain_event_lifecycle_callback(virConnectPtr conn, //unused
+                                                    virDomainPtr domain, //unused
+                                                    int event,
+                                                    int detail,
+                                                    void *opaque) {
+        //TODO register detail constants
+        HandleScope scope;
+        Local<Value> argv[4];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+        Local<Object> dom = obj->Get(domain_event_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        argv[0] = hyp;
+        argv[1] = dom;
+        argv[2] = Integer::New(event);
+        argv[3] = Integer::New(detail);
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 4, argv);
+
+        if (try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
+        return 0;
+    }
+
+    int Hypervisor::domain_event_generic_callback(  virConnectPtr conn,
+                                                    virDomainPtr domain,
+                                                    void *opaque) {
+        return 0;
+    }
+
+    int Hypervisor::domain_event_rtcchange_callback(virConnectPtr conn,
+                                                    virDomainPtr domain,
+                                                    long long utcoffset,
+                                                    void *opaque) {
+        return 0;
+    }
+
+    int Hypervisor::domain_event_watchdog_callback( virConnectPtr conn,
+                                                    virDomainPtr domain,
+                                                    int action,
+                                                    void *opaque) {
+        return 0;
+    }
+
+    int Hypervisor::domain_event_io_error_callback( virConnectPtr conn,
+                                                    virDomainPtr domain,
+                                                    const char *src_path,
+                                                    const char *dev_alias,
+                                                    int action,
+                                                    void *opaque) {
+        return 0;
+    }
+
+    int Hypervisor::domain_event_io_error_reason_callback(  virConnectPtr conn,
+                                                            virDomainPtr domain,
+                                                            const char *src_path,
+                                                            const char *dev_alias,
+                                                            int action,
+                                                            const char *reason,
+                                                            void *opaque) {
+        return 0;
+    }
+
+    int Hypervisor::domain_event_graphics_callback( virConnectPtr conn,
+                                                    virDomainPtr domain,
+                                                    int phase,
+                                                    virDomainEventGraphicsAddressPtr local,
+                                                    virDomainEventGraphicsAddressPtr remote,
+                                                    const char *authScheme,
+                                                    virDomainEventGraphicsSubjectPtr subject,
+                                                    void *opaque) {
+        return 0;
+    }
+
+    void Hypervisor::domain_event_free(void *opaque) {
+
     }
 
     GET_LIST_OF( GetDefinedDomains,

@@ -226,6 +226,14 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_VIRTUAL);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_PHYSICAL);
 
+        //virDomainEventType
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_DEFINED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_UNDEFINED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_RESUMED);
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED);
+
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
         memory_symbol       = NODE_PSYMBOL("memory");
@@ -278,6 +286,10 @@ namespace NodeLibvirt {
         nwiface_stat_tx_packets_symbol = NODE_PSYMBOL("tx_packets");
         nwiface_stat_tx_errors_symbol = NODE_PSYMBOL("tx_errors");
         nwiface_stat_tx_drop_symbol = NODE_PSYMBOL("tx_drop");
+    }
+
+    virDomainPtr Domain::domain() const {
+        return domain_;
     }
 
     Handle<Value> Domain::Create(const Arguments& args) {

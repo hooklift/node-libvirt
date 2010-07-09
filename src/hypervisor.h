@@ -73,10 +73,55 @@ namespace NodeLibvirt {
             static Handle<Value> GetNodeDevicesNames(const Arguments& args);
             static Handle<Value> GetNodeSecurityModel(const Arguments& args);
 
+            //Event functions
+            static Handle<Value> RegisterDomainEvent(const Arguments& args);
+            static Handle<Value> UnregisterDomainEvent(const Arguments& args);
+
+            //Misc functions
+            static Handle<Value> FindStoragePoolSources(const Arguments& args);
+
             Hypervisor(const Local<String>& uri, bool readOnly);
 
         private:
             virConnectPtr conn_;
+            static void domain_event_free(void *opaque);
+            static int domain_event_lifecycle_callback( virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        int event,
+                                                        int detail,
+                                                        void *opaque);
+            static int domain_event_generic_callback(   virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        void *opaque);
+            static int domain_event_rtcchange_callback( virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        long long utcoffset,
+                                                        void *opaque);
+            static int domain_event_watchdog_callback(  virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        int action,
+                                                        void *opaque);
+            static int domain_event_io_error_callback(  virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        const char *src_path,
+                                                        const char *dev_alias,
+                                                        int action,
+                                                        void *opaque);
+            static int domain_event_io_error_reason_callback(virConnectPtr conn,
+                                                             virDomainPtr domain,
+                                                             const char *src_path,
+                                                             const char *dev_alias,
+                                                             int action,
+                                                             const char *reason,
+                                                             void *opaque);
+            static int domain_event_graphics_callback(  virConnectPtr conn,
+                                                        virDomainPtr domain,
+                                                        int phase,
+                                                        virDomainEventGraphicsAddressPtr local,
+                                                        virDomainEventGraphicsAddressPtr remote,
+                                                        const char *authScheme,
+                                                        virDomainEventGraphicsSubjectPtr subject,
+                                                        void *opaque);
     };
 
 }  // namespace NodeLibvirt
