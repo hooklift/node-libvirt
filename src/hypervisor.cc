@@ -72,7 +72,24 @@ namespace NodeLibvirt {
     static Persistent<String> domain_event_callback_symbol;
     static Persistent<String> domain_event_type_symbol;
     static Persistent<String> domain_event_symbol;
+    static Persistent<String> domain_event_detail_symbol;
     static Persistent<String> domain_event_hypervisor_symbol;
+    static Persistent<String> domain_event_rtc_utcoffset_symbol;
+    static Persistent<String> domain_event_action_symbol;
+    static Persistent<String> domain_event_ioerror_srcpath_symbol;
+    static Persistent<String> domain_event_ioerror_devalias_symbol;
+    static Persistent<String> domain_event_ioerror_reason_symbol;
+    static Persistent<String> domain_event_graphics_family_sym;
+    static Persistent<String> domain_event_graphics_node_sym;
+    static Persistent<String> domain_event_graphics_service_sym;
+    static Persistent<String> domain_event_graphics_subjname_sym;
+    static Persistent<String> domain_event_graphics_subjtype_sym;
+    static Persistent<String> domain_event_graphics_local_sym;
+    static Persistent<String> domain_event_graphics_remote_sym;
+    static Persistent<String> domain_event_graphics_subject_sym;
+    static Persistent<String> domain_event_graphics_phase_sym;
+    static Persistent<String> domain_event_graphics_authscheme_sym;
+
 
     void Hypervisor::Initialize(Handle<Object> target) {
         HandleScope scope;
@@ -279,6 +296,7 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "registerDomainEvent",
                                       Hypervisor::RegisterDomainEvent);
+
         NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent",
                                       Hypervisor::UnregisterDomainEvent);
 
@@ -328,10 +346,28 @@ namespace NodeLibvirt {
         security_model_symbol       = NODE_PSYMBOL("model");
         security_model_doi_symbol   = NODE_PSYMBOL("doi");
 
-        domain_event_callback_symbol    = NODE_PSYMBOL("callback");
-        domain_event_type_symbol        = NODE_PSYMBOL("type");
-        domain_event_symbol             = NODE_PSYMBOL("domain");
-        domain_event_hypervisor_symbol  = NODE_PSYMBOL("hypervisor");
+        domain_event_callback_symbol         = NODE_PSYMBOL("callback");
+        domain_event_type_symbol             = NODE_PSYMBOL("evtype");
+        domain_event_detail_symbol           = NODE_PSYMBOL("detail");
+        domain_event_symbol                  = NODE_PSYMBOL("domain");
+        domain_event_hypervisor_symbol       = NODE_PSYMBOL("hypervisor");
+        domain_event_rtc_utcoffset_symbol    = NODE_PSYMBOL("utc_offset");
+        domain_event_action_symbol           = NODE_PSYMBOL("action");
+        domain_event_ioerror_srcpath_symbol  = NODE_PSYMBOL("src_path");
+        domain_event_ioerror_devalias_symbol = NODE_PSYMBOL("dev_alias");
+        domain_event_ioerror_reason_symbol   = NODE_PSYMBOL("reason");
+
+        domain_event_graphics_family_sym  = NODE_PSYMBOL("family");
+        domain_event_graphics_node_sym    = NODE_PSYMBOL("node");
+        domain_event_graphics_service_sym = NODE_PSYMBOL("service");
+        domain_event_graphics_subjname_sym      = NODE_PSYMBOL("name");
+        domain_event_graphics_subjtype_sym      = NODE_PSYMBOL("type");
+
+        domain_event_graphics_local_sym         = NODE_PSYMBOL("local");
+        domain_event_graphics_remote_sym        = NODE_PSYMBOL("remote");
+        domain_event_graphics_subject_sym       = NODE_PSYMBOL("subject");
+        domain_event_graphics_phase_sym         = NODE_PSYMBOL("phase");
+        domain_event_graphics_authscheme_sym    = NODE_PSYMBOL("auth_scheme");
 
         t->SetClassName(String::NewSymbol("Hypervisor"));
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
@@ -929,19 +965,16 @@ namespace NodeLibvirt {
         }
 
         Local<Value> jscallback = arg_obj->Get(domain_event_callback_symbol);
-        Persistent<Object> opaque = Persistent<Object>::New(Object::New());
 
+        Persistent<Object> opaque = Persistent<Object>::New(Object::New());
         opaque->Set(domain_event_hypervisor_symbol, args.This());
-        opaque->Set(domain_event_symbol, arg_obj->Get(domain_event_symbol));
         opaque->Set(domain_event_callback_symbol, jscallback);
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
         int ret = virConnectDomainEventRegisterAny( hypervisor->conn_,
-                                                    domain->domain(),
+                                                    domain != NULL ? domain->domain() : NULL,
                                                     evtype, callback,
                                                     &opaque, domain_event_free);
-
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
@@ -952,88 +985,391 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::UnregisterDomainEvent(const Arguments& args) {
         HandleScope scope;
-        return Null();
+        int ret = -1;
+        int callback_id = 0;
+
+        if(args.Length() == 0 || !args[0]->IsInt32()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a integer as argument to call this function")));
+        }
+
+        callback_id = args[0]->Int32Value();
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        ret = virConnectDomainEventDeregisterAny(hypervisor->conn_, callback_id);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
     }
 
     int Hypervisor::domain_event_lifecycle_callback(virConnectPtr conn, //unused
-                                                    virDomainPtr domain, //unused
+                                                    virDomainPtr dom,
                                                     int event,
                                                     int detail,
                                                     void *opaque) {
-        //TODO register detail constants
         HandleScope scope;
-        Local<Value> argv[4];
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
 
         Persistent<Object> obj = static_cast<Object*>(opaque);
         Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-        Local<Object> dom = obj->Get(domain_event_symbol)->ToObject();
 
         Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
         Local<Function> callback = Local<Function>::Cast(callback_);
 
+        Local<Object> data = Object::New();
+        data->Set(domain_event_type_symbol, Integer::New(event));
+        data->Set(domain_event_detail_symbol, Integer::New(detail));
+
         argv[0] = hyp;
-        argv[1] = dom;
-        argv[2] = Integer::New(event);
-        argv[3] = Integer::New(detail);
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
 
         TryCatch try_catch;
 
-        callback->Call(hyp, 4, argv);
+        callback->Call(hyp, 3, argv);
 
-        if (try_catch.HasCaught()) {
+        if(try_catch.HasCaught()) {
             FatalException(try_catch);
         }
 
         return 0;
     }
 
-    int Hypervisor::domain_event_generic_callback(  virConnectPtr conn,
-                                                    virDomainPtr domain,
+    int Hypervisor::domain_event_generic_callback(  virConnectPtr conn, //unused
+                                                    virDomainPtr dom,
                                                     void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[2];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 2, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
         return 0;
     }
 
-    int Hypervisor::domain_event_rtcchange_callback(virConnectPtr conn,
-                                                    virDomainPtr domain,
+    int Hypervisor::domain_event_rtcchange_callback(virConnectPtr conn, //unused
+                                                    virDomainPtr dom,
                                                     long long utcoffset,
                                                     void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        Local<Object> data = Object::New();
+        data->Set(domain_event_rtc_utcoffset_symbol, Number::New(utcoffset));
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 3, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
         return 0;
     }
 
-    int Hypervisor::domain_event_watchdog_callback( virConnectPtr conn,
-                                                    virDomainPtr domain,
+    int Hypervisor::domain_event_watchdog_callback( virConnectPtr conn, //unused
+                                                    virDomainPtr dom,
                                                     int action,
                                                     void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        Local<Object> data = Object::New();
+        data->Set(domain_event_action_symbol, Integer::New(action));
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 3, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
         return 0;
     }
 
-    int Hypervisor::domain_event_io_error_callback( virConnectPtr conn,
-                                                    virDomainPtr domain,
+    int Hypervisor::domain_event_io_error_callback( virConnectPtr conn, //unused
+                                                    virDomainPtr dom,
                                                     const char *src_path,
                                                     const char *dev_alias,
                                                     int action,
                                                     void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        Local<Object> data = Object::New();
+        data->Set(domain_event_ioerror_srcpath_symbol, String::New(src_path));
+        data->Set(domain_event_ioerror_devalias_symbol, String::New(dev_alias));
+        data->Set(domain_event_action_symbol, Integer::New(action));
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 3, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
         return 0;
     }
 
-    int Hypervisor::domain_event_io_error_reason_callback(  virConnectPtr conn,
-                                                            virDomainPtr domain,
+    int Hypervisor::domain_event_io_error_reason_callback(  virConnectPtr conn, //unused
+                                                            virDomainPtr dom,
                                                             const char *src_path,
                                                             const char *dev_alias,
                                                             int action,
                                                             const char *reason,
                                                             void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        Local<Object> data = Object::New();
+        data->Set(domain_event_ioerror_srcpath_symbol, String::New(src_path));
+        data->Set(domain_event_ioerror_devalias_symbol, String::New(dev_alias));
+        data->Set(domain_event_ioerror_reason_symbol, String::New(reason));
+        data->Set(domain_event_action_symbol, Integer::New(action));
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 3, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+
         return 0;
     }
 
-    int Hypervisor::domain_event_graphics_callback( virConnectPtr conn,
-                                                    virDomainPtr domain,
+    int Hypervisor::domain_event_graphics_callback( virConnectPtr conn, //unused
+                                                    virDomainPtr dom,
                                                     int phase,
                                                     virDomainEventGraphicsAddressPtr local,
                                                     virDomainEventGraphicsAddressPtr remote,
-                                                    const char *authScheme,
+                                                    const char *auth_scheme,
                                                     virDomainEventGraphicsSubjectPtr subject,
                                                     void *opaque) {
+        HandleScope scope;
+        //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
+        Domain *domain = new Domain();
+        domain->domain_ = dom;
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        /*The virDomainPtr object handle passed into the callback upon delivery
+        of an event is only valid for the duration of execution of the callback
+        If the callback wishes to keep the domain object after the callback,
+        it shall take a reference to it, by calling virDomainRef*/
+        virDomainRef(dom);
+
+        Local<Value> argv[3];
+
+        Persistent<Object> obj = static_cast<Object*>(opaque);
+        Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
+
+        Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
+        Local<Function> callback = Local<Function>::Cast(callback_);
+
+        /*
+        {local: {family: ipv4, node: 127.0.0.1, service: 80},
+         remote: {family: ipv6, node: ::1, service: 80},
+         subject: [{type: password, name: foo}, {type: password, name: fooo}],
+         phase: 0 //VIR_DOMAIN_EVENT_GRAPHICS_CONNECT
+         auth_scheme: foooscheme
+         }
+        */
+        Local<String> lfamily;
+        switch(local->family) {
+            case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
+                lfamily = String::New("ipv4");
+                break;
+            case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
+                lfamily = String::New("ipv6");
+                break;
+
+        };
+
+        Local<String> rfamily;
+        switch(remote->family) {
+            case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
+                rfamily = String::New("ipv4");
+                break;
+            case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
+                rfamily = String::New("ipv6");
+                break;
+
+        };
+
+        Local<Object> local_ = Object::New();
+        local_->Set(domain_event_graphics_family_sym, lfamily);
+        local_->Set(domain_event_graphics_node_sym, String::New(local->node));
+        local_->Set(domain_event_graphics_service_sym, String::New(local->service));
+
+        Local<Object> remote_ = Object::New();
+        remote_->Set(domain_event_graphics_family_sym, rfamily);
+        remote_->Set(domain_event_graphics_node_sym, String::New(remote->node));
+        remote_->Set(domain_event_graphics_service_sym, String::New(remote->service));
+
+        int nidentity = subject->nidentity;
+        Local<Array> subject_ = Array::New(nidentity);
+
+        for(int i = 0; i < nidentity; i++) {
+            Local<Object> identity = Object::New();
+            identity->Set(domain_event_graphics_subjtype_sym, String::New(subject->identities[i].type));
+            identity->Set(domain_event_graphics_subjname_sym, String::New(subject->identities[i].name));
+
+            subject_->Set(Integer::New(i), identity);
+        }
+
+        Local<Object> data = Object::New();
+        data->Set(domain_event_graphics_local_sym, local_);
+        data->Set(domain_event_graphics_remote_sym, remote_);
+        data->Set(domain_event_graphics_subject_sym, subject_);
+        data->Set(domain_event_graphics_phase_sym, Integer::New(phase));
+        data->Set(domain_event_graphics_authscheme_sym, String::New(auth_scheme));
+
+        argv[0] = hyp;
+        argv[1] = domain_obj; //FIXME change with domain->handle_
+        argv[2] = data;
+
+        TryCatch try_catch;
+
+        callback->Call(hyp, 3, argv);
+
+        if(try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
         return 0;
     }
 

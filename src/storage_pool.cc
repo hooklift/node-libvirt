@@ -299,9 +299,9 @@ namespace NodeLibvirt {
             return False();
         }
 
-        /*if(pool->pool_ != NULL) {
+        if(pool->pool_ != NULL) {
             virStoragePoolFree(pool->pool_);
-        }*/
+        }
 
         return True();
     }

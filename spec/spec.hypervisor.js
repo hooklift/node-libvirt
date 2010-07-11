@@ -375,25 +375,30 @@ describe 'Hypervisor'
     end
 
     it 'should register function callbacks for domain events'
-        //untested !! maybe this code doesn't work
+        //callback no tested !! maybe this code doesn't work
         var domain = hypervisor.lookupDomainByName('test');
 
-        var args = { type: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+        var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
                      domain: domain,
-                     callback: function(hyp, dom, evtype, detail) {
+                     callback: function(hyp, dom, data) {
                         dom.getName().should_be 'test'
-                        evtype.should_be hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE
+                        data.evtype.should_be hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE
+                        data.detail.should_be dom.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN
                      }
                     };
 
-        callback_id = hypervisor.registerDomainEvent(args).should_be 0
+        callback_id = hypervisor.registerDomainEvent(args);
         domain.shutdown();
-
-        //hypervisor.unregisterDomainEvent(callback_id).should_be true
+        hypervisor.unregisterDomainEvent(callback_id).should_be true
     end
 
     it 'should unregister callbacks listening for domain events'
+        var args = { type: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+                     callback: function(hyp, dom, evtype, detail) {}
+                    };
 
+        callback_id = hypervisor.registerDomainEvent(args);
+        hypervisor.unregisterDomainEvent(callback_id).should_be true
     end
 
 end

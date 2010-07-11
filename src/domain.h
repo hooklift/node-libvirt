@@ -48,6 +48,7 @@ namespace NodeLibvirt {
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
             static Handle<Value> Start(const Arguments& args);
+            static Handle<Value> Stop(const Arguments& args);
             static Handle<Value> GetVcpus(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
             static Handle<Value> Migrate(const Arguments& args);
@@ -56,7 +57,6 @@ namespace NodeLibvirt {
             static Handle<Value> AttachDevice(const Arguments& args);
             static Handle<Value> DetachDevice(const Arguments& args);
             static Handle<Value> UpdateDevice(const Arguments& args);
-            static Handle<Value> Destroy(const Arguments& args);
             static Handle<Value> ToXml(const Arguments& args);
             static Handle<Value> GetJobInfo(const Arguments& args);
             static Handle<Value> AbortCurrentJob(const Arguments& args);

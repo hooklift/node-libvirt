@@ -17,7 +17,7 @@ describe 'Domain'
     end
 
     after_each
-        domain.destroy();
+        domain.stop();
     end
 
     after
@@ -36,7 +36,7 @@ describe 'Domain'
 
         var dom = hypervisor.lookupDomainByName('libvirt');
         dom.getName().should_be 'libvirt'
-        dom.destroy().should_be true
+        dom.stop().should_be true
         //dom.getId().should_be undefined
     end
 
