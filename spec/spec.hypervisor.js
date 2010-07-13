@@ -393,7 +393,7 @@ describe 'Hypervisor'
     end
 
     it 'should unregister callbacks listening for domain events'
-        var args = { type: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+        var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
                      callback: function(hyp, dom, evtype, detail) {}
                     };
 

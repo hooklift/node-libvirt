@@ -1,3 +1,4 @@
+// Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include <stdio.h>
 #include <stdlib.h>
 #include "node_libvirt.h"
