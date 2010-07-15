@@ -46,7 +46,7 @@ TODO
 ### HYPERVISOR
 * ### hypervisor = new Hypervisor(uri, readOnly)
 
-#### Description
+`#### Description
 Connect to the given hypervisor URI.
 
 #### Parameters:
@@ -57,7 +57,7 @@ Connect to the given hypervisor URI.
   Boolean param, if not specified, this value is `false`
 
 #### Return:
-Return an instance of Hypervisor which represents the Hypervisor connection.
+Return an instance of Hypervisor which represents the Hypervisor connection.`
 
 
 
