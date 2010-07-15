@@ -1,6 +1,8 @@
 # Node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
 Libvirt is a toolkit to interact with the virtualization capabilities
-of recent versions of GNU/Linux (and other OSes). (ref: [Libvirt][libvirt_home])
+of recent versions of GNU/Linux (and other OSes). (reference: [Libvirt][libvirt_home])
+
+Node-Libvirt is a set of bindings to Libvirt C API, which allows to use it from Javascript
 
 ## Features
 ### Virtualization Technologies Supported
