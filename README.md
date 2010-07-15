@@ -60,6 +60,8 @@ Connect to the given hypervisor URI.
 An instance of Hypervisor which represents the Hypervisor connection.
 
 
+
+
 * ### var xml = hypervisor.getBaselineCPU(xmlCPUs)
 
 #### Description
