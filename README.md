@@ -55,11 +55,11 @@ Connect to the given hypervisor URI.
 
 * **readOnly:** (Optional)
   Boolean param, if not specified, this value is `false`
-##### Return
 
-### getBaselineCPU()
-    TODO
-###
+##### Return:
+Return an instance of Hypervisor which represents the Hypervisor connection.
+
+
 
 ###
 ### Domain
