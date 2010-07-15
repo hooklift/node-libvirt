@@ -39,10 +39,29 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
     $ npm install libvirt
 
 ## Example of use
-Check the [wiki][wiki_examples] please
+TODO
 
 ## API
-Check the [wiki][wiki_api] please
+
+### Hypervisor
+TODO
+### Domain
+TODO
+### Network
+TODO
+### NetworkFilter
+TODO
+### Interface
+TODO
+### StoragePool
+TODO
+### StorageVolume
+TODO
+### NodeDevice
+TODO
+### Error
+TODO
+### Even
 
 
 ## License
