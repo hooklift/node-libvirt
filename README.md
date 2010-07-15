@@ -44,14 +44,14 @@ TODO
 ## API
 
 ### Hypervisor
-#### * hypervisor = new Hypervisor(uri, readOnly)
+* #### hypervisor = new Hypervisor(uri, readOnly)
 ##### Description
 Connect to the given hypervisor URI
 ##### Parameters:
-* uri
+* **uri:**
   Hypervisor URI eg: test:///default
 
-* readOnly (Optional)
+* **readOnly:** (Optional)
   Boolean param, if not specified, this value is `false`
 ##### Return
 
