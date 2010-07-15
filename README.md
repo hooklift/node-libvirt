@@ -4,18 +4,7 @@ of recent versions of GNU/Linux (and other OSes). (reference: [Libvirt][libvirt_
 
 Node-Libvirt is a set of bindings to Libvirt C API, which allows to use the API from Javascript.
 
-## Installation
-You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed to be able to build node-libvirt.
-
-    $ git clone git://github.com/c4milo/node-libvirt.git
-    $ cd node-libvirt
-    $ node-waf configure build
-    $ node specs.js
-
-### Easy way
-    $ npm install libvirt
-
-## Virtualization Technologies Supported
+### Virtualization Technologies Supported
 This information was taked from [libvirt.org][libvirt_home].
 
    * The [Xen][xen_home] hypervisor on Linux and Solaris hosts.
@@ -28,7 +17,7 @@ This information was taked from [libvirt.org][libvirt_home].
    * [VMware ESX and GSX][vmware_home] hypervisors
 
 
-## Capabilities
+### Capabilities
 This information was taked from [libvirt.org][libvirt_home].
 
    * Management of virtual machines, virtual networks and storage
@@ -38,12 +27,22 @@ This information was taked from [libvirt.org][libvirt_home].
    * Zero-conf discovery using Avahi multicast-DNS
    * Support for storage on IDE/SCSI/USB disks, FibreChannel, LVM, iSCSI, NFS and filesystems
 
+## Installation
+You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed to be able to build node-libvirt.
+
+    $ git clone git://github.com/c4milo/node-libvirt.git
+    $ cd node-libvirt
+    $ node-waf configure build
+    $ node specs.js
+
+### Easy way
+    $ npm install libvirt
+
 ## Example of use
 Check the [wiki][wiki_examples] please
 
 ## API
 Check the [wiki][wiki_api] please
-
 
 
 ## License
