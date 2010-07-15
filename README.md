@@ -43,7 +43,7 @@ TODO
 
 ## API
 
-### Hypervisor
+### HYPERVISOR
 * ### hypervisor = new Hypervisor(uri, readOnly)
 
 #### Description
@@ -61,10 +61,9 @@ Return an instance of Hypervisor which represents the Hypervisor connection.
 
 
 
-###
-### Domain
+### DOMAIN
 TODO
-### Network
+### NETWORK
 TODO
 ### NetworkFilter
 TODO
