@@ -44,8 +44,16 @@ TODO
 ## API
 
 ### Hypervisor
-#### * `hypervisor = new Hypervisor('test:///default', true)`
-TODO
+#### * hypervisor = new Hypervisor(uri, readOnly)
+##### Description
+Connect to the given hypervisor URI
+##### Parameters:
+* uri
+  Hypervisor URI eg: test:///default
+
+* readOnly (Optional)
+  Boolean param, if not specified, this value is `false`
+##### Return
 
 ### getBaselineCPU()
     TODO
