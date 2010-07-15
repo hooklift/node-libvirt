@@ -28,8 +28,9 @@ This information was taked from [libvirt.org][libvirt_home].
    * [VMware ESX and GSX][vmware_home] hypervisors
 
 
-
 ## Capabilities
+This information was taked from [libvirt.org][libvirt_home].
+
    * Management of virtual machines, virtual networks and storage
    * Remote management using TLS encryption and x509 certificates
    * Remote management authenticating with Kerberos and SASL
