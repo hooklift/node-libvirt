@@ -37,6 +37,26 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
 
 ## API
 
+### Hypervisor
+TODO
+### Domain
+TODO
+### Network
+TODO
+### NetworkFilter
+TODO
+### Interface
+TODO
+### StoragePool
+TODO
+### StorageVolume
+TODO
+### NodeDevice
+TODO
+### Error
+TODO
+### Event
+
 
 
 
