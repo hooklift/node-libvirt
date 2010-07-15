@@ -45,8 +45,10 @@ TODO
 
 ### Hypervisor
 * #### hypervisor = new Hypervisor(uri, readOnly)
+
 ##### Description
-Connect to the given hypervisor URI
+Connect to the given hypervisor URI.
+
 ##### Parameters:
 * **uri:**
   Hypervisor URI eg: test:///default
