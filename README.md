@@ -60,6 +60,18 @@ Connect to the given hypervisor URI.
 An instance of Hypervisor which represents the Hypervisor connection.
 
 
+* ### var xml = hypervisor.getBaselineCPU(xmlCPUs)
+
+#### Description
+Compare two cpu xml description to return the baseline cpu
+
+#### Parameters:
+* **xmlCPUs:**
+    An array which contains two cpu xml description
+
+#### Return:
+An cpu xml description which is the baseline.
+
 
 ### DOMAIN
 TODO
