@@ -57,7 +57,7 @@ Connect to the given hypervisor URI.
   Boolean param, if not specified, this value is `false`
 
 #### Return:
-Return an instance of Hypervisor which represents the Hypervisor connection.
+An instance of Hypervisor which represents the Hypervisor connection.
 
 
 
