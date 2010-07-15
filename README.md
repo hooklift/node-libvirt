@@ -44,7 +44,13 @@ TODO
 ## API
 
 ### Hypervisor
-TODO
+### hypervisor = new Hypervisor('test:///default', true)
+    TODO
+### getBaselineCPU()
+    TODO
+###
+
+###
 ### Domain
 TODO
 ### Network
