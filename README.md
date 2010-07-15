@@ -44,7 +44,7 @@ TODO
 ## API
 
 ### Hypervisor
-* #### hypervisor = new Hypervisor(uri, readOnly)
+* ### hypervisor = new Hypervisor(uri, readOnly)
 
 ##### Description
 Connect to the given hypervisor URI.
