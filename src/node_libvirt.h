@@ -7,7 +7,7 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
-#define NODE_LIBVIRT_VERSION "v0.0.1"
+#define NODE_LIBVIRT_VERSION "v0.1.0"
 
 using namespace v8;
 using namespace node;
