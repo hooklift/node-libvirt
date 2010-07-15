@@ -39,6 +39,7 @@ This information was taked from [libvirt.org][libvirt_home].
    * Support for storage on IDE/SCSI/USB disks, FibreChannel, LVM, iSCSI, NFS and filesystems
 
 ## Example of use
+Check the [wiki][wiki] please
 
 ## API
 
@@ -101,4 +102,5 @@ IN THE SOFTWARE.
 [user_mode_linux_home]: http://user-mode-linux.sourceforge.net/
 [virtualbox_home]: http://www.virtualbox.org/
 [vmware_home]: http://www.vmware.com/
+[wiki]: http://github.com/c4milo/node-libvirt/wikis
 
