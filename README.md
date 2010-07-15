@@ -45,7 +45,8 @@ TODO
 
 ### Hypervisor
 #### * `hypervisor = new Hypervisor('test:///default', true)`
-    TODO
+TODO
+
 ### getBaselineCPU()
     TODO
 ###
