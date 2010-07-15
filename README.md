@@ -16,7 +16,8 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
     $ npm install libvirt
 
 ## Virtualization Technologies Supported
-This information was taked from [libvirt.org][libvirt_home]
+This information was taked from [libvirt.org][libvirt_home].
+
    * The [Xen][xen_home] hypervisor on Linux and Solaris hosts.
    * [QEMU][qemu_home] emulator
    * [KVM][kvm_home] Linux hypervisor
