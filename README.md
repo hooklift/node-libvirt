@@ -43,7 +43,7 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
 TODO
 
 ## API
-Take a Look at the [docs][docs_link]
+Take a look at the [docs page][docs_link]
 
 
 ### DOMAIN
