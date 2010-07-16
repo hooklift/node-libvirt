@@ -15,6 +15,7 @@ This information was taked from [libvirt.org][libvirt_home].
    * [User Mode Linux][user_mode_linux_home] paravirtualized kernel
    * [VirtualBox][virtualbox_home] hypervisor
    * [VMware ESX and GSX][vmware_home] hypervisors
+   * [IBM Power][phyp_home] Hypervisor
 
 
 ### Capabilities
@@ -42,37 +43,7 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
 TODO
 
 ## API
-
-### HYPERVISOR
-* ### hypervisor = new Hypervisor(uri, readOnly)
-
-#### Description
-Connect to the given hypervisor URI.
-
-#### Parameters:
-* **uri:**
-  Hypervisor URI eg: test:///default
-
-* **readOnly:** (Optional)
-  Boolean param, if not specified, this value is `false`
-
-#### Return:
-An instance of Hypervisor which represents the Hypervisor connection.
-
-
-
-
-* ### var xml = hypervisor.getBaselineCPU(xmlCPUs)
-
-#### Description
-Compare two cpu xml description to return the baseline cpu
-
-#### Parameters:
-* **xmlCPUs:**
-    An array which contains two cpu xml description
-
-#### Return:
-An cpu xml description which is the baseline.
+Take a Look at the [docs][docs_link]
 
 
 ### DOMAIN
@@ -131,4 +102,6 @@ IN THE SOFTWARE.
 [vmware_home]: http://www.vmware.com/
 [wiki_examples]: http://github.com/c4milo/node-libvirt/wikis/examples
 [wiki_api]: http://github.com/c4milo/node-libvirt/wikis/api
+[docs_link]:
+[phyp_home]: http://www.ibm.com/developerworks/wikis/display/LinuxP/POWER5+Hypervisor
 
