@@ -1,11 +1,10 @@
 # Node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
-Libvirt is a toolkit to interact with the virtualization capabilities
+Libvirt is a toolkit to interact with virtualization capabilities
 of recent versions of GNU/Linux (and other OSes). (reference: [Libvirt][libvirt_home])
 
-Node-Libvirt is a set of bindings to Libvirt C API, which allows to use the API from Javascript.
+Node-Libvirt is a set of bindings to Libvirt API, which allows to use it from Javascript.
 
 ### Virtualization Technologies Supported
-This information was taked from [libvirt.org][libvirt_home].
 
    * The [Xen][xen_home] hypervisor on Linux and Solaris hosts.
    * [QEMU][qemu_home] emulator
@@ -19,7 +18,6 @@ This information was taked from [libvirt.org][libvirt_home].
 
 
 ### Capabilities
-This information was taked from [libvirt.org][libvirt_home].
 
    * Management of virtual machines, virtual networks and storage
    * Remote management using TLS encryption and x509 certificates
@@ -34,7 +32,7 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
     $ git clone git://github.com/c4milo/node-libvirt.git
     $ cd node-libvirt
     $ node-waf configure build
-    $ node specs.js
+    $ sudo node specs.js
 
 ### Easy way
     $ npm install libvirt
@@ -44,26 +42,6 @@ TODO
 
 ## API
 Take a look at the [docs page][docs_link]
-
-
-### DOMAIN
-TODO
-### NETWORK
-TODO
-### NetworkFilter
-TODO
-### Interface
-TODO
-### StoragePool
-TODO
-### StorageVolume
-TODO
-### NodeDevice
-TODO
-### Error
-TODO
-### Even
-
 
 ## License
 (The MIT License)
