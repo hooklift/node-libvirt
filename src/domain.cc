@@ -846,7 +846,7 @@ namespace NodeLibvirt {
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
-            return scope.Close(False());
+            return False();
         }
 
         return True();

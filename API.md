@@ -2,7 +2,7 @@
 
 ## Hypervisor
 
-### Hypervisor#getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
+### getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
  Computes the most feature-rich CPU which is compatible with all given host CPUs.
 #### Parameters:
  Array of XML descriptions of host CPUs.
@@ -18,7 +18,7 @@
  libvirt.VIR_CPU_COMPARE_INCOMPATIBLE,
  libvirt.VIR_CPU_COMPARE_IDENTICAL,
  libvirt.VIR_CPU_COMPARE_SUPERSET. Or null plus an exception with an Error
- instance if ocurred an error.
+ instance if occurred an error.
 
 ### getCapabilities()
  Provides a xml with capabilities of the hypervisor.
@@ -87,7 +87,7 @@ Determine if the connection to the hypervisor is encrypted
 #### Parameters:
 None.
 #### Return:
-true or false plus an exception with an Error instance if an error ocurred.
+true or false plus an exception with an Error instance if an error occurred.
 
 ### isConnectionSecure()
 Determine if the connection to the hypervisor is secure.
@@ -96,7 +96,7 @@ over a channel which is not exposed to eavesdropping (eg a UNIX domain socket, o
 #### Parameters:
 None.
 #### Return:
-true or false plus an exception with an Error instance if an error ocurred.
+true or false plus an exception with an Error instance if an error occurred.
 
 ### closeConnection()
 Close the hypervisor connection. This should not be called if further interaction
@@ -105,7 +105,7 @@ need further monitoring by the application.
 #### Parameters:
 None.
 #### Return:
-true or false plus an exception with an Error instance if an error ocurred.
+true or false plus an exception with an Error instance if an error occurred.
 
 ### getDefinedDomains()
 ### getDefinedInterfaces()
@@ -119,7 +119,7 @@ None.
 #### Return:
 An array of strings which are the names of Domains, Interfaces, Networks
 or StoragePools currently defined but not active on the hypervisor. It also
-return null plus an exception if some error ocurred.
+return null plus an exception if some error occurred.
 
 ### getNumberOfDefinedDomains()
 ### getNumberOfDefinedInterfaces()
@@ -133,7 +133,7 @@ None.
 #### Return:
 A number which represents the total of currently defined: Domains,
 Interfaces, Networks and StoragePools respectively. It also
-return null plus an exception if some error ocurred.
+return null plus an exception if some error occurred.
 
 ### getActiveDomains()
 ### getActiveInterfaces()
@@ -147,7 +147,7 @@ None.
 #### Return:
 An array of strings which are the names of the Domains, Interfaces, Networks,
 or StoragePools currently active on the hypervisor. It also
-return null plus an exception if some error ocurred.
+return null plus an exception if some error occurred.
 
 ### getNumberOfActiveDomains()
 ### getNumberOfActiveInterfaces()
@@ -161,7 +161,7 @@ None.
 #### Return:
 A number which represents the total of currently active: Domains,
 Interfaces, Networks and StoragePools respectively. It also
-return null plus an exception if some error ocurred.
+return null plus an exception if some error occurred.
 
 ### getNetworkFilters()
 Provides the names of all the network filters.
@@ -170,7 +170,7 @@ Provides the names of all the network filters.
 None.
 #### Return:
 An array of strings with the names of the network filters or null plus
-an exception if some error ocurred.
+an exception if some error occurred.
 
 ### getNumberOfNetworkFilters()
 Provides the number of network filters.
@@ -179,7 +179,7 @@ Provides the number of network filters.
 None.
 #### Return:
 A number which represents the number of network filters or null plus
-an exception if some error ocurred.
+an exception if some error occurred.
 
 ### getSecrets()
 List UUIDs of defined secrets
@@ -188,7 +188,7 @@ List UUIDs of defined secrets
 None.
 #### Return:
 An array of strings with the UUIDs of the secrets or null plus
-an exception if some error ocurred
+an exception if some error occurred
 
 ### getNumberOfSecrets()
 Fetch number of currently defined secrets.
@@ -197,7 +197,7 @@ Fetch number of currently defined secrets.
 None.
 #### Return:
 A number which represents the total of currently defined secrets or null
-plus an exception if some error ocurred
+plus an exception if some error occurred
 
 ### createDomain(xml)
 Launch a new guest domain, based on an XML description. This function may
@@ -206,9 +206,9 @@ so its definition will disappear when it is stopped, or if the host is
 restarted.
 
 #### Parameters:
-An string representing the Xml domain description
+A string representing the Xml domain description
 #### Return:
-An instance of Domain or null if some error ocurred during the creation.
+An instance of Domain or null if some error occurred during the creation.
 
 ### defineDomain(xml)
 Define a domain, but does not start it. This definition is persistent, until
@@ -216,12 +216,28 @@ explicitly undefined with `domain.undefine()`. A previous definition for this
 domain would be overriden if it already exists.
 
 #### Parameters:
-An string representing the Xml domain description.
+A string representing the Xml domain description.
 #### Return:
-An instance of Domain or null if some error ocurred during the creation.
+An instance of Domain or null if some error occurred during the creation.
 
-### restoreDomain()
-### lookupDomainById()
+### restoreDomain(path)
+Restore a domain saved to disk by save() from the `path` specified.
+
+#### Parameters:
+The path where the domain was saved.
+#### Return:
+true or false plus an exception with an Error instance.
+
+### lookupDomainById(id)
+Try to find a domain based on the hypervisor ID number. Note that this won't
+work for inactive domains which have an ID of -1, in that case a lookup based
+on the Name or UUId need to be done instead.
+
+#### Parameters:
+A id number
+#### Return:
+A Domain instance or null plus an exception if some error occurred.
+
 ### lookupDomainByName()
 ### lookupDomainByUUID()
 ### getNodeFreeMemoryInNumaCells()
