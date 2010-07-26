@@ -523,19 +523,19 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::GetMaxVcpus(const Arguments& args) {
         HandleScope scope;
-        const char *type = NULL;
         int maxvcpus_ = 0;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
-        type = virConnectGetType(hypervisor->conn_);
-
-        if(type == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
+        //type = virConnectGetType(hypervisor->conn_);
+        if(args.Length() == 0 || !args[0]->IsString()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a string")));
         }
 
-        maxvcpus_ = virConnectGetMaxVcpus(hypervisor->conn_, type);
+        String::Utf8Value type(args[0]->ToString());
+
+        maxvcpus_ = virConnectGetMaxVcpus(hypervisor->conn_, (const char *) *type);
 
         if(maxvcpus_ == -1) {
             ThrowException(Error::New(virGetLastError()));

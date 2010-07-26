@@ -73,7 +73,7 @@ describe 'Hypervisor'
     end
 
     it 'should return the maximum number of virtual CPUs supported for a guest VM'
-        var max_vcpus = hypervisor.getMaxVcpus()
+        var max_vcpus = hypervisor.getMaxVcpus('kvm')
         max_vcpus.should_not_be null
     end
 

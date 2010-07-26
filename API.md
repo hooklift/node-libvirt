@@ -41,7 +41,18 @@ Provides the libvirt version used by the daemon running on the hypervisor host.
 #### Parameters:
  None.
 #### Return:
-The libvir version with format: major.minor.release. Ex. 1.8.2
+The libvir version with format: major.minor.release. Ex. 1.8.2. If there is
+an error, it returns null plus an exception with an Error instance.
+
+### hypervisor.getMaxVcpus(type)
+Provides the maximum number of virtual CPUs supported for a guest VM of a
+specific type. The `type` parameter here corresponds to the `type` attribute
+in the `<domain>` element of the XML. The `type` values are driver specific,
+but include "xen", "kvm", "qemu", "lxc" and "kqemu".
+#### Parameters:
+ And string specifying the driver type
+#### Return:
+A number which represents the maximum number of virtual CPUs supported.
 
 ## Domain
 ## Network
