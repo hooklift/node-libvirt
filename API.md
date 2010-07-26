@@ -146,7 +146,6 @@ None.
 An array of strings which are the names of the Domains, Interfaces, Networks,
 or StoragePools currently active on the hypervisor.
 
-
 ### hypervisor.getNumberOfActiveDomains()
 ### hypervisor.getNumberOfActiveInterfaces()
 ### hypervisor.getNumberOfActiveNetworks()
@@ -162,7 +161,21 @@ Interfaces, Networks and StoragePools respectively.
 
 
 ### hypervisor.getNetworkFilters()
+Provides the names of all the network filters.
+
+#### Parameters:
+None.
+#### Return:
+An array of strings with the names of the network filters.
+
 ### hypervisor.getNumberOfNetworkFilters()
+Provides the number of network filters.
+
+#### Parameters:
+None.
+#### Return:
+A number which represents the number of network filters.
+
 ### hypervisor.getSecrets()
 ### hypervisor.getNumberOfSecrets()
 
