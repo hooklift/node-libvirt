@@ -2,19 +2,24 @@
 
 ## Hypervisor
 
-### hypervisor.getBaselineCPU([cpu1, cpu2, cpu3, ...])
+### hypervisor.getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
  Computes the most feature-rich CPU which is compatible with all given host CPUs.
 #### Parameters:
  Array of XML descriptions of host CPUs.
 #### Return:
  An XML description of the computed CPU or null plus an exception with an Error instance.
 
-* ### hypervisor.getBaselineCPU(xmlCpus)
-Computes the most feature-rich CPU which is compatible with all given host CPUs
+### hypervisor.compareCPU(cpu)
+ Compares the given CPU description with the host CPU
 #### Params
- Array of XML descriptions of host CPUs
+ An xml string with the cpu description
 #### Return
-#### Example
+ One of the following constants:
+ libvirt.VIR_CPU_COMPARE_ERROR
+ libvirt.VIR_CPU_COMPARE_INCOMPATIBLE
+ libvirt.VIR_CPU_COMPARE_IDENTICAL
+ libvirt.VIR_CPU_COMPARE_SUPERSET
+
 ## Domain
 ## Network
 ## NetworkFilter
