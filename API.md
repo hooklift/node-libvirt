@@ -266,7 +266,34 @@ An array of cells with its amount of free memory or null plus an exception if
 some error occurred.
 
 ### getNodeFreeMemory()
+Provides the free memory available on the Node. Most libvirt APIs provide memory
+sizes in kilobytes, but in this function the returned value is in bytes.
+Divide by 1024 as necessary.
+
+#### Parameters:
+None.
+#### Return:
+A number represeting free memory in bytes or null plus an exception if some error
+occurred.
+
 ### getNodeInfo()
+Extract hardware information about the node.
+
+#### Parameters:
+None.
+#### Return:
+An object with the following structure:
+    { 'model':      'myCpuModel', //string indicating the CPU model
+      'memory':     1024,         //memory size in kilobytes
+      'cpus':       4,            //the number of active CPUs
+      'mhz':        2000,         //expected CPU frecuency
+      'nodes':      2,            //the number of NUMA cell, 1 for uniform mem access
+      'sockets':    4,            //number of CPU socket per node
+      'cores':      4,            //number of core per socket
+      'threads':    16            //number of threads per core
+    }
+It also return null plus an exception if some error occurred.
+
 ### getNodeDevicesNames()
 ### getNodeSecurityModel()
 ### lookupNodeDeviceByName()
