@@ -63,7 +63,7 @@ None.
 An string which represents the Hypervisor software used or null plus an exception
 with an Error instance.
 
-### hypervisor.GetConnectionUri()
+### hypervisor.getConnectionUri()
 Provides the URI (name) of the hypervisor connection. Normally this is the same
 as or similar to the string passed to the `new Hypervisor()`, but the driver
 may make the URI canonical.
@@ -111,6 +111,16 @@ true or false plus an exception with an Error instance if an error ocurred.
 ### hypervisor.getDefinedInterfaces()
 ### hypervisor.getDefinedNetworks()
 ### hypervisor.getDefinedStoragePools()
+The last four functions return the names of **all** the defined: Domains,
+Interfaces, Networks and StoragePools.
+
+#### Parameters:
+None.
+#### Return:
+An array of strings which are the names of Domains, Interfaces, Networks
+or StoragePools.
+
+
 ### hypervisor.getActiveDomains()
 ### hypervisor.getActiveInterfaces()
 ### hypervisor.getNetworkFilters()
