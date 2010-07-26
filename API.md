@@ -1,8 +1,10 @@
 # Node-Libvirt API
 
 ## Hypervisor
+
 * ### hypervisor.getBaselineCPU(xmlCpus)
 Computes the most feature-rich CPU which is compatible with all given host CPUs.
+
 #### Params
  Array of XML descriptions of host CPUs, you can specify two or more cpu descriptions.
 
