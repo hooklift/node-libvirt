@@ -60,7 +60,7 @@ Provides the name of the Hypervisor software used.
 #### Parameters:
 None.
 #### Return:
-An string which represents the Hypervisor software used or null plus an exception
+A string which represents the Hypervisor software used or null plus an exception
 with an Error instance.
 
 ### getConnectionUri()
@@ -354,7 +354,7 @@ An instance of Network or null plus an exception if some error occurred.
 Try to lookup a network based on its UUID.
 
 #### Parameters:
-An string with the network uuid to lookup.
+A string with the network uuid to lookup.
 #### Return:
 An instance of Network or null plus an exception if some error occurred.
 
@@ -362,13 +362,25 @@ An instance of Network or null plus an exception if some error occurred.
 Define a network, but it does not start it.
 
 #### Parameters:
-An string with the network xml description.
+A string with the network xml description.
 #### Return:
 An instance of Network or null plus an exception if some error occurred.
 
-### defineNetworkFilter()
+### defineNetworkFilter(xml)
+Define a new network filter, based on an XML description.
 
-### lookupNetworkFilterByName()
+#### Parameters:
+A xml with the filter xml description.
+#### Return
+An insntace of NetworkFilter or null plus an exception if some error occurred.
+
+### lookupNetworkFilterByName(name)
+Try to lookup a network filter based on its name.
+
+#### Parameters:
+
+#### Return:
+
 ### lookupNetworkFilterByUUID()
 ### lookupInterfaceByName()
 ### lookupInterfaceByMacAddress()
