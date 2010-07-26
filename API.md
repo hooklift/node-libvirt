@@ -118,7 +118,8 @@ Interfaces, Networks and StoragePools respectively.
 None.
 #### Return:
 An array of strings which are the names of Domains, Interfaces, Networks
-or StoragePools currently defined but not active on the hypervisor.
+or StoragePools currently defined but not active on the hypervisor. It also
+return null plus an exception if some error ocurred.
 
 ### hypervisor.getNumberOfDefinedDomains()
 ### hypervisor.getNumberOfDefinedInterfaces()
@@ -131,7 +132,8 @@ active: Domains, Interfaces, Networks and StoragePools respectively.
 None.
 #### Return:
 A number which represents the total of currently defined: Domains,
-Interfaces, Networks and StoragePools respectively.
+Interfaces, Networks and StoragePools respectively. It also
+return null plus an exception if some error ocurred.
 
 ### hypervisor.getActiveDomains()
 ### hypervisor.getActiveInterfaces()
@@ -144,7 +146,8 @@ Interfaces, Networks or StoragePools respectively.
 None.
 #### Return:
 An array of strings which are the names of the Domains, Interfaces, Networks,
-or StoragePools currently active on the hypervisor.
+or StoragePools currently active on the hypervisor. It also
+return null plus an exception if some error ocurred.
 
 ### hypervisor.getNumberOfActiveDomains()
 ### hypervisor.getNumberOfActiveInterfaces()
@@ -157,8 +160,8 @@ Interfaces, Networks and StoragePools respectively.
 None.
 #### Return:
 A number which represents the total of currently active: Domains,
-Interfaces, Networks and StoragePools respectively.
-
+Interfaces, Networks and StoragePools respectively. It also
+return null plus an exception if some error ocurred.
 
 ### hypervisor.getNetworkFilters()
 Provides the names of all the network filters.
@@ -166,7 +169,8 @@ Provides the names of all the network filters.
 #### Parameters:
 None.
 #### Return:
-An array of strings with the names of the network filters.
+An array of strings with the names of the network filters or null plus
+an exception if some error ocurred.
 
 ### hypervisor.getNumberOfNetworkFilters()
 Provides the number of network filters.
@@ -174,13 +178,48 @@ Provides the number of network filters.
 #### Parameters:
 None.
 #### Return:
-A number which represents the number of network filters.
+A number which represents the number of network filters or null plus
+an exception if some error ocurred.
 
 ### hypervisor.getSecrets()
-### hypervisor.getNumberOfSecrets()
+List UUIDs of defined secrets
 
-### hypervisor.createDomain()
-### hypervisor.defineDomain()
+#### Parameters:
+None.
+#### Return:
+An array of strings with the UUIDs of the secrets or null plus
+an exception if some error ocurred
+
+### hypervisor.getNumberOfSecrets()
+Fetch number of currently defined secrets.
+
+#### Parameters:
+None.
+#### Return:
+A number which represents the total of currently defined secrets or null
+plus an exception if some error ocurred
+
+### hypervisor.createDomain(xml)
+Launch a new guest domain, based on an XML description. This function may
+requires privileged access to the hypervisor. The domain is not persistent,
+so its definition will disappear when it is stopped, or if the host is
+restarted.
+
+#### Parameters:
+An string representing the Xml domain description
+#### Return:
+An instance of Domain or null if some error ocurred during the creation.
+
+### hypervisor.defineDomain(xml)
+Define a domain, but does not start it. This definition is persistent, until
+explicitly undefined with `domain.undefine()`. A previous definition for this
+domain would be overriden if it already exists.
+
+#### Parameters:
+An string representing the Xml domain description.
+#### Return:
+An instance of Domain or null if some error ocurred during the creation.
+
 ### hypervisor.restoreDomain()
 ### hypervisor.lookupDomainById()
 ### hypervisor.lookupDomainByName()
