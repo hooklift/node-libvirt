@@ -146,6 +146,7 @@ None.
 An array of strings which are the names of the Domains, Interfaces, Networks,
 or StoragePools currently active on the hypervisor.
 
+
 ### hypervisor.getNumberOfActiveDomains()
 ### hypervisor.getNumberOfActiveInterfaces()
 ### hypervisor.getNumberOfActiveNetworks()
