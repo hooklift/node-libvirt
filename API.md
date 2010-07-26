@@ -260,6 +260,7 @@ This function returns the amount of free memory in one or more NUMA cells.
 #### Parameters:
 * **startCell**: Index of first cell.
 * **maxCell**: Maximum number of cells.
+
 #### Return:
 An array of cells with its amount of free memory or null plus an exception if
 some error occurred.
