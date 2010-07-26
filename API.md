@@ -254,8 +254,16 @@ A string with the domain uuid to lookup.
 #### Return:
 A Domain instance or null plus an exception if some error occurred.
 
+### getNodeFreeMemoryInNumaCells(startCell, maxCell)
+This function returns the amount of free memory in one or more NUMA cells.
 
-### getNodeFreeMemoryInNumaCells()
+#### Parameters:
+**startCell**: Index of first cell.
+**maxCell**: Maximum number of cells.
+#### Return:
+An array of cells with its amount of free memory or null plus an exception if
+some error occurred.
+
 ### getNodeFreeMemory()
 ### getNodeInfo()
 ### getNodeDevicesNames()
