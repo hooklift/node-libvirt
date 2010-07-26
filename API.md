@@ -292,10 +292,29 @@ An object with the following structure:
       'cores':      4,            //number of core per socket
       'threads':    16            //number of threads per core
     }
-It also return null plus an exception if some error occurred.
+It also returns null plus an exception if some error occurred.
 
-### getNodeDevicesNames()
+### getNodeDevicesNames([capXml])
+Provides the names of node devices. If the optional `capXml` argument is specified,
+then it will return devices with the specified capability.
+
+#### Parameters:
+An optional xml describing device capabilites that works like device filter.
+
+#### Return:
+An array of strings with the devices names.
+
 ### getNodeSecurityModel()
+Extract the security model of a hypervisor.
+
+#### Parameters:
+None.
+#### Return:
+An object with the following structure:
+    { 'model':  'selinux',
+      'doi':    0
+    }
+
 ### lookupNodeDeviceByName()
 ### createNodeDevice()
 ### createNetwork()
