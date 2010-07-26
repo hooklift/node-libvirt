@@ -17,10 +17,8 @@
  One of the following constants:
  libvirt.VIR_CPU_COMPARE_INCOMPATIBLE,
  libvirt.VIR_CPU_COMPARE_IDENTICAL,
- libvirt.VIR_CPU_COMPARE_SUPERSET
-
- Or null plus an exception with an Error instance if
- ocurred an error.
+ libvirt.VIR_CPU_COMPARE_SUPERSET. Or null plus an exception with an Error
+ instance if ocurred an error.
 
 ### hypervisor.getCapabilities()
  Provides a xml with capabilities of the hypervisor.
