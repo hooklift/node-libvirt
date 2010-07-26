@@ -2,7 +2,7 @@
 
 ## Hypervisor
 
-### getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
+### Hypervisor#getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
  Computes the most feature-rich CPU which is compatible with all given host CPUs.
 #### Parameters:
  Array of XML descriptions of host CPUs.
