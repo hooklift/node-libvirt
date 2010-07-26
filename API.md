@@ -34,7 +34,15 @@
 #### Parameters:
  None.
 #### Return:
-The system hostname.
+The system hostname or null plus an exception with an Error instance
+
+### hypervisor.getLibVirtVersion()
+Provides the libvirt version used by the daemon running on the hypervisor host.
+#### Parameters:
+ None.
+#### Return:
+The libvir version with format: major.minor.release. Ex. 1.8.2
+
 ## Domain
 ## Network
 ## NetworkFilter
