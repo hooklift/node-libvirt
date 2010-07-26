@@ -221,7 +221,7 @@ A string representing the Xml domain description.
 An instance of Domain or null if some error occurred during the creation.
 
 ### restoreDomain(path)
-Restore a domain saved to disk by save() from the `path` specified.
+Restore a domain saved to disk by `save()` from the `path` specified.
 
 #### Parameters:
 The path where the domain was saved.
@@ -238,8 +238,23 @@ A id number
 #### Return:
 A Domain instance or null plus an exception if some error occurred.
 
-### lookupDomainByName()
-### lookupDomainByUUID()
+### lookupDomainByName(name)
+Try to lookup a domain based on its name.
+
+#### Parameters:
+A string with the domain name to lookup.
+#### Return:
+A Domain instance or null plus an exception if some error occurred.
+
+### lookupDomainByUUID(uuid)
+Try to lookup a domain based on its UUID.
+
+#### Parameters:
+A string with the domain uuid to lookup.
+#### Return:
+A Domain instance or null plus an exception if some error occurred.
+
+
 ### getNodeFreeMemoryInNumaCells()
 ### getNodeFreeMemory()
 ### getNodeInfo()
