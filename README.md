@@ -80,6 +80,6 @@ IN THE SOFTWARE.
 [vmware_home]: http://www.vmware.com/
 [wiki_examples]: http://github.com/c4milo/node-libvirt/wikis/examples
 [wiki_api]: http://github.com/c4milo/node-libvirt/wikis/api
-[docs_link]:
+[docs_link]: http://github.com/c4milo/node-libvirt/blob/master/API.md
 [phyp_home]: http://www.ibm.com/developerworks/wikis/display/LinuxP/POWER5+Hypervisor
 
