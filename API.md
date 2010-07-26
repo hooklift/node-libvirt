@@ -299,7 +299,8 @@ Provides the names of node devices. If the optional `capXml` argument is specifi
 then it will return devices with the specified capability.
 
 #### Parameters:
-An optional xml describing device capabilites that works like device filter.
+An optional string with the xml describing device capabilites. It works like a
+device filter.
 
 #### Return:
 An array of strings with the devices names.
@@ -315,13 +316,58 @@ An object with the following structure:
       'doi':    0
     }
 
-### lookupNodeDeviceByName()
-### createNodeDevice()
-### createNetwork()
-### lookupNetworkByName()
-### lookupNetworkByUUID()
-### defineNetwork()
+### lookupNodeDeviceByName(name)
+Lookup a node device by its name.
+
+#### Parameters:
+A string with the name to lookup
+#### Return:
+An instance of NodeDevice or null plus an exception if some error occurred.
+
+### createNodeDevice(xml)
+Create a new device on the VM host machine, for example, virtual HBAs created
+using vport_create.
+
+#### Parameters:
+A string with the device xml description.
+#### Return:
+An instance of NodeDevice or null plus an exception if some error occurred.
+
+### createNetwork(xml)
+Create and start a new virtual network.
+
+#### Parameters:
+A string with the network xml description.
+
+#### Return:
+An instance of Network or null plus an exception if some error occurred.
+
+### lookupNetworkByName(name)
+Try to lookup a network based on its name.
+
+#### Parameters:
+A string with the network name to lookup.
+#### Return:
+An instance of Network or null plus an exception if some error occurred.
+
+### lookupNetworkByUUID(uuid)
+Try to lookup a network based on its UUID.
+
+#### Parameters:
+An string with the network uuid to lookup.
+#### Return:
+An instance of Network or null plus an exception if some error occurred.
+
+### defineNetwork(xml)
+Define a network, but it does not start it.
+
+#### Parameters:
+An string with the network xml description.
+#### Return:
+An instance of Network or null plus an exception if some error occurred.
+
 ### defineNetworkFilter()
+
 ### lookupNetworkFilterByName()
 ### lookupNetworkFilterByUUID()
 ### lookupInterfaceByName()
