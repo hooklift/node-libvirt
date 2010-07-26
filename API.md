@@ -41,7 +41,7 @@ Provides the libvirt version used by the daemon running on the hypervisor host.
 #### Parameters:
  None.
 #### Return:
-The libvir version with format: major.minor.release. Ex. 1.8.2. If there is
+An libvirt version string with format: major.minor.release. i.e. 1.8.2. If there is
 an error, it returns null plus an exception with an Error instance.
 
 ### hypervisor.getMaxVcpus(type)
@@ -73,9 +73,40 @@ None.
 An hypervisor URI string or null plus an exception with an Error instance.
 
 ### hypervisor.getVersion()
+Get the version level of the Hypervisor running. This may work only with
+hypervisor call, i.e. with privileged access to the hypervisor, not with a
+read-only connection.
+#### Parameters:
+None.
+#### Return:
+An hypervisor version string with format: major.minor.release. i.e. 0.12.3 If
+there is an error, it returns null plus an exception with an Error instance.
+
 ### hypervisor.isConnectionEncrypted()
+Determine if the connection to the hypervisor is encrypted
+#### Parameters:
+None.
+#### Return:
+true or false plus an exception with an Error instance if an error ocurred.
+
 ### hypervisor.isConnectionSecure()
+Determine if the connection to the hypervisor is secure.
+The connection will be classed as secure if it is either encrypted, or running
+over a channel which is not exposed to eavesdropping (eg a UNIX domain socket, or pipe).
+#### Parameters:
+None.
+#### Return:
+true or false plus an exception with an Error instance if an error ocurred.
+
 ### hypervisor.closeConnection()
+Close the hypervisor connection. This should not be called if further interaction
+with the Hypervisor are needed especially if there is running domain which
+need further monitoring by the application.
+#### Parameters:
+None.
+#### Return:
+true or false plus an exception with an Error instance if an error ocurred.
+
 ### hypervisor.getDefinedDomains()
 ### hypervisor.getDefinedInterfaces()
 ### hypervisor.getDefinedNetworks()

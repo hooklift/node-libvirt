@@ -173,7 +173,7 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedNetworks",
                                       Hypervisor::GetNumberOfDefinedNetworks);
-
+ThrowException(Error::New(virGetLastError()));
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedStoragePools",
                                       Hypervisor::GetNumberOfDefinedStoragePools);
 
@@ -463,6 +463,7 @@ namespace NodeLibvirt {
             is_closed = virConnectClose(hypervisor->conn_);
 
             if(is_closed == -1) {
+                ThrowException(Error::New(virGetLastError()));
                 return False();
             }
         }
