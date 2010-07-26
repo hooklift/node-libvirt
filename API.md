@@ -111,32 +111,60 @@ true or false plus an exception with an Error instance if an error ocurred.
 ### hypervisor.getDefinedInterfaces()
 ### hypervisor.getDefinedNetworks()
 ### hypervisor.getDefinedStoragePools()
-The last four functions return the names of **all** the defined: Domains,
-Interfaces, Networks and StoragePools.
+These four functions return the names of **all** the defined: Domains,
+Interfaces, Networks and StoragePools respectively.
 
 #### Parameters:
 None.
 #### Return:
 An array of strings which are the names of Domains, Interfaces, Networks
-or StoragePools.
+or StoragePools currently defined but not active on the hypervisor.
 
-
-### hypervisor.getActiveDomains()
-### hypervisor.getActiveInterfaces()
-### hypervisor.getNetworkFilters()
-### hypervisor.getActiveNetworks()
-### hypervisor.getSecrets()
-### hypervisor.getActiveStoragePools()
 ### hypervisor.getNumberOfDefinedDomains()
 ### hypervisor.getNumberOfDefinedInterfaces()
 ### hypervisor.getNumberOfDefinedNetworks()
 ### hypervisor.getNumberOfDefinedStoragePools()
+These four functions return the number of **all** currently defined but not
+active: Domains, Interfaces, Networks and StoragePools respectively.
+
+#### Parameters:
+None.
+#### Return:
+A number which represents the total of currently defined: Domains,
+Interfaces, Networks and StoragePools respectively.
+
+### hypervisor.getActiveDomains()
+### hypervisor.getActiveInterfaces()
+### hypervisor.getActiveNetworks()
+### hypervisor.getActiveStoragePools()
+These four functions return the names of **all** currently active: Domains,
+Interfaces, Networks or StoragePools respectively.
+
+#### Parameters:
+None.
+#### Return:
+An array of strings which are the names of the Domains, Interfaces, Networks,
+or StoragePools currently active on the hypervisor.
+
 ### hypervisor.getNumberOfActiveDomains()
 ### hypervisor.getNumberOfActiveInterfaces()
 ### hypervisor.getNumberOfActiveNetworks()
-### hypervisor.getNumberOfNetworkFilters()
-### hypervisor.getNumberOfSecrets()
 ### hypervisor.getNumberOfActiveStoragePools()
+These four functions return the number of **all** currently active: Domains,
+Interfaces, Networks and StoragePools respectively.
+
+#### Parameters:
+None.
+#### Return:
+A number which represents the total of currently active: Domains,
+Interfaces, Networks and StoragePools respectively.
+
+
+### hypervisor.getNetworkFilters()
+### hypervisor.getNumberOfNetworkFilters()
+### hypervisor.getSecrets()
+### hypervisor.getNumberOfSecrets()
+
 ### hypervisor.createDomain()
 ### hypervisor.defineDomain()
 ### hypervisor.restoreDomain()
