@@ -50,9 +50,27 @@ specific type. The `type` parameter here corresponds to the `type` attribute
 in the `<domain>` element of the XML. The `type` values are driver specific,
 but include "xen", "kvm", "qemu", "lxc" and "kqemu".
 #### Parameters:
- And string specifying the driver type
+ A string specifying the driver type
 #### Return:
-A number which represents the maximum number of virtual CPUs supported.
+A number which represents the maximum number of virtual CPUs supported or null
+plus an exception with an Error instance.
+
+### hypervisor.getType()
+Provides the name of the Hypervisor software used.
+#### Parameters:
+None.
+#### Return:
+An string which represents the Hypervisor software used or null plus an exception
+with an Error instance.
+
+### hypervisor.GetConnectionUri()
+Provides the URI (name) of the hypervisor connection. Normally this is the same
+as or similar to the string passed to the `new Hypervisor()`, but the driver
+may make the URI canonical.
+#### Parameters:
+None.
+#### Return
+An hypervisor URI string or null plus an exception which an Error instance.
 
 ## Domain
 ## Network
