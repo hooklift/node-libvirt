@@ -378,23 +378,112 @@ An insntace of NetworkFilter or null plus an exception if some error occurred.
 Try to lookup a network filter based on its name.
 
 #### Parameters:
+A string with the filter name to lookup
 
 #### Return:
+An instance of NetworkFilter or null plus an exception if some error occurred.
 
-### lookupNetworkFilterByUUID()
-### lookupInterfaceByName()
-### lookupInterfaceByMacAddress()
-### defineInterface()
-### defineSecret()
-### lookupSecretByUsage()
-### lookupSecretByUUID()
-### createStoragePool()
-### defineStoragePool()
-### lookupStoragePoolByName()
-### lookupStoragePoolByUUID()
-### lookupStoragePoolByVolume()
-### lookupStorageVolumeByKey()
-### lookupStorageVolumeByPath()
+### lookupNetworkFilterByUUID(uuid)
+Try to lookup a network filter based on its UUID.
+
+#### Parameters:
+An string with the filter uuid to lookup
+#### Return:
+An instance of NetworkFilter or null plus an exception if some error occurred.
+
+### lookupInterfaceByName(name)
+Try to lookup an interface based on its name.
+
+#### Parameters
+A string with the interface name to look for the interface.
+#### Return:
+An instance of Interface or null plus an exception if some error occurred.
+
+### lookupInterfaceByMacAddress(mac)
+Try to lookup an interface on the given hypervisor based on its MAC Address.
+
+#### Parameters:
+A string with the interface mac address to look for the interface
+
+#### Return:
+An instance of Interface or null plus an exception if some error occurred.
+
+### defineInterface(xml)
+Define an interface (or modify existing interface configuration).
+
+#### Parameters:
+A string with the interface xml description.
+#### Return:
+An instance of Interface or null plus an exception if some error occurred.
+
+### defineSecret(xml)
+If XML specifies a UUID, locates the specified secret and replaces all
+attributes of the secret specified by UUID by attributes specified in
+xml (any attributes not specified in xml are discarded). Otherwise,
+creates a new secret with an automatically chosen UUID, and initializes
+its attributes from xml.
+
+#### Parameters:
+An string with the secret xml description.
+#### Return:
+An instance of Secret or null plus an exception if some error occurred.
+
+### lookupSecretByUsage(usageType, usageId)
+Try to lookup a secret based on its usage. The usageId is unique within the set
+of secrets sharing the same usageType value.
+
+#### Parameters:
+* **usageType**: String with the type of secret usage.
+* **usageId**: Number with the identifier of the object using the secret.
+
+#### Return:
+An instance of Secret or null plus an exception if some error occurred.
+
+### lookupSecretByUUID(uuid)
+Try to lookup a secret based on its UUID.
+
+#### Parameters:
+An string with the secret uuid.
+#### Return:
+An instance of Secret or null plus an exception if some error occurred.
+
+### createStoragePool(xml)
+Create a new storage based on its XML description. The pool is not persistent,
+so its definition will disappear when it is stopped, or if the host is restarted.
+
+#### Parameters:
+A string with the pool xml description.
+#### Return:
+An instance of StoragePool or null plus an exception if some error occurred.
+
+### defineStoragePool(xml)
+Define a new inactive storage pool based on its XML description.
+The pool is persistent, until explicitly undefined.
+
+#### Parameters:
+A string with the pool xml description.
+#### Return:
+An instance of StoragePool or null plus an exception if some error occurred.
+
+### lookupStoragePoolByName(name)
+Fetch a storage pool based on its unique name.
+
+#### Parameters:
+A string with the pool name.
+#### Return:
+An instance of StoragePool or null plus an exception if some error occurred.
+
+### lookupStoragePoolByUUID(uuid)
+Fetch a storage pool based on its globally unique id
+
+#### Parameters:
+A string with the pool uuid.
+#### Return:
+An instance of StoragePool or null plus an exception if some error occurred.
+
+### lookupStoragePoolByVolume(volume)
+### lookupStorageVolumeByKey(key)
+### lookupStorageVolumeByPath(path)
 ### registerDomainEvent()
 ### unregisterDomainEvent()
 
