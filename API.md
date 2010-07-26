@@ -28,6 +28,15 @@
  None.
 #### Return:
  An xml describing capabilities of the current hypervisor.
+
+### hypervisor.getHostname()
+ This returns the system hostname on which the hypervisor is running
+ (the result of the gethostname system call). If we are connected to
+ a remote system, then this returns the hostname of the remote system.
+#### Parameters:
+ None.
+#### Return:
+The system hostname.
 ## Domain
 ## Network
 ## NetworkFilter
