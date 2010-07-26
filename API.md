@@ -11,17 +11,23 @@
 
 ### hypervisor.compareCPU(cpu)
  Compares the given CPU description with the host CPU
-#### Params
+#### Parameters:
  An xml string with the cpu description
-#### Return
+#### Return:
  One of the following constants:
  libvirt.VIR_CPU_COMPARE_INCOMPATIBLE,
  libvirt.VIR_CPU_COMPARE_IDENTICAL,
  libvirt.VIR_CPU_COMPARE_SUPERSET
 
  Or null plus an exception with an Error instance if
- ocurred an comparision error.
+ ocurred an error.
 
+### hypervisor.getCapabilities()
+ Provides a xml with capabilities of the hypervisor.
+#### Parameters:
+ None.
+#### Return:
+ An xml describing capabilities of the current hypervisor.
 ## Domain
 ## Network
 ## NetworkFilter
