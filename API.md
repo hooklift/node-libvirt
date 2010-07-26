@@ -481,11 +481,61 @@ A string with the pool uuid.
 #### Return:
 An instance of StoragePool or null plus an exception if some error occurred.
 
-### lookupStoragePoolByVolume(volume)
+### lookupStoragePoolByVolume(volume) (unimplemented)
+Fetch a storage pool which contains a particular volume
+
+#### Parameters:
+An instance of StorageVolume
+#### Return:
+An instance of StoragePool or null plus an exception if some error occurred.
+
 ### lookupStorageVolumeByKey(key)
+Fetch a pointer to a storage volume based on its globally unique key.
+
+#### Parameters:
+A string with the volume key.
+#### Return:
+An instance of StorageVolume or null plus an exception if some error occurred.
+
 ### lookupStorageVolumeByPath(path)
-### registerDomainEvent()
+Fetch a pointer to a storage volume based on its locally (host) unique path.
+
+#### Parameters:
+A string with the volume path.
+#### Return:
+An instance of StorageVolume or null plus an exception if some error occurred.
+
+### registerDomainEvent(event)
+Adds a callback to receive notifications of arbitrary domain events occurring
+on a domain. If property `domain` is not present, then events will be monitored
+for any domain. If property `domain` is present, then only the specific
+domain will be monitored Most types of event have a callback providing a
+custom set of parameters for the event.
+
+#### Parameters:
+An object with the following structure:
+    { 'evtype':     hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+      'domain':     mydomain,
+      'callback':   function(hyp, dom, data) {
+
+                     }
+    }
+evtype is an OR'ed set of the following constants:
+    hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE
+    hypervisor.VIR_DOMAIN_EVENT_ID_REBOOT
+    hypervisor.VIR_DOMAIN_EVENT_ID_RTC_CHANGE
+    hypervisor.VIR_DOMAIN_EVENT_ID_WATCHDOG
+    hypervisor.VIR_DOMAIN_EVENT_ID_IO_ERROR
+    hypervisor.VIR_DOMAIN_EVENT_ID_GRAPHICS
+    hypervisor.VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON
+    hypervisor.VIR_DOMAIN_EVENT_ID_LAST
+
+#### Return:
+
+
 ### unregisterDomainEvent()
+Removes an event callback. The callbackID parameter should be the vaule obtained
+from a previous `registerDomainEvent(event)` function.
 
 ## Domain
 ## Network
