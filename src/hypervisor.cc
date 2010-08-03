@@ -173,7 +173,7 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedNetworks",
                                       Hypervisor::GetNumberOfDefinedNetworks);
-ThrowException(Error::New(virGetLastError()));
+
         NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedStoragePools",
                                       Hypervisor::GetNumberOfDefinedStoragePools);
 
