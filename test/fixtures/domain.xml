@@ -1,5 +1,5 @@
 <domain type='kvm'>
-  <name>libvirt</name>
+  <name>nodejs-test</name>
   <memory>128000</memory>
   <vcpu>1</vcpu>
   <os>
