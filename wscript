@@ -10,12 +10,6 @@ def set_options(ctx):
 def configure(ctx):
   ctx.recurse('src')
 
-def spec(spec):
-    import Options, Utils
-    if Options.options.exe:
-            Utils.exec_command('${NODE} specs.js')
-
 def build(ctx):
   ctx.recurse('src')
-  ctx.add_post_fun(spec)
 

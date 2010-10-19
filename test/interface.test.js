@@ -1,6 +1,6 @@
 require.paths.unshift('build/default/src');
 var sys = require('sys');
-var libvirt = require('node-libvirt');
+var libvirt = require('libvirt');
 var fixture = require('./lib/helper').fixture;
 
 var Hypervisor = libvirt.Hypervisor;
