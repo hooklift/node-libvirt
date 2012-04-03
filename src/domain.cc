@@ -1733,7 +1733,7 @@ namespace NodeLibvirt {
         }
 
         Buffer *buffer = Buffer::New(size);
-        memcpy(buffer->data(), buffer_, size);
+        memcpy(Buffer::Data(buffer), buffer_, size);
         free(buffer_);
 
         return scope.Close(buffer->handle_);
@@ -1829,7 +1829,7 @@ namespace NodeLibvirt {
         }
 
         Buffer *buffer = Buffer::New(size);
-        memcpy(buffer->data(), buffer_, size);
+        memcpy(Buffer::Data(buffer), buffer_, size);
         free(buffer_);
 
         return scope.Close(buffer->handle_);
