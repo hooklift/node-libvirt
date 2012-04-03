@@ -34,8 +34,15 @@ You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed 
     $ node-waf configure build
     $ sudo node specs.js
 
-### Easy way
-    $ npm install libvirt
+### (still) Easy way
+From `node-libvirt`'s folder:
+
+    $ npm link
+
+From your app's folder:
+
+    $ npm link libvirt
+
 
 ## Example of use
 TODO
