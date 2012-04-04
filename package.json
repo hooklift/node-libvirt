@@ -1,20 +1,19 @@
-{   "name" : "libvirt",
-    "version": "0.1.0",
-    "author": "Camilo Aguilar - http://github.com/c4milo",
-    "email": "camilo@cloudescape.com",
-    "description" : "libvirt bindings for v8 javascript engine",
-    "repositories": [
-        {
-        "type": "git",
-        "url": "http://github.com/c4milo/node-libvirt.git"
-    }
-    ],
-    "scripts": {
-        "install": "node-waf configure build"
-    },
-    "engines": {
-        "node": "< 0.5.0"
-    },
-    "main" : "build/Release/src/libvirt.node"
+{
+  "name" : "libvirt",
+  "version": "0.1.0",
+  "author": "Camilo Aguilar - http://github.com/c4milo",
+  "email": "camilo@cloudescape.com",
+  "description": "libvirt bindings for v8 javascript engine",
+  "repositories": [{
+    "type": "git",
+    "url": "http://github.com/c4milo/node-libvirt.git"
+  }],
+  "scripts": {
+    "preinstall": "node-waf clean || true; node-waf configure build",
+    "test": "expresso"
+  },
+  "engines": {
+    "node": "0.4.x"
+  },
+  "main": "build/default/src/libvirt.node"
 }
-
