@@ -96,7 +96,7 @@ namespace NodeLibvirt {
 
         Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
-        t->Inherit(EventEmitter::constructor_template);
+//        t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
 
         NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",
@@ -300,6 +300,9 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent",
                                       Hypervisor::UnregisterDomainEvent);
 
+        constructor_template = Persistent<FunctionTemplate>::New(t);
+        constructor_template->SetClassName(String::NewSymbol("Hypervisor"));
+
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization
@@ -373,7 +376,7 @@ namespace NodeLibvirt {
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
 
-    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : EventEmitter() {
+    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : ObjectWrap() {
         HandleScope scope;
         String::Utf8Value uri(uriStr);
 

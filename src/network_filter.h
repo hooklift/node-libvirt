@@ -8,7 +8,7 @@
 
 namespace NodeLibvirt {
 
-    class NetworkFilter : public EventEmitter {
+    class NetworkFilter : public ObjectWrap {
         friend class Hypervisor;
 
         public:

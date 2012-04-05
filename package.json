@@ -13,7 +13,7 @@
     "test": "expresso"
   },
   "engines": {
-    "node": "0.4.x"
+    "node": "0.6.x"
   },
-  "main": "build/default/src/libvirt.node"
+  "main": "build/Release/src/libvirt.node"
 }

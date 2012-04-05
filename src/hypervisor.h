@@ -15,7 +15,7 @@
 
 namespace NodeLibvirt {
 
-    class Hypervisor : public EventEmitter {
+    class Hypervisor : public ObjectWrap {
         public:
             static void Initialize(Handle<Object> target);
             static inline bool HasInstance(v8::Handle<v8::Value> value) {
@@ -83,6 +83,7 @@ namespace NodeLibvirt {
             Hypervisor(const Local<String>& uri, bool readOnly);
 
         private:
+            static Persistent<FunctionTemplate> constructor_template;
             virConnectPtr conn_;
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,

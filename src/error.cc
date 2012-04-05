@@ -27,7 +27,7 @@ namespace NodeLibvirt {
 
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
-        t->Inherit(EventEmitter::constructor_template);
+//       t->Inherit(EventEmitter::constructor_template);
 
         Local<ObjectTemplate> ot = t->InstanceTemplate();
         ot->SetInternalFieldCount(1);

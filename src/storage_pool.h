@@ -8,7 +8,7 @@
 
 namespace NodeLibvirt {
 
-    class StoragePool : public EventEmitter {
+    class StoragePool : public ObjectWrap {
         friend class Hypervisor;
 
         public:
