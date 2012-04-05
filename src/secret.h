@@ -8,7 +8,7 @@
 
 namespace NodeLibvirt {
 
-    class Secret : public EventEmitter {
+    class Secret : public ObjectWrap {
         friend class Hypervisor;
 
         public:

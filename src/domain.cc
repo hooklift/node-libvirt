@@ -69,7 +69,7 @@ namespace NodeLibvirt {
     void Domain::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
-        t->Inherit(EventEmitter::constructor_template);
+//        t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
 
         NODE_SET_PROTOTYPE_METHOD(t, "getId",
@@ -132,6 +132,8 @@ namespace NodeLibvirt {
                                       Domain::IsActive);
         NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",
                                       Domain::IsPersistent);
+        NODE_SET_PROTOTYPE_METHOD(t, "isUpdated",
+                                      Domain::IsUpdated);
         NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",
                                       Domain::GetInterfaceStats);
         NODE_SET_PROTOTYPE_METHOD(t, "coreDump",
@@ -780,6 +782,21 @@ namespace NodeLibvirt {
         bool is_persistent = ret == 1 ? true : false;
 
         return scope.Close(Boolean::New(is_persistent));
+    }
+
+    Handle<Value> Domain::IsUpdated(const Arguments& args) {
+        HandleScope scope;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        int ret = virDomainIsUpdated(domain->domain_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        return scope.Close(Boolean::New(ret == 1));
     }
 
     Handle<Value> Domain::Reboot(const Arguments& args) {

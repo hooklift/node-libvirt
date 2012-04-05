@@ -15,15 +15,16 @@
 
 namespace NodeLibvirt {
 
-    class Hypervisor : public EventEmitter {
+    class Hypervisor : public ObjectWrap {
         public:
             static void Initialize(Handle<Object> target);
             static inline bool HasInstance(v8::Handle<v8::Value> value) {
                 if (!value->IsObject()) {
                     return false;
                 }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
+                return true; // XXX hack
+                //v8::Local<v8::Object> object = value->ToObject();
+                //return constructor_template->HasInstance(object);
             }
             virConnectPtr connection() const;
         protected:
@@ -31,6 +32,7 @@ namespace NodeLibvirt {
 
             static Handle<Value> GetCapabilities(const Arguments& args);
             static Handle<Value> GetHostname(const Arguments& args);
+            static Handle<Value> GetSysinfo(const Arguments& args);
             static Handle<Value> GetType(const Arguments& args);
             static Handle<Value> GetConnectionUri(const Arguments& args);
             static Handle<Value> GetVersion(const Arguments& args);
@@ -40,6 +42,7 @@ namespace NodeLibvirt {
             static Handle<Value> CompareCPU(const Arguments& args);
             static Handle<Value> IsConnectionEncrypted(const Arguments& args);
             static Handle<Value> IsConnectionSecure(const Arguments& args);
+            static Handle<Value> IsConnectionAlive(const Arguments& args);
             static Handle<Value> CloseConnection(const Arguments& args);
 
             //virConnectList functions

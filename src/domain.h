@@ -8,7 +8,7 @@
 
 namespace NodeLibvirt {
 
-    class Domain : public EventEmitter {
+    class Domain : public ObjectWrap {
         friend class Hypervisor;
 
         public:
@@ -41,6 +41,7 @@ namespace NodeLibvirt {
             static Handle<Value> GetMaxVcpus(const Arguments& args);
             static Handle<Value> IsActive(const Arguments& args);
             static Handle<Value> IsPersistent(const Arguments& args);
+            static Handle<Value> IsUpdated(const Arguments& args);
             static Handle<Value> Reboot(const Arguments& args);
             static Handle<Value> Save(const Arguments& args);
             static Handle<Value> Restore(const Arguments& args);

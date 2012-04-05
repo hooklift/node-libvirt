@@ -8,7 +8,7 @@ namespace NodeLibvirt {
     void NetworkFilter::Initialize() {
         Local<FunctionTemplate> t = FunctionTemplate::New();
 
-        t->Inherit(EventEmitter::constructor_template);
+//        t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
 
         NODE_SET_PROTOTYPE_METHOD(t, "getName",

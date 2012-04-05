@@ -3,7 +3,6 @@
 #define SRC_NODE_LIBVIRT_H_
 
 #include <node.h>
-#include <node_events.h>
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 

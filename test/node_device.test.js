@@ -8,7 +8,7 @@ var hypervisor = new Hypervisor('test:///default');
 
 //TODO create a Node class and add detach attach
 module.exports = {
-    'should create a node device using its xml description': function(assert) {
+    'should create a node device using its xml description': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var xml = fixture('node_device.xml');
@@ -19,7 +19,7 @@ module.exports = {
         }
     },
 
-    'should lookup a node device by name': function(assert) {
+    'should lookup a node device by name': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var devices = hypervisor.getNodeDevicesNames();
@@ -30,7 +30,7 @@ module.exports = {
         }
     },
 
-    'should detach the device from the node itself in order to be assigned to a guest domain': function(assert) {
+    'should detach the device from the node itself in order to be assigned to a guest domain': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             assert.ok(device.detach());
@@ -39,7 +39,7 @@ module.exports = {
         }
     },
 
-    'should reattach a previously detached node device': function(assert) {
+    'should reattach a previously detached node device': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             assert.ok(device.reattach());
@@ -48,7 +48,7 @@ module.exports = {
         }
     },
 
-    'should reset the node device a previously detached node device': function(assert) {
+    'should reset the node device a previously detached node device': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             assert.ok(device.reset());
@@ -57,7 +57,7 @@ module.exports = {
         }
     },
 
-    'should return the device name': function(assert) {
+    'should return the device name': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var name = device.getName();
@@ -67,7 +67,7 @@ module.exports = {
         }
     },
 
-    'should return the device parent name': function(assert) {
+    'should return the device parent name': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var parent = device.getParentName();
@@ -77,7 +77,7 @@ module.exports = {
         }
     },
 
-    'should return de device xml description': function(assert) {
+    'should return de device xml description': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var xml = device.toXml();
@@ -87,7 +87,7 @@ module.exports = {
         }
     },
 
-    'should list device capabilities': function(assert) {
+    'should list device capabilities': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             var capabilities = device.getCapabilities();
@@ -97,7 +97,7 @@ module.exports = {
         }
     },
 
-    'should remove the node device from the host operating system': function(assert) {
+    'should remove the node device from the host operating system': function(beforeExit, assert) {
         //test driver does not provide mechanisms to test this function
         try {
             assert.ok(device.destroy());
