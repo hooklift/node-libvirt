@@ -300,9 +300,6 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent",
                                       Hypervisor::UnregisterDomainEvent);
 
-        constructor_template = Persistent<FunctionTemplate>::New(t);
-        constructor_template->SetClassName(String::NewSymbol("Hypervisor"));
-
         Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         //Constants initialization

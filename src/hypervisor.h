@@ -22,8 +22,9 @@ namespace NodeLibvirt {
                 if (!value->IsObject()) {
                     return false;
                 }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
+                return true; // XXX hack
+                //v8::Local<v8::Object> object = value->ToObject();
+                //return constructor_template->HasInstance(object);
             }
             virConnectPtr connection() const;
         protected:
@@ -83,7 +84,6 @@ namespace NodeLibvirt {
             Hypervisor(const Local<String>& uri, bool readOnly);
 
         private:
-            static Persistent<FunctionTemplate> constructor_template;
             virConnectPtr conn_;
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,
