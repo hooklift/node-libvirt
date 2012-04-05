@@ -117,6 +117,9 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",
                                       Hypervisor::GetMaxVcpus);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "getSysinfo",
+                                      Hypervisor::GetSysinfo);
+
         NODE_SET_PROTOTYPE_METHOD(t, "getType",
                                       Hypervisor::GetType);
 
@@ -131,6 +134,9 @@ namespace NodeLibvirt {
 
         NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",
                                       Hypervisor::IsConnectionSecure);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "isConnectionAlive",
+                                      Hypervisor::IsConnectionAlive);
 
         NODE_SET_PROTOTYPE_METHOD(t, "closeConnection",
                                       Hypervisor::CloseConnection);
@@ -504,6 +510,23 @@ namespace NodeLibvirt {
         return scope.Close(version);
     }
 
+    Handle<Value> Hypervisor::GetSysinfo(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        const char* info_ = virConnectGetSysinfo(hypervisor->conn_, 0);
+
+        if(info_ == NULL) {
+            ThrowException(Error::New(virGetLastError()));
+            return Null();
+        }
+
+        Local<String> info = String::New(info_);
+
+        return scope.Close(info);
+    }
+
     Handle<Value> Hypervisor::GetType(const Arguments& args) {
         HandleScope scope;
         const char* type_ = NULL;
@@ -641,6 +664,20 @@ namespace NodeLibvirt {
         }
 
        return False();
+    }
+
+    Handle<Value> Hypervisor::IsConnectionAlive(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        int ret = virConnectIsAlive(hypervisor->conn_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+        }
+
+        return (ret == 1) ? True() : False();
     }
 
     Handle<Value> Hypervisor::GetBaselineCPU(const Arguments& args) {

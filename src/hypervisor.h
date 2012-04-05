@@ -32,6 +32,7 @@ namespace NodeLibvirt {
 
             static Handle<Value> GetCapabilities(const Arguments& args);
             static Handle<Value> GetHostname(const Arguments& args);
+            static Handle<Value> GetSysinfo(const Arguments& args);
             static Handle<Value> GetType(const Arguments& args);
             static Handle<Value> GetConnectionUri(const Arguments& args);
             static Handle<Value> GetVersion(const Arguments& args);
@@ -41,6 +42,7 @@ namespace NodeLibvirt {
             static Handle<Value> CompareCPU(const Arguments& args);
             static Handle<Value> IsConnectionEncrypted(const Arguments& args);
             static Handle<Value> IsConnectionSecure(const Arguments& args);
+            static Handle<Value> IsConnectionAlive(const Arguments& args);
             static Handle<Value> CloseConnection(const Arguments& args);
 
             //virConnectList functions
