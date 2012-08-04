@@ -8,12 +8,12 @@
     "type": "git",
     "url": "http://github.com/c4milo/node-libvirt.git"
   }],
+  "main": "index.js",
   "scripts": {
-    "preinstall": "node-waf clean || true; node-waf configure build",
     "test": "expresso"
   },
   "engines": {
-    "node": "0.6.x"
+    "node": ">=0.6.0"
   },
   "main": "build/Release/src/libvirt.node"
 }
