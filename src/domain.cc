@@ -1373,11 +1373,7 @@ namespace NodeLibvirt {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
-
-        if(domain->domain_ != NULL) {
-            virDomainFree(domain->domain_);
-        }
-
+        
         return True();
     }
 
