@@ -20,7 +20,7 @@ module.exports = {
 
         var dom = hypervisor.lookupDomainByName('nodejs-test');
         assert.eql(dom.getName(), 'nodejs-test');
-        assert.eql(dom.stop(), true);
+        assert.eql(dom.destroy(), true);
         } catch(err) {}
     },
 
