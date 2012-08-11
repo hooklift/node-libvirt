@@ -162,8 +162,8 @@ namespace NodeLibvirt {
                                       Domain::DetachDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "updateDevice",
                                       Domain::UpdateDevice);
-        NODE_SET_PROTOTYPE_METHOD(t, "stop",
-                                      Domain::Stop);
+        NODE_SET_PROTOTYPE_METHOD(t, "destroy",
+                                      Domain::Destroy);
         NODE_SET_PROTOTYPE_METHOD(t, "undefine",
                                       Domain::Undefine);
         NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",
@@ -1361,7 +1361,7 @@ namespace NodeLibvirt {
         return True();
     }
 
-    Handle<Value> Domain::Stop(const Arguments& args) {
+    Handle<Value> Domain::Destroy(const Arguments& args) {
         HandleScope scope;
         int ret = -1;
 
@@ -1373,7 +1373,6 @@ namespace NodeLibvirt {
             ThrowException(Error::New(virGetLastError()));
             return False();
         }
-        
         return True();
     }
 
