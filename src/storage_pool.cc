@@ -327,7 +327,7 @@ namespace NodeLibvirt {
             Local<Array> flags_ = Local<Array>::Cast(args[0]);
             unsigned int length = flags_->Length();
 
-            for (int i = 0; i < length; i++) {
+            for (unsigned int i = 0; i < length; i++) {
                 flags |= flags_->Get(Integer::New(i))->Int32Value();
             }
         }
@@ -469,7 +469,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[0]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -525,7 +525,6 @@ namespace NodeLibvirt {
     Handle<Value> StoragePool::GetVolumes(const Arguments& args) {
         HandleScope scope;
         char **volumes_ = NULL;
-        unsigned int flags = 0;
         int num_volumes = 0;
 
         StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(args.This());

@@ -338,7 +338,9 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_IO_ERROR);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_GRAPHICS);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON);
+  #ifdef VIR_ENUM_SENTINELS
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LAST);
+  #endif
 
         node_info_model_symbol      = NODE_PSYMBOL("model");
         node_info_memory_symbol     = NODE_PSYMBOL("memory");
@@ -695,7 +697,7 @@ namespace NodeLibvirt {
         ncpus = xmls->Length();
         xmlCPUs = new char*[ncpus + 1];
         xmlCPUs[ncpus] = NULL;
-        for (int i = 0; i < ncpus; i++) {
+        for (unsigned int i = 0; i < ncpus; i++) {
             String::Utf8Value cpu(xmls->Get(Integer::New(i))->ToString());
             xmlCPUs[i] = strdup(*cpu);
         }
@@ -703,7 +705,7 @@ namespace NodeLibvirt {
 
         const char *x = virConnectBaselineCPU(hypervisor->conn_, (const char**)xmlCPUs, ncpus, flags);
 
-        for (int i = 0; i < ncpus; i++) {
+        for (unsigned int i = 0; i < ncpus; i++) {
             free(xmlCPUs[i]);
         }
 
@@ -721,7 +723,6 @@ namespace NodeLibvirt {
     Handle<Value> Hypervisor::CompareCPU(const Arguments& args) {
         HandleScope scope;
 
-        char *xmlDesc = NULL;
         unsigned int flags = 0;
 
         if(args.Length() == 0 || !args[0]->IsString()) {
