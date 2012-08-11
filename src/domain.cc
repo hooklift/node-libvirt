@@ -434,7 +434,6 @@ namespace NodeLibvirt {
     Handle<Value> Domain::LookupById(const Arguments& args) {
         HandleScope scope;
 
-        virConnectPtr conn = NULL;
         int id = -1;
 
         if(args.Length() == 0 || !args[0]->IsInt32()) {
@@ -543,7 +542,7 @@ namespace NodeLibvirt {
 
         id = virDomainGetID(domain->domain_);
 
-        if(id == -1) {
+        if(id == -1u) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
@@ -1072,7 +1071,7 @@ namespace NodeLibvirt {
             Local<Array> flags_ = Local<Array>::Cast(args_->Get(migration_flags_symbol));
             unsigned int length = flags_->Length();
 
-            for (int i = 0; i < length; i++) {
+            for (unsigned int i = 0; i < length; i++) {
                 flags |= flags_->Get(Integer::New(i))->Int32Value();
             }
         }
@@ -1257,7 +1256,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -1300,7 +1299,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -1345,7 +1344,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[1]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -1390,7 +1389,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[0]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -1721,7 +1720,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[2]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 
@@ -1762,14 +1761,14 @@ namespace NodeLibvirt {
         nr_stats = virDomainMemoryStats(domain->domain_, stats_,
                                     VIR_DOMAIN_MEMORY_STAT_NR, flags);
 
-        if(nr_stats == -1) {
+        if(nr_stats == -1u) {
             ThrowException(Error::New(virGetLastError()));
             return Null();
         }
 
         Local<Object> stats = Object::New();
 
-        for(int i = 0; i < nr_stats; i++) {
+        for(unsigned int i = 0; i < nr_stats; i++) {
             switch (stats_[i].tag) {
                 case VIR_DOMAIN_MEMORY_STAT_SWAP_IN:
                     stats->Set(memory_stat_swap_in_symbol, Number::New(stats_[i].val));
