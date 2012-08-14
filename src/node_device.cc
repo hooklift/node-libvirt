@@ -220,7 +220,6 @@ namespace NodeLibvirt {
 
     Handle<Value> NodeDevice::GetCapabilities(const Arguments& args) {
         HandleScope scope;
-        const char *capabilities = NULL;
         char **names_ = NULL;
         int numcaps = -1;
 

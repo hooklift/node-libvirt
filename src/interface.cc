@@ -255,7 +255,7 @@ namespace NodeLibvirt {
         Local<Array> flags_ = Local<Array>::Cast(args[0]);
         unsigned int length = flags_->Length();
 
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
             flags |= flags_->Get(Integer::New(i))->Int32Value();
         }
 

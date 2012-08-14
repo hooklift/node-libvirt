@@ -20,6 +20,11 @@ namespace NodeLibvirt {
                 v8::Local<v8::Object> object = value->ToObject();
                 return constructor_template->HasInstance(object);
             }
+            virtual ~Domain() {
+                if (domain_ != NULL) {
+                    virDomainFree(domain_);
+                }
+            }
             virDomainPtr domain() const;
         protected:
             static Handle<Value> Create(const Arguments& args);
@@ -49,7 +54,7 @@ namespace NodeLibvirt {
             static Handle<Value> Resume(const Arguments& args);
             static Handle<Value> Shutdown(const Arguments& args);
             static Handle<Value> Start(const Arguments& args);
-            static Handle<Value> Stop(const Arguments& args);
+            static Handle<Value> Destroy(const Arguments& args);
             static Handle<Value> GetVcpus(const Arguments& args);
             static Handle<Value> SetVcpus(const Arguments& args);
             static Handle<Value> Migrate(const Arguments& args);

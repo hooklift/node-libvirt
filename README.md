@@ -29,12 +29,13 @@ Node-Libvirt is a set of bindings to Libvirt API, which allows to use it from Ja
 ## Installation
 You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed to be able to build node-libvirt.
 
+### Get and Install node-libvirt
     $ git clone git://github.com/c4milo/node-libvirt.git
     $ cd node-libvirt
-    $ node-waf configure build
-    $ sudo node specs.js
+    $ node-gyp configure
+    $ node-gyp build
 
-### (still) Easy way
+### Use node-libvirt in your project
 From `node-libvirt`'s folder:
 
     $ npm link
@@ -46,7 +47,7 @@ From your app's folder:
 
 ## Example of use
 TODO
-
+    
 ## API
 Take a look at the [docs page][docs_link]
 
