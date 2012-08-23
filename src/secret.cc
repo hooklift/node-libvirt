@@ -27,7 +27,7 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "toXml",
                                       Secret::ToXml);
 
-        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+//        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
         constructor_template = Persistent<FunctionTemplate>::New(t);
         constructor_template->SetClassName(String::NewSymbol("Secret"));
