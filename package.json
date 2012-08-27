@@ -4,8 +4,9 @@
   "author": "Camilo Aguilar - http://github.com/c4milo",
   "email": "camilo@cloudescape.com",
   "contributors": [
-  "Subho Banerjee - subs.zero [AT] gmail [DOT] com", 
-  "Daniel Tralamazza - daniel.tralamazza [AT] epfl [DOT] ch"],
+    "Subho Banerjee - subs.zero [AT] gmail [DOT] com", 
+    "Daniel Tralamazza - daniel.tralamazza [AT] epfl [DOT] ch"
+  ],
   "description": "libvirt bindings for v8 javascript engine",
   "repositories": [{
     "type": "git",
