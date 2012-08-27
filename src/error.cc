@@ -209,6 +209,8 @@ namespace NodeLibvirt {
             return scope.Close(Integer::New(error_->int1));
         } else if(property == int2_symbol) {
             return scope.Close(Integer::New(error_->int2));
+        } else {
+          return Undefined();
         }
     }
 

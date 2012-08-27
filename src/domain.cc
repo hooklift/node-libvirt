@@ -1472,6 +1472,7 @@ namespace NodeLibvirt {
 
     Handle<Value> Domain::GetSchedType(const Arguments& args) {
         HandleScope scope;
+        return Undefined();
     }
 
     Handle<Value> Domain::GetSchedParams(const Arguments& args) {

@@ -271,7 +271,7 @@ namespace NodeLibvirt {
 
     Handle<Value> StoragePool::LookupByVolume(const Arguments& args) {
         HandleScope scope;
-
+        return Undefined();
     }
 
     Handle<Value> StoragePool::Start(const Arguments& args) {
