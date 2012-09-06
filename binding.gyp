@@ -20,9 +20,12 @@
         ['OS!="win"', {
           'link_settings': {
             'libraries': [
-              '<!@(pkg-config --libs-only-l libvirt)'
+              '<!@(pkg-config --libs libvirt)'
             ]
-          }
+          },
+	  'cflags': [
+	    '<!@(pkg-config --cflags libvirt)'
+	  ],
         }]
       ]
     }
