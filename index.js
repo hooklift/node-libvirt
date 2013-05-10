@@ -1,1 +1,1 @@
-module.exports = require('./build/Release/node-libvirt');
+module.exports = require('./build/Release/libvirt');
