@@ -1,7 +1,8 @@
 {
   'targets': [
     {
-      'target_name': 'node-libvirt',
+      'target_name': 'libvirt',
+      'product_prefix': 'lib',
       'sources': [
         'src/node_libvirt.cc',
         'src/domain.cc',
