@@ -200,11 +200,11 @@ namespace NodeLibvirt {
         } else if(property == level_symbol) {
             return scope.Close(Integer::New(error_->level));
         } else if(property == str1_symbol) {
-            return scope.Close(String::New(error_->str1));
+            return scope.Close(String::New(error_->str1 != NULL ? error_->str1 : ""));
         } else if(property == str2_symbol) {
-            return scope.Close(String::New(error_->str2));
+            return scope.Close(String::New(error_->str2 != NULL ? error_->str2 : ""));
         } else if(property == str3_symbol) {
-            return scope.Close(String::New(error_->str3));
+            return scope.Close(String::New(error_->str3 != NULL ? error_->str3 : ""));
         } else if(property == int1_symbol) {
             return scope.Close(Integer::New(error_->int1));
         } else if(property == int2_symbol) {
