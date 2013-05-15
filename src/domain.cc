@@ -543,7 +543,10 @@ namespace NodeLibvirt {
         id = virDomainGetID(domain->domain_);
 
         if(id == -1u) {
-            ThrowException(Error::New(virGetLastError()));
+            if (virGetLastError() != NULL) {
+                ThrowException(Error::New(virGetLastError()));
+            }
+
             return Null();
         }
 
