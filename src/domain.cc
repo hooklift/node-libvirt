@@ -196,6 +196,11 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SHUTOFF);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_CRASHED);
 
+#ifdef VIR_DOMAIN_PMSUSPENDED
+        // If its available in libvirt.h, then make it available in node
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_PMSUSPENDED);
+#endif
+
         //virDomainDeviceModifyFlags
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
