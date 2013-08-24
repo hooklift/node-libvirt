@@ -156,6 +156,8 @@ namespace NodeLibvirt {
                                       Domain::Start);
         NODE_SET_PROTOTYPE_METHOD(t, "suspend",
                                       Domain::Suspend);
+        NODE_SET_PROTOTYPE_METHOD(t, "sendKey",
+                                      Domain::SendKey);
         NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",
                                       Domain::AttachDevice);
         NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",
@@ -281,6 +283,9 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_POWEROFF);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_SHUTDOWN);
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_DEBUG);
+
+
+        NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SEND_KEY_MAX_KEYS);
 
         state_symbol        = NODE_PSYMBOL("state");
         max_memory_symbol   = NODE_PSYMBOL("max_memory");
@@ -929,6 +934,41 @@ namespace NodeLibvirt {
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         ret = virDomainCreate(domain->domain_);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+        return True();
+    }
+
+    Handle<Value> Domain::SendKey(const Arguments& args) {
+        HandleScope scope;
+        int ret = -1;
+
+        if(args.Length() == 0) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify arguments to invoke this function")));
+        }
+
+        if(!args[0]->IsArray()) {
+            return ThrowException(Exception::TypeError(
+            String::New("Argument must be an array of objects")));
+        }
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        unsigned int keycodes[VIR_DOMAIN_SEND_KEY_MAX_KEYS];
+
+        Local<Array> keycodes_ = Local<Array>::Cast(args[0]);
+
+        unsigned int length = keycodes_->Length();
+
+        for(unsigned int i = 0; i < length; i++) {
+            keycodes[i] = (unsigned int) keycodes_->Get(Integer::New(i))->Int32Value();
+        }
+        
+        ret = virDomainSendKey(domain->domain_, 0, 150, keycodes, length, 0);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
