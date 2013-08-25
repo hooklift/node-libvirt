@@ -48,6 +48,7 @@ namespace NodeLibvirt {
             static Handle<Value> IsPersistent(const Arguments& args);
             static Handle<Value> IsUpdated(const Arguments& args);
             static Handle<Value> Reboot(const Arguments& args);
+            static Handle<Value> Reset(const Arguments& args);
             static Handle<Value> Save(const Arguments& args);
             static Handle<Value> Restore(const Arguments& args);
             static Handle<Value> Suspend(const Arguments& args);

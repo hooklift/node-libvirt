@@ -146,6 +146,8 @@ namespace NodeLibvirt {
                                       Domain::PinVcpu);
         NODE_SET_PROTOTYPE_METHOD(t, "reboot",
                                       Domain::Reboot);
+        NODE_SET_PROTOTYPE_METHOD(t, "reset",
+                                      Domain::Reset);
         NODE_SET_PROTOTYPE_METHOD(t, "resume",
                                       Domain::Resume);
         NODE_SET_PROTOTYPE_METHOD(t, "save",
@@ -819,6 +821,23 @@ namespace NodeLibvirt {
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
         ret = virDomainReboot(domain->domain_, flags);
+
+        if(ret == -1) {
+            ThrowException(Error::New(virGetLastError()));
+            return False();
+        }
+
+        return True();
+    }
+
+    Handle<Value> Domain::Reset(const Arguments& args) {
+        HandleScope scope;
+        unsigned int flags = 0;
+        int ret = -1;
+
+        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+        ret = virDomainReset(domain->domain_, flags);
 
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
