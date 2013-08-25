@@ -91,6 +91,10 @@ module.exports = {
         assert.eql(domain.isPersistent(), true);
     },
 
+    'should reset the domain': function(beforeExit, assert) {
+        assert.eql(domain.reset(), true);
+    },
+
     'should reboot the domain': function(beforeExit, assert) {
         assert.eql(domain.reboot(), true);
     },
