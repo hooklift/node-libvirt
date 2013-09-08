@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Node-libvirt by c4milo</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Node-libvirt</h1>
+        <h2>libvirt bindings for google v8 javascript engine (nodejs addon)</h2>
+        <a href="https://github.com/c4milo/node-libvirt" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="node-libvirt---the-virtualization-api-bindings-for-nodejs" class="anchor" href="#node-libvirt---the-virtualization-api-bindings-for-nodejs"><span class="octicon octicon-link"></span></a>Node-libvirt - The virtualization API bindings for <a href="http://www.nodejs.org">NodeJS</a>
+</h1>
+
+<p><a href="http://flattr.com/thing/1104368/" target="_blank">
+<img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a></p>
+
+<p>Libvirt is a toolkit to interact with virtualization capabilities
+of recent versions of GNU/Linux (and other OSes). (reference: <a href="http://www.libvirt.org">Libvirt</a>)</p>
+
+<p>Node-Libvirt is a set of bindings to Libvirt API, which allows to use it from Javascript.</p>
+
+<h3>
+<a name="virtualization-technologies-supported" class="anchor" href="#virtualization-technologies-supported"><span class="octicon octicon-link"></span></a>Virtualization Technologies Supported</h3>
+
+<ul>
+<li>The <a href="http://www.cl.cam.ac.uk/Research/SRG/netos/xen/index.html">Xen</a> hypervisor on Linux and Solaris hosts.</li>
+<li>
+<a href="http://wiki.qemu.org/Index.html">QEMU</a> emulator</li>
+<li>
+<a href="http://www.linux-kvm.org">KVM</a> Linux hypervisor</li>
+<li>
+<a href="http://lxc.sourceforge.net/">LXC</a> Linux container system</li>
+<li>
+<a href="http://openvz.org/">OpenVZ</a> Linux container system</li>
+<li>
+<a href="http://user-mode-linux.sourceforge.net/">User Mode Linux</a> paravirtualized kernel</li>
+<li>
+<a href="http://www.virtualbox.org/">VirtualBox</a> hypervisor</li>
+<li>
+<a href="http://www.vmware.com/">VMware ESX and GSX</a> hypervisors</li>
+<li>
+<a href="http://www.ibm.com/developerworks/wikis/display/LinuxP/POWER5+Hypervisor">IBM Power</a> Hypervisor</li>
+</ul><h3>
+<a name="capabilities" class="anchor" href="#capabilities"><span class="octicon octicon-link"></span></a>Capabilities</h3>
+
+<ul>
+<li>Management of virtual machines, virtual networks and storage</li>
+<li>Remote management using TLS encryption and x509 certificates</li>
+<li>Remote management authenticating with Kerberos and SASL</li>
+<li>Local access control using PolicyKit</li>
+<li>Zero-conf discovery using Avahi multicast-DNS</li>
+<li>Support for storage on IDE/SCSI/USB disks, FibreChannel, LVM, iSCSI, NFS and filesystems</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>You must have <a href="http://github.com/ry/node">NodeJS</a> and <a href="http://libvirt.org/deployment.html">Libvirt</a> already installed to be able to build node-libvirt.</p>
+
+<h3>
+<a name="get-and-install-node-libvirt" class="anchor" href="#get-and-install-node-libvirt"><span class="octicon octicon-link"></span></a>Get and Install node-libvirt</h3>
+
+<pre><code>$ git clone git://github.com/c4milo/node-libvirt.git
+$ cd node-libvirt
+$ node-gyp configure
+$ node-gyp build
+</code></pre>
+
+<h3>
+<a name="use-node-libvirt-in-your-project" class="anchor" href="#use-node-libvirt-in-your-project"><span class="octicon octicon-link"></span></a>Use node-libvirt in your project</h3>
+
+<p>From <code>node-libvirt</code>'s folder:</p>
+
+<pre><code>$ npm link
+</code></pre>
+
+<p>From your app's folder:</p>
+
+<pre><code>$ npm link libvirt
+</code></pre>
+
+<h2>
+<a name="example-of-use" class="anchor" href="#example-of-use"><span class="octicon octicon-link"></span></a>Example of use</h2>
+
+<p>TODO</p>
+
+<h2>
+<a name="api" class="anchor" href="#api"><span class="octicon octicon-link"></span></a>API</h2>
+
+<p>Take a look at the <a href="http://github.com/c4milo/node-libvirt/blob/master/API.md">docs page</a></p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>(The MIT License)</p>
+
+<p>Copyright 2012 Camilo Aguilar. All rights reserved.</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/c4milo/node-libvirt/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/c4milo/node-libvirt/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/c4milo/node-libvirt"></a> is maintained by <a href="https://github.com/c4milo">c4milo</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-43856607-4");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
