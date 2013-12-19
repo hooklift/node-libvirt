@@ -2,6 +2,16 @@
 
 ## Hypervisor
 
+### new Hypervisor(options)
+ Options:
+
+ - uri: libvirt connection URI
+ - user: (optional) username for authentication
+ - password: (optional) password for authentication
+ - readOnly: (optional) wether the connection is read-only
+
+ If options is a string it is used as the URI.
+
 ### getBaselineCPU([cpu1, cpu2, cpu3, cpuN])
  Computes the most feature-rich CPU which is compatible with all given host CPUs.
 #### Parameters:

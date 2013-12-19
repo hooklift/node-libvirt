@@ -12,8 +12,21 @@
 #include "storage_pool.h"
 #include "storage_volume.h"
 #include "error.h"
+#include <string>
 
 namespace NodeLibvirt {
+
+    class ConnData {
+        public:
+            std::string uri;
+            const bool readOnly;
+            std::string user;
+            std::string password;
+            ConnData( const std::string& uri,
+                        const bool readOnly,
+                        const std::string& user,
+                        const std::string& pw);
+    };
 
     class Hypervisor : public ObjectWrap {
         public:
@@ -83,10 +96,16 @@ namespace NodeLibvirt {
             //Misc functions
             static Handle<Value> FindStoragePoolSources(const Arguments& args);
 
-            Hypervisor(const Local<String>& uri, bool readOnly);
+            Hypervisor( const std::string& uri,
+                        bool readOnly,
+                        const std::string& userStr,
+                        const std::string& pwStr);
+
 
         private:
             virConnectPtr conn_;
+            ConnData connData;
+
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,
                                                         virDomainPtr domain,
