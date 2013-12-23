@@ -4,39 +4,39 @@
 #include <string.h>
 #include "hypervisor.h"
 
-#define GET_LIST_OF(name, numof_function, list_function)                \
-                                                                        \
-Handle<Value> Hypervisor::name(const Arguments& args) {                 \
-    HandleScope scope;                                                  \
-    char **_names = NULL;                                               \
-    int numInactiveItems;                                               \
-    virConnectPtr connection;                                           \
-                                                                        \
-    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());                                                                    \
-    connection = hypervisor->conn_;                                     \
-                                                                        \
-    numInactiveItems = numof_function(connection);                      \
-                                                                        \
-    if(numInactiveItems == -1) {                                        \
-        ThrowException(Error::New(virGetLastError()));                  \
-        return Null();                                                  \
-    }                                                                   \
-                                                                        \
-    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);       \
-    if(_names == NULL) {                                                \
-        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");           \
-        return Null();                                                  \
-    }                                                                   \
-                                                                        \
-    int ret = list_function(connection, _names, numInactiveItems);\
-                                                                        \
-    if(ret == -1) {                                                     \
-        ThrowException(Error::New(virGetLastError()));                  \
-        free(_names);                                                   \
-        return Null();                                                  \
-    }                                                                   \
-                                                                        \
-    TO_V8_ARRAY(numInactiveItems, _names);                              \
+#define GET_LIST_OF(name, numof_function, list_function)                    \
+                                                                            \
+Handle<Value> Hypervisor::name(const Arguments& args) {                     \
+    HandleScope scope;                                                      \
+    char **_names = NULL;                                                   \
+    int numInactiveItems;                                                   \
+    virConnectPtr connection;                                               \
+                                                                            \
+    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());   \
+    connection = hypervisor->conn_;                                         \
+                                                                            \
+    numInactiveItems = numof_function(connection);                          \
+                                                                            \
+    if(numInactiveItems == -1) {                                            \
+        ThrowException(Error::New(virGetLastError()));                      \
+        return Null();                                                      \
+    }                                                                       \
+                                                                            \
+    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);           \
+    if(_names == NULL) {                                                    \
+        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");               \
+        return Null();                                                      \
+    }                                                                       \
+                                                                            \
+    int ret = list_function(connection, _names, numInactiveItems);          \
+                                                                            \
+    if(ret == -1) {                                                         \
+        ThrowException(Error::New(virGetLastError()));                      \
+        free(_names);                                                       \
+        return Null();                                                      \
+    }                                                                       \
+                                                                            \
+    TO_V8_ARRAY(numInactiveItems, _names);                                  \
 }
 
 
@@ -56,6 +56,11 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                     \
 }                                                                           \
 
 namespace NodeLibvirt {
+
+    static Persistent<String> hypervisor_uri_symbol;
+    static Persistent<String> hypervisor_username_symbol;
+    static Persistent<String> hypervisor_password_symbol;
+    static Persistent<String> hypervisor_readonly_symbol;
 
     static Persistent<String> node_info_model_symbol;
     static Persistent<String> node_info_memory_symbol;
@@ -342,6 +347,11 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LAST);
   #endif
 
+        hypervisor_uri_symbol       = NODE_PSYMBOL("uri");
+        hypervisor_username_symbol  = NODE_PSYMBOL("username");
+        hypervisor_password_symbol  = NODE_PSYMBOL("password");
+        hypervisor_readonly_symbol  = NODE_PSYMBOL("readonly");
+
         node_info_model_symbol      = NODE_PSYMBOL("model");
         node_info_memory_symbol     = NODE_PSYMBOL("memory");
         node_info_cpus_symbol       = NODE_PSYMBOL("cpus");
@@ -381,13 +391,76 @@ namespace NodeLibvirt {
         target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
     }
 
-    Hypervisor::Hypervisor(const Local<String>& uriStr, bool readOnly) : ObjectWrap() {
-        HandleScope scope;
-        String::Utf8Value uri(uriStr);
 
-        //FIXME receive auth Object
-        conn_ = virConnectOpenAuth((const char *)*uri, virConnectAuthPtrDefault,
-                                   readOnly ? VIR_CONNECT_RO : 0);
+    static int myVirConnectAuthCallback(virConnectCredentialPtr cred,
+                                        unsigned int ncred,
+                                        void *cbdata) {
+        size_t i;
+        ConnData *cd = (ConnData *)cbdata;
+
+        for (i = 0; i < ncred; i++) {
+            switch (cred[i].type) {
+            case VIR_CRED_USERNAME:
+            case VIR_CRED_AUTHNAME:
+            case VIR_CRED_ECHOPROMPT:
+            case VIR_CRED_REALM:
+                // Put username in cred[i].result
+                if (cd->user.length()) {
+                    cred[i].resultlen = cd->user.length();
+                    cred[i].result = (char *) malloc(cred[i].resultlen);
+                    strcpy(cred[i].result, cd->user.c_str());
+                } else {
+                    cred[i].resultlen = 0;
+                }
+                break;
+
+            case VIR_CRED_PASSPHRASE:
+            case VIR_CRED_NOECHOPROMPT:
+                // Put password in cred[i].result
+                if (cd->password.length()) {
+                    cred[i].resultlen = cd->password.length();
+                    cred[i].result = (char *) malloc(cred[i].resultlen);
+                    strcpy(cred[i].result, cd->password.c_str());
+                } else {
+                    cred[i].resultlen = 0;
+                }
+                break;
+
+            default:
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+    static int myVirConnectCredTypes[] = {
+        VIR_CRED_AUTHNAME,
+        VIR_CRED_PASSPHRASE,
+    };
+
+    ConnData::ConnData(const std::string& uri_,
+                       const bool readOnly_,
+                       const std::string& user_,
+                       const std::string& pass_)
+    : uri(uri_), readOnly(readOnly_), user(user_), password(pass_) {
+    }
+
+    Hypervisor::Hypervisor(const std::string& uri,
+                           bool readOnly,
+                           const std::string& user,
+                           const std::string& pass)
+    : ObjectWrap(), connData(uri, readOnly, user, pass) {
+        HandleScope scope;
+
+        virConnectAuth thisVirConnectAuth = {
+            myVirConnectCredTypes,
+            sizeof(myVirConnectCredTypes)/sizeof(int),
+            &myVirConnectAuthCallback,
+            (void *)&connData
+        };
+
+        conn_ = virConnectOpenAuth(connData.uri.c_str(), &thisVirConnectAuth,
+                                   connData.readOnly ? VIR_CONNECT_RO : 0);
 
         if(conn_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
@@ -400,23 +473,52 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::New(const Arguments& args) {
         HandleScope scope;
+        std::string uriStr;
+        std::string userStr;
+        std::string pwStr;
+        bool readOnly = false;
 
         if(args.Length() == 0 ) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify at least a Hypervisor URI")));
+            String::New("You must specify connection options")));
         }
 
-        if(!args[0]->IsString()) {
+        if (args[0]->IsString()) {
+            String::Utf8Value t0(args[0]->ToString());
+            uriStr = std::string(*t0);
+
+            if(args.Length() == 2 && !args[1]->IsBoolean()) {
+                return ThrowException(Exception::TypeError(
+                String::New("Second argument must be a boolean")));
+            }
+
+            readOnly = args[1]->IsTrue();
+        } else if (args[0]->IsObject()) {
+            Local<Object> arg_obj = args[0]->ToObject();
+            if( !arg_obj->Has(hypervisor_uri_symbol) ||
+                !arg_obj->Get(hypervisor_uri_symbol)->IsString()) {
+                return ThrowException(Exception::TypeError(
+                String::New("Need uri to connect")));
+            }
+            String::Utf8Value t1(arg_obj->Get(hypervisor_uri_symbol)->ToString());
+            uriStr = std::string(*t1);
+
+            if( arg_obj->Has(hypervisor_username_symbol) ) {
+                String::Utf8Value t2(arg_obj->Get(hypervisor_username_symbol)->ToString());
+                userStr = std::string(*t2);
+            }
+            if( arg_obj->Has(hypervisor_password_symbol) ) {
+                String::Utf8Value t3(arg_obj->Get(hypervisor_password_symbol)->ToString());
+                pwStr = std::string(*t3);
+            }
+            if( arg_obj->Has(hypervisor_readonly_symbol) ) {
+                readOnly = arg_obj->Get(hypervisor_readonly_symbol)->IsTrue();
+            }
+        } else {
             return ThrowException(Exception::TypeError(
-            String::New("First argument must be a string")));
+            String::New("Please provide connection options as an object")));
         }
-
-        if(args.Length() == 2 && !args[1]->IsBoolean()) {
-            return ThrowException(Exception::TypeError(
-            String::New("Second argument must be a boolean")));
-        }
-
-        Hypervisor *hypervisor = new Hypervisor(args[0]->ToString(), args[1]->IsTrue());
+        Hypervisor *hypervisor = new Hypervisor(uriStr, readOnly, userStr, pwStr);
         Local<Object> obj = args.This();
         hypervisor->Wrap(obj);
 
