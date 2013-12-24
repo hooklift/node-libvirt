@@ -405,7 +405,7 @@ namespace NodeLibvirt {
         this->password_ = password;
 
         virConnectAuth auth;
-        auth.credtype = supported_cred_types; //declared and initialized in hypervisor.h
+        auth.credtype = supported_cred_types;
         auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
         auth.cb = Hypervisor::auth_callback;
         auth.cbdata = this;
