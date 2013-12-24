@@ -1,6 +1,6 @@
 {
   "name" : "libvirt",
-  "version": "0.2.0",
+  "version": "0.1.2",
   "author": "Camilo Aguilar - http://github.com/c4milo",
   "email": "camilo@cloudescape.com",
   "contributors": [
