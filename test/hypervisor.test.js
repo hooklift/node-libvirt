@@ -1,4 +1,7 @@
-var libvirt = require('libvirt');
+var SegfaultHandler = require('segfault-handler');
+SegfaultHandler.registerHandler();
+
+var libvirt = require('../build/Release/libvirt');
 var fixture = require('./lib/helper').fixture;
 
 var Hypervisor = libvirt.Hypervisor;
@@ -26,26 +29,15 @@ module.exports = {
     },
 
     'should open an authenticated connection': function(beforeExit, assert) {
-//                var authdata = { credlist: [ hypervisor.VIR_CRED_AUTHNAME,
-//                                             hypervisor.VIR_CRED_PASSPHRASE],
-//
-//                                 callback: function(credentials) {
-//                                    for(cred in credentials) {
-//                                        if(cred.type == hypervisor.VIR_CRED_AUTHNAME) {
-//                                            cred.result = 'camilo'
-//                                        }
-//                                        if(cred.type == hypervisor.VIR_CRED_PASSPHRASE) {
-//                                            cred.result = 'password'
-//                                        }
-//                                    }
-//                                }
-//
-//                        };
-//
-//                var hypervisor = new libvirt.Hypervisor('qemu:///system', authdata);
-//                hypervisor.should_not_be undefined
-//                hypervisor.should_not_be null
-//                hypervisor.getVersion().should_not_be null
+        // var hypervisor2 = new libvirt.Hypervisor('esx://172.16.103.128/?no_verify=1', {
+        //     username: 'myusername',
+        //     password: 'mypassword',
+        //     readOnly: false
+        // });
+
+        // assert.isDefined(hypervisor2);
+        // assert.isNotNull(hypervisor2);
+        // assert.isNotNull(hypervisor2.getVersion());
     },
 
     'should return hypervisor capabilities': function(beforeExit, assert) {
@@ -217,11 +209,11 @@ module.exports = {
     },
 
     'should compute the most feature-rich CPU': function(beforeExit, assert) {
-        var cpu1 = fixture('cpu1.xml')
-        var cpu2 = fixture('cpu2.xml')
-        var computed_cpu = fixture('match_bt_cpu1_and_cpu2.xml')
+        var cpu1 = fixture('cpu1.xml');
+        var cpu2 = fixture('cpu2.xml');
+        var computed_cpu = fixture('match_bt_cpu1_and_cpu2.xml');
 
-        xmlCPUs = [cpu1, cpu2]
+        xmlCPUs = [cpu1, cpu2];
 
         //no supported by test driver
         try {
@@ -235,7 +227,7 @@ module.exports = {
         var cpu = fixture('cpu1.xml');
         //no supported by test driver
         try {
-          hypervisor.compareCPU(cpu)
+          hypervisor.compareCPU(cpu);
         } catch(error) {
             assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
         }
@@ -286,31 +278,31 @@ module.exports = {
         }
     },
 
-    'should register function callbacks for domain events': function(beforeExit, assert) {
-        var domain = hypervisor.lookupDomainByName('test');
+    // 'should register function callbacks for domain events': function(beforeExit, assert) {
+    //     var domain = hypervisor.lookupDomainByName('test');
 
-        var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-                     domain: domain,
-                     callback: function(hyp, dom, data) {
-                        assert.eql(dom.getName(), 'test');
-                        assert.eql(data.evtype, hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE);
-                        assert.eql(data.detail, dom.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
-                     }
-                    };
+    //     var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+    //                  domain: domain,
+    //                  callback: function(hyp, dom, data) {
+    //                     assert.eql(dom.getName(), 'test');
+    //                     assert.eql(data.evtype, hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE);
+    //                     assert.eql(data.detail, dom.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
+    //                  }
+    //                 };
 
-        callback_id = hypervisor.registerDomainEvent(args);
-        domain.shutdown();
-        assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
-    },
+    //     callback_id = hypervisor.registerDomainEvent(args);
+    //     domain.shutdown();
+    //     assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
+    // },
 
-    'should unregister callbacks listening for domain events': function(beforeExit, assert) {
-        var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-                     callback: function(hyp, dom, evtype, detail) {}
-                    };
+    // 'should unregister callbacks listening for domain events': function(beforeExit, assert) {
+    //     var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+    //                  callback: function(hyp, dom, evtype, detail) {}
+    //                 };
 
-        callback_id = hypervisor.registerDomainEvent(args);
-        assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
-    },
+    //     callback_id = hypervisor.registerDomainEvent(args);
+    //     assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
+    // },
 
     'should close a connection': function(beforeExit, assert) {
         assert.eql(hypervisor.closeConnection(), true);

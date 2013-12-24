@@ -1,17 +1,25 @@
 {
   "name" : "libvirt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Camilo Aguilar - http://github.com/c4milo",
   "email": "camilo@cloudescape.com",
   "contributors": [
-    "Subho Banerjee - subs.zero [AT] gmail [DOT] com", 
-    "Daniel Tralamazza - daniel.tralamazza [AT] epfl [DOT] ch"
+    "Subho Banerjee - subs.zero [AT] gmail [DOT] com",
+    "Daniel Tralamazza - daniel.tralamazza [AT] epfl [DOT] ch",
+    "Wout Mertens - @wmertens",
+    "Michael Maier - https://github.com/binBASH"
   ],
   "description": "libvirt bindings for v8 javascript engine",
   "repositories": [{
     "type": "git",
     "url": "http://github.com/c4milo/node-libvirt.git"
   }],
+
+  "devDependencies": {
+    "expresso": "*",
+    "segfault-handler": "*"
+  },
+
   "main": "index.js",
   "scripts": {
     "test": "expresso"

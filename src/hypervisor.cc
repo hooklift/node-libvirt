@@ -57,7 +57,6 @@ Handle<Value> Hypervisor::name(const Arguments& args) {                     \
 
 namespace NodeLibvirt {
 
-    static Persistent<String> hypervisor_uri_symbol;
     static Persistent<String> hypervisor_username_symbol;
     static Persistent<String> hypervisor_password_symbol;
     static Persistent<String> hypervisor_readonly_symbol;
@@ -347,7 +346,6 @@ namespace NodeLibvirt {
         NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LAST);
   #endif
 
-        hypervisor_uri_symbol       = NODE_PSYMBOL("uri");
         hypervisor_username_symbol  = NODE_PSYMBOL("username");
         hypervisor_password_symbol  = NODE_PSYMBOL("password");
         hypervisor_readonly_symbol  = NODE_PSYMBOL("readonly");
@@ -392,79 +390,58 @@ namespace NodeLibvirt {
     }
 
 
-    static int myVirConnectAuthCallback(virConnectCredentialPtr cred,
-                                        unsigned int ncred,
-                                        void *cbdata) {
-        size_t i;
-        ConnData *cd = (ConnData *)cbdata;
+    Hypervisor::Hypervisor( char* uri,
+                            char* username,
+                            char* password,
+                            bool readonly)
+    : ObjectWrap() {
 
-        for (i = 0; i < ncred; i++) {
-            switch (cred[i].type) {
-            case VIR_CRED_USERNAME:
-            case VIR_CRED_AUTHNAME:
-            case VIR_CRED_ECHOPROMPT:
-            case VIR_CRED_REALM:
-                // Put username in cred[i].result
-                if (cd->user.length()) {
-                    cred[i].resultlen = cd->user.length();
-                    cred[i].result = (char *) malloc(cred[i].resultlen);
-                    strcpy(cred[i].result, cd->user.c_str());
-                } else {
-                    cred[i].resultlen = 0;
-                }
-                break;
-
-            case VIR_CRED_PASSPHRASE:
-            case VIR_CRED_NOECHOPROMPT:
-                // Put password in cred[i].result
-                if (cd->password.length()) {
-                    cred[i].resultlen = cd->password.length();
-                    cred[i].result = (char *) malloc(cred[i].resultlen);
-                    strcpy(cred[i].result, cd->password.c_str());
-                } else {
-                    cred[i].resultlen = 0;
-                }
-                break;
-
-            default:
-                return -1;
-            }
-        }
-
-        return 0;
-    }
-    static int myVirConnectCredTypes[] = {
-        VIR_CRED_AUTHNAME,
-        VIR_CRED_PASSPHRASE,
-    };
-
-    ConnData::ConnData(const std::string& uri_,
-                       const bool readOnly_,
-                       const std::string& user_,
-                       const std::string& pass_)
-    : uri(uri_), readOnly(readOnly_), user(user_), password(pass_) {
-    }
-
-    Hypervisor::Hypervisor(const std::string& uri,
-                           bool readOnly,
-                           const std::string& user,
-                           const std::string& pass)
-    : ObjectWrap(), connData(uri, readOnly, user, pass) {
-        HandleScope scope;
-
-        virConnectAuth thisVirConnectAuth = {
-            myVirConnectCredTypes,
-            sizeof(myVirConnectCredTypes)/sizeof(int),
-            &myVirConnectAuthCallback,
-            (void *)&connData
+        static int supported_cred_types[] = {
+            VIR_CRED_AUTHNAME,
+            VIR_CRED_PASSPHRASE,
         };
 
-        conn_ = virConnectOpenAuth(connData.uri.c_str(), &thisVirConnectAuth,
-                                   connData.readOnly ? VIR_CONNECT_RO : 0);
+        this->username_ = username;
+        this->password_ = password;
+
+        virConnectAuth auth;
+        auth.credtype = supported_cred_types; //declared and initialized in hypervisor.h
+        auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
+        auth.cb = Hypervisor::auth_callback;
+        auth.cbdata = this;
+
+        conn_ = virConnectOpenAuth( (const char*) uri,
+                                    &auth,
+                                    readonly ? VIR_CONNECT_RO : 0);
 
         if(conn_ == NULL) {
             ThrowException(Error::New(virGetLastError()));
         }
+    }
+
+    int Hypervisor::auth_callback(  virConnectCredentialPtr cred,
+                                    unsigned int ncred,
+                                    void *data) {
+        Hypervisor *hyp = static_cast<Hypervisor*>(data);
+
+        for (unsigned int i = 0; i < ncred; i++) {
+            if (cred[i].type == VIR_CRED_AUTHNAME) {
+                cred[i].result = hyp->username_;
+
+                if (cred[i].result == NULL) {
+                    return -1;
+                }
+                cred[i].resultlen = strlen(cred[i].result);
+            } else if (cred[i].type == VIR_CRED_PASSPHRASE) {
+                cred[i].result = hyp->password_;
+                if (cred[i].result == NULL) {
+                    return -1;
+                }
+                cred[i].resultlen = strlen(cred[i].result);
+            }
+        }
+
+        return 0;
     }
 
     virConnectPtr Hypervisor::connection() const {
@@ -473,56 +450,60 @@ namespace NodeLibvirt {
 
     Handle<Value> Hypervisor::New(const Arguments& args) {
         HandleScope scope;
-        std::string uriStr;
-        std::string userStr;
-        std::string pwStr;
-        bool readOnly = false;
 
-        if(args.Length() == 0 ) {
+        bool readonly = false;
+        char* uri = NULL;
+        char* username = NULL;
+        char* password = NULL;
+
+        int argsLen = args.Length();
+
+        if (argsLen == 0) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify connection options")));
+            String::New("You must specify a connection URI as first argument")));
         }
 
-        if (args[0]->IsString()) {
-            String::Utf8Value t0(args[0]->ToString());
-            uriStr = std::string(*t0);
-
-            if(args.Length() == 2 && !args[1]->IsBoolean()) {
-                return ThrowException(Exception::TypeError(
-                String::New("Second argument must be a boolean")));
-            }
-
-            readOnly = args[1]->IsTrue();
-        } else if (args[0]->IsObject()) {
-            Local<Object> arg_obj = args[0]->ToObject();
-            if( !arg_obj->Has(hypervisor_uri_symbol) ||
-                !arg_obj->Get(hypervisor_uri_symbol)->IsString()) {
-                return ThrowException(Exception::TypeError(
-                String::New("Need uri to connect")));
-            }
-            String::Utf8Value t1(arg_obj->Get(hypervisor_uri_symbol)->ToString());
-            uriStr = std::string(*t1);
-
-            if( arg_obj->Has(hypervisor_username_symbol) ) {
-                String::Utf8Value t2(arg_obj->Get(hypervisor_username_symbol)->ToString());
-                userStr = std::string(*t2);
-            }
-            if( arg_obj->Has(hypervisor_password_symbol) ) {
-                String::Utf8Value t3(arg_obj->Get(hypervisor_password_symbol)->ToString());
-                pwStr = std::string(*t3);
-            }
-            if( arg_obj->Has(hypervisor_readonly_symbol) ) {
-                readOnly = arg_obj->Get(hypervisor_readonly_symbol)->IsTrue();
-            }
-        } else {
+        if (argsLen == 1 && !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
-            String::New("Please provide connection options as an object")));
+            String::New("You must specify a string as connection URI")));
         }
-        Hypervisor *hypervisor = new Hypervisor(uriStr, readOnly, userStr, pwStr);
+
+        Local<String> uriStr = args[0]->ToString();
+        String::Utf8Value uri_(uriStr);
+        uri = *uri_;
+
+        if (argsLen >= 2) {
+            if (args[1]->IsBoolean()) {
+                readonly = args[1]->IsTrue();
+            } else if (args[1]->IsObject()) {
+                Local<Object> args_ = args[1]->ToObject();
+
+                if (args_->Has(hypervisor_readonly_symbol) &&
+                    args_->Get(hypervisor_readonly_symbol)->IsBoolean()) {
+                    readonly = args_->Get(hypervisor_readonly_symbol)->IsTrue();
+                }
+
+                if (args_->Has(hypervisor_username_symbol)) {
+                    String::Utf8Value username_(args_->Get(hypervisor_username_symbol));
+                    //We need to use strdup because the driver
+                    //is attempting to release cred[i].result memory for us.
+                    username = strdup(*username_);
+                }
+
+                if (args_->Has(hypervisor_password_symbol)) {
+                    String::Utf8Value password_(args_->Get(hypervisor_password_symbol));
+                    //We need to use strdup because the driver
+                    //is attempting to release cred[i].result memory for us.
+                    password = strdup(*password_);
+                }
+            }
+        }
+
+        Hypervisor *hypervisor = new Hypervisor(uri, username, password, readonly);
         Local<Object> obj = args.This();
         hypervisor->Wrap(obj);
 
-        return obj;
+        return scope.Close(obj);
     }
 
     Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {

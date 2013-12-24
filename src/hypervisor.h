@@ -16,18 +16,6 @@
 
 namespace NodeLibvirt {
 
-    class ConnData {
-        public:
-            std::string uri;
-            const bool readOnly;
-            std::string user;
-            std::string password;
-            ConnData( const std::string& uri,
-                        const bool readOnly,
-                        const std::string& user,
-                        const std::string& pw);
-    };
-
     class Hypervisor : public ObjectWrap {
         public:
             static void Initialize(Handle<Object> target);
@@ -40,6 +28,7 @@ namespace NodeLibvirt {
                 //return constructor_template->HasInstance(object);
             }
             virConnectPtr connection() const;
+
         protected:
             static Handle<Value> New(const Arguments& args);
 
@@ -96,15 +85,16 @@ namespace NodeLibvirt {
             //Misc functions
             static Handle<Value> FindStoragePoolSources(const Arguments& args);
 
-            Hypervisor( const std::string& uri,
-                        bool readOnly,
-                        const std::string& userStr,
-                        const std::string& pwStr);
+            Hypervisor( char* uri,
+                        char* user,
+                        char* pass,
+                        bool readOnly);
 
 
         private:
             virConnectPtr conn_;
-            ConnData connData;
+            char* username_;
+            char* password_;
 
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,
@@ -144,6 +134,9 @@ namespace NodeLibvirt {
                                                         const char *authScheme,
                                                         virDomainEventGraphicsSubjectPtr subject,
                                                         void *opaque);
+            static int auth_callback(   virConnectCredentialPtr cred,
+                                        unsigned int ncred,
+                                        void *data);
     };
 
 }  // namespace NodeLibvirt

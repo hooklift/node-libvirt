@@ -1,6 +1,8 @@
-require.paths.unshift('build/default/src');
+var SegfaultHandler = require('segfault-handler');
+SegfaultHandler.registerHandler();
+
 var sys = require('sys');
-var libvirt = require('libvirt');
+var libvirt = require('../build/Release/libvirt');
 var fixture = require('./lib/helper').fixture;
 
 var Hypervisor = libvirt.Hypervisor;

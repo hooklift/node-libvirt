@@ -1,5 +1,7 @@
-// Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#define BUILDING_NODE_EXTENSION
+// Copyright 2013, Camilo Aguilar. Cloudescape, LLC.
+#ifndef BUILDING_NODE_EXTENSION
+    #define BUILDING_NODE_EXTENSION
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include "node_libvirt.h"
@@ -49,4 +51,4 @@ namespace NodeLibvirt {
 
     NODE_MODULE(libvirt, init)
 } //namespace NodeLibvirt
-   
+

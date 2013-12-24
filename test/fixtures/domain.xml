@@ -1,4 +1,4 @@
-<domain type='kvm'>
+<domain type='test'>
   <name>nodejs-test</name>
   <memory>128000</memory>
   <vcpu>1</vcpu>
@@ -7,7 +7,7 @@
   </os>
   <clock sync="localtime"/>
   <devices>
-    <emulator>/usr/bin/kvm</emulator>
+    <emulator>test</emulator>
     <disk type='file' device='disk'>
       <source file='/usr/local/var/lib/libvirt/images/demo2.img'/>
       <target dev='hda'/>
