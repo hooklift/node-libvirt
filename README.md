@@ -49,15 +49,15 @@ From your app's folder:
 
 
 ## Example of use
-TODO
+For now please take a look at the tests.
     
 ## API
-Take a look at the [docs page][docs_link]
+Work in progress at [docs page][docs_link]
 
 ## License
 (The MIT License)
 
-Copyright 2012 Camilo Aguilar. All rights reserved.
+Copyright 2013 Camilo Aguilar. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
