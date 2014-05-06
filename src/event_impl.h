@@ -31,28 +31,28 @@ namespace NodeLibvirt {
 
     class EventImpl {
         public:
-            static nodeEventHandle* FindHandle(int watch);
-            static nodeEventHandle* FindDeletedHandle();
-            static nodeEventTimeout* FindTimeout(int watch);
-            static nodeEventTimeout* FindDeletedTimeout();
-
             static void Initialize(Handle<Object> target);
-
             static Handle<Value> SetupEvent(const Arguments& args);
 
             static int AddHandle(int fd, int event, virEventHandleCallback cb, void *opaque, virFreeCallback ff);
             static void UpdateHandle(int watch, int event);
             static int RemoveHandle(int watch);
-            static void HandleCallback(uv_poll_t* handle, int status, int events);
-
             static int AddTimeout(int frequency, virEventTimeoutCallback cb, void *opaque, virFreeCallback ff);
             static void UpdateTimeout(int timer, int timeout);
             static int RemoveTimeout(int timer);
+
+            static void HandleCallback(uv_poll_t* handle, int status, int events);
             static void CheckCallback(uv_check_t* handle, int status);
             static void TimerCallback(uv_timer_t* handle, int status);
+            static void TimeoutCallback(uv_handle_s* handle);
 
             static int EventToUV(int);
             static int EventFromUV(int);
+
+            static nodeEventHandle* FindHandle(int watch);
+            static nodeEventHandle* FindDeletedHandle();
+            static nodeEventTimeout* FindTimeout(int watch);
+            static nodeEventTimeout* FindDeletedTimeout();
 
             static int nextWatch;
             static int nextTimeout;

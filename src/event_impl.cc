@@ -37,13 +37,14 @@ namespace NodeLibvirt {
     }
 
     void EventImpl::CheckCallback(uv_check_t* handle, int status) {
-        nodeEventTimeout *t = (nodeEventTimeout*) handle->data;
-        virEventTimeoutCallback cb = t->cb;
-
-        (cb)(t->timer, t->opaque);
+        TimeoutCallback((uv_handle_s*)handle);
     }
 
     void EventImpl::TimerCallback(uv_timer_t* handle, int status) {
+        TimeoutCallback((uv_handle_s*)handle);
+    }
+
+    void EventImpl::TimeoutCallback(uv_handle_s* handle) {
         nodeEventTimeout *t = (nodeEventTimeout*) handle->data;
         virEventTimeoutCallback cb = t->cb;
 
