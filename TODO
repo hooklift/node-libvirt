@@ -1,0 +1,7 @@
+- Finish the authenticated connection to a Hypervisor. (Done)
+- Use uv_queue_work to not block Node.js main thread
+- Do not throw exceptions for normal application errors
+- Write a better API on top of the current API.
+- Finish the port of events.
+- Release version
+
