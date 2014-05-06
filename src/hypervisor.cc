@@ -145,6 +145,9 @@ namespace NodeLibvirt {
         NODE_SET_PROTOTYPE_METHOD(t, "closeConnection",
                                       Hypervisor::CloseConnection);
 
+        NODE_SET_PROTOTYPE_METHOD(t, "setKeepAlive",
+                                      Hypervisor::SetKeepAlive);
+
         NODE_SET_PROTOTYPE_METHOD(t, "getDefinedDomains",
                                       Hypervisor::GetDefinedDomains);
 
@@ -560,6 +563,41 @@ namespace NodeLibvirt {
         }
         hypervisor->conn_ = NULL;
         return True();
+    }
+
+    Handle<Value> Hypervisor::SetKeepAlive(const Arguments& args) {
+        HandleScope scope;
+        int ret = -1;
+
+        if (args.Length() != 2) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify two integer arguments interval and count")));
+        }
+
+        if (!args[0]->IsNumber()) {
+            return ThrowException(Exception::TypeError(
+            String::New("Interval must be a number")));
+        }
+        
+        if (!args[1]->IsNumber()) {
+            return ThrowException(Exception::TypeError(
+            String::New("Count must be a number")));
+        }
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        ret = virConnectSetKeepAlive(hypervisor->conn_, args[0]->Int32Value(), args[1]->Int32Value());
+
+        if (ret == -1) {
+            return ThrowException(Error::New(virGetLastError()));
+        }
+
+        if (ret == 1) {
+            return ThrowException(Exception::TypeError(
+            String::New("Remote party doesn't support keepalive messages")));
+        }
+
+        return scope.Close(Undefined());
     }
 
     Handle<Value> Hypervisor::GetLibVirtVersion(const Arguments& args) {
@@ -1096,7 +1134,7 @@ namespace NodeLibvirt {
         int ret = virConnectDomainEventRegisterAny( hypervisor->conn_,
                                                     domain != NULL ? domain->domain() : NULL,
                                                     evtype, callback,
-                                                    &opaque, domain_event_free);
+                                                    *opaque, domain_event_free);
         if(ret == -1) {
             ThrowException(Error::New(virGetLastError()));
             return Null();

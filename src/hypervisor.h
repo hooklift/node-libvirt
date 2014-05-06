@@ -3,6 +3,7 @@
 #define SRC_HYPERVISOR_H_
 
 #include "node_libvirt.h"
+#include "event_impl.h"
 #include "domain.h"
 #include "node_device.h"
 #include "network.h"
@@ -46,6 +47,7 @@ namespace NodeLibvirt {
             static Handle<Value> IsConnectionSecure(const Arguments& args);
             static Handle<Value> IsConnectionAlive(const Arguments& args);
             static Handle<Value> CloseConnection(const Arguments& args);
+            static Handle<Value> SetKeepAlive(const Arguments& args);
 
             //virConnectList functions
             static Handle<Value> GetDefinedDomains(const Arguments& args);
