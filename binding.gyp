@@ -5,6 +5,7 @@
       'product_prefix': 'lib',
       'sources': [
         'src/node_libvirt.cc',
+        'src/event_impl.cc',
         'src/domain.cc',
         'src/error.cc',
         'src/hypervisor.cc',
