@@ -1,6 +1,6 @@
 # Node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
 <a href="http://flattr.com/thing/1104368/" target="_blank">
-<img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
+<img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a> [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=339079)](https://www.bountysource.com/trackers/339079-node-libvirt?utm_source=339079&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
 Libvirt is a toolkit to interact with virtualization capabilities
 of recent versions of GNU/Linux (and other OSes). (reference: [Libvirt][libvirt_home])
