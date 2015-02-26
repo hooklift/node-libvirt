@@ -4,6 +4,7 @@
       'target_name': 'libvirt',
       'product_prefix': 'lib',
       'sources': [
+        'src/baton.cc',
         'src/node_libvirt.cc',
         'src/event_impl.cc',
         'src/domain.cc',

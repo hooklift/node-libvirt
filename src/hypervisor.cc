@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hypervisor.h"
+#include "baton.h"
 
 #define GET_LIST_OF(name, numof_function, list_function)                    \
                                                                             \
@@ -102,6 +103,9 @@ namespace NodeLibvirt {
 
 //        t->Inherit(EventEmitter::constructor_template);
         t->InstanceTemplate()->SetInternalFieldCount(1);
+
+        NODE_SET_PROTOTYPE_METHOD(t, "connect",
+                                      Hypervisor::Connect);
 
         NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",
                                       Hypervisor::GetBaselineCPU);
@@ -399,27 +403,11 @@ namespace NodeLibvirt {
                             bool readonly)
     : ObjectWrap() {
 
-        static int supported_cred_types[] = {
-            VIR_CRED_AUTHNAME,
-            VIR_CRED_PASSPHRASE,
-        };
-
+        this->uri_ = uri;
         this->username_ = username;
         this->password_ = password;
+        this->readOnly_ = readonly;
 
-        virConnectAuth auth;
-        auth.credtype = supported_cred_types;
-        auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
-        auth.cb = Hypervisor::auth_callback;
-        auth.cbdata = this;
-
-        conn_ = virConnectOpenAuth( (const char*) uri,
-                                    &auth,
-                                    readonly ? VIR_CONNECT_RO : 0);
-
-        if(conn_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-        }
     }
 
     int Hypervisor::auth_callback(  virConnectCredentialPtr cred,
@@ -473,7 +461,7 @@ namespace NodeLibvirt {
 
         Local<String> uriStr = args[0]->ToString();
         String::Utf8Value uri_(uriStr);
-        uri = *uri_;
+        uri = strdup(*uri_);
 
         if (argsLen >= 2) {
             if (args[1]->IsBoolean()) {
@@ -507,6 +495,77 @@ namespace NodeLibvirt {
         hypervisor->Wrap(obj);
 
         return scope.Close(obj);
+    }
+
+    void Hypervisor::ConnectWorker(uv_work_t* req) {
+
+        ConnectBaton *baton = (ConnectBaton*)req->data;
+        Hypervisor *hypervisor = baton->getHypervisor();
+
+        static int supported_cred_types[] = {
+            VIR_CRED_AUTHNAME,
+            VIR_CRED_PASSPHRASE,
+        };
+
+        virConnectAuth auth;
+        auth.credtype = supported_cred_types;
+        auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
+        auth.cb = Hypervisor::auth_callback;
+        auth.cbdata = baton->getHypervisor();
+
+        baton->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
+                                    &auth,
+                                    hypervisor->readOnly_ ? VIR_CONNECT_RO : 0);
+
+        if(baton->conn_ == NULL) {
+            baton->setError(virGetLastError());
+        }
+    }
+
+    void Hypervisor::ConnectAfter(uv_work_t* req) {
+        HandleScope scope;
+
+        ConnectBaton *baton = static_cast<ConnectBaton*>(req->data);
+
+        if (baton->hasError()) {
+            Handle<Value> argv[] = { Error::New(baton->getError()) };
+
+            TryCatch try_catch;
+            baton->getCallback()->Call(Context::GetCurrent()->Global(), 1, argv);
+
+            if (try_catch.HasCaught()) {
+                node::FatalException(try_catch);
+            }
+        } else {
+            TryCatch try_catch;
+            baton->getCallback()->Call(Context::GetCurrent()->Global(), 0, NULL);
+
+            if (try_catch.HasCaught()) {
+                node::FatalException(try_catch);
+            }
+        }
+
+        baton->getCallback().Dispose();
+        delete baton;
+    }
+
+    Handle<Value> Hypervisor::Connect(const Arguments& args) {
+        HandleScope scope;
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        if (args.Length() == 1 && !args[0]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a function as first argument")));
+        }
+
+        Local<Function> callback = Local<Function>::Cast(args[0]);
+
+        ConnectBaton *baton = new ConnectBaton(hypervisor, Persistent<Function>::New(callback));
+
+        uv_queue_work(uv_default_loop(), baton->getHandle(), Hypervisor::ConnectWorker, (uv_after_work_cb)Hypervisor::ConnectAfter);
+
+        return scope.Close(Undefined());
     }
 
     Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
@@ -578,7 +637,7 @@ namespace NodeLibvirt {
             return ThrowException(Exception::TypeError(
             String::New("Interval must be a number")));
         }
-        
+
         if (!args[1]->IsNumber()) {
             return ThrowException(Exception::TypeError(
             String::New("Count must be a number")));
@@ -1594,4 +1653,3 @@ namespace NodeLibvirt {
     GET_NUM_OF(GetNumberOfActiveStoragePools, virConnectNumOfStoragePools);
 
 } //namespace NodeLibvirt
-

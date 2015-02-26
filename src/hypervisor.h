@@ -33,6 +33,9 @@ namespace NodeLibvirt {
         protected:
             static Handle<Value> New(const Arguments& args);
 
+            static Handle<Value> Connect(const Arguments& args);
+            static void ConnectWorker(uv_work_t* req);
+            static void ConnectAfter(uv_work_t* req);
             static Handle<Value> GetCapabilities(const Arguments& args);
             static Handle<Value> GetHostname(const Arguments& args);
             static Handle<Value> GetSysinfo(const Arguments& args);
@@ -95,8 +98,10 @@ namespace NodeLibvirt {
 
         private:
             virConnectPtr conn_;
+            char* uri_;
             char* username_;
             char* password_;
+            bool readOnly_;
 
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,
