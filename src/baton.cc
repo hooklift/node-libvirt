@@ -37,4 +37,16 @@ namespace NodeLibvirt {
     : Baton(hypervisor, callback) {
     }
 
+    StringBaton::StringBaton(Hypervisor *hypervisor, Persistent<Function> callback)
+    : Baton(hypervisor, callback), str_(NULL) {
+    }
+
+    void StringBaton::setString(char* str) {
+      this->str_ = str;
+    }
+
+    char* StringBaton::getString() {
+      return this->str_;
+    }
+
 }

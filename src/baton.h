@@ -26,7 +26,15 @@ namespace NodeLibvirt {
     class ConnectBaton : public Baton {
         public:
             ConnectBaton(Hypervisor *hypervisor, Persistent<Function> callback);
-            virConnectPtr conn_;
+    };
+
+    class StringBaton : public Baton {
+        public:
+            StringBaton(Hypervisor *hypervisor, Persistent<Function> callback);
+            void setString(char *);
+            char* getString();
+        private:
+            char *str_;
     };
 }
 

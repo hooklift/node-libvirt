@@ -37,6 +37,8 @@ namespace NodeLibvirt {
             static void ConnectWorker(uv_work_t* req);
             static void ConnectAfter(uv_work_t* req);
             static Handle<Value> GetCapabilities(const Arguments& args);
+            static void GetCapabilitiesWorker(uv_work_t* req);
+            static void GetCapabilitiesAfter(uv_work_t* req);
             static Handle<Value> GetHostname(const Arguments& args);
             static Handle<Value> GetSysinfo(const Arguments& args);
             static Handle<Value> GetType(const Arguments& args);

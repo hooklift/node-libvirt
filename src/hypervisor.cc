@@ -513,11 +513,11 @@ namespace NodeLibvirt {
         auth.cb = Hypervisor::auth_callback;
         auth.cbdata = baton->getHypervisor();
 
-        baton->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
+        hypervisor->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
                                     &auth,
                                     hypervisor->readOnly_ ? VIR_CONNECT_RO : 0);
 
-        if(baton->conn_ == NULL) {
+        if(hypervisor->conn_ == NULL) {
             baton->setError(virGetLastError());
         }
     }
@@ -568,23 +568,67 @@ namespace NodeLibvirt {
         return scope.Close(Undefined());
     }
 
-    Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
-        HandleScope scope;
-        char* capabilities_ = NULL;
+    void Hypervisor::GetCapabilitiesWorker(uv_work_t* req) {
+        StringBaton *baton = static_cast<StringBaton*>(req->data);
+        Hypervisor *hypervisor = baton->getHypervisor();
 
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+        char* capabilities_ = NULL;
 
         capabilities_ = virConnectGetCapabilities(hypervisor->conn_);
 
         if(capabilities_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
+            baton->setError(virGetLastError());
+            return;
         }
 
-        Local<String> capabilities = String::New((const char*)capabilities_);
-        free(capabilities_);
+        baton->setString(capabilities_);
+    }
 
-        return scope.Close(capabilities);
+    void Hypervisor::GetCapabilitiesAfter(uv_work_t* req) {
+        HandleScope scope;
+
+        StringBaton *baton = static_cast<StringBaton*>(req->data);
+
+        if (baton->hasError()) {
+            Handle<Value> argv[] = { Error::New(baton->getError()) };
+
+            TryCatch try_catch;
+            baton->getCallback()->Call(Context::GetCurrent()->Global(), 1, argv);
+
+            if (try_catch.HasCaught()) {
+                node::FatalException(try_catch);
+            }
+        } else {
+            TryCatch try_catch;
+            Local<Value> res = String::New((const char*)baton->getString());
+            Handle<Value> argv[] = { Undefined(), res };
+            baton->getCallback()->Call(Context::GetCurrent()->Global(), 2, argv);
+
+            if (try_catch.HasCaught()) {
+                node::FatalException(try_catch);
+            }
+         }
+
+        baton->getCallback().Dispose();
+        delete baton;
+    }
+
+    Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
+        HandleScope scope;
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        if (args.Length() == 1 && !args[0]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a function as first argument")));
+        }
+
+        Local<Function> callback = Local<Function>::Cast(args[0]);
+
+        StringBaton *baton = new StringBaton(hypervisor, Persistent<Function>::New(callback));
+
+        uv_queue_work(uv_default_loop(), baton->getHandle(), Hypervisor::GetCapabilitiesWorker, (uv_after_work_cb)Hypervisor::GetCapabilitiesAfter);
+
+        return scope.Close(Undefined());
     }
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
