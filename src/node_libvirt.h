@@ -3,6 +3,7 @@
 #define SRC_NODE_LIBVIRT_H_
 
 #include <node.h>
+#include <nan.h>
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
@@ -31,4 +32,3 @@ namespace NodeLibvirt {
 }
 
 #endif  // SRC_NODE_LIBVIRT_H_
-

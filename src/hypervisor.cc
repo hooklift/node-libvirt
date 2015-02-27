@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hypervisor.h"
-#include "baton.h"
 
 #define GET_LIST_OF(name, numof_function, list_function)                    \
                                                                             \
@@ -497,59 +496,55 @@ namespace NodeLibvirt {
         return scope.Close(obj);
     }
 
-    void Hypervisor::ConnectWorker(uv_work_t* req) {
+    int ConnectWorker::auth_callback(  virConnectCredentialPtr cred,
+                                    unsigned int ncred,
+                                    void *data) {
+        Hypervisor *hyp = static_cast<Hypervisor*>(data);
 
-        ConnectBaton *baton = (ConnectBaton*)req->data;
-        Hypervisor *hypervisor = baton->getHypervisor();
+        for (unsigned int i = 0; i < ncred; i++) {
+            if (cred[i].type == VIR_CRED_AUTHNAME) {
+                cred[i].result = hyp->username_;
 
-        static int supported_cred_types[] = {
-            VIR_CRED_AUTHNAME,
-            VIR_CRED_PASSPHRASE,
-        };
-
-        virConnectAuth auth;
-        auth.credtype = supported_cred_types;
-        auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
-        auth.cb = Hypervisor::auth_callback;
-        auth.cbdata = baton->getHypervisor();
-
-        hypervisor->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
-                                    &auth,
-                                    hypervisor->readOnly_ ? VIR_CONNECT_RO : 0);
-
-        if(hypervisor->conn_ == NULL) {
-            baton->setError(virGetLastError());
-        }
-    }
-
-    void Hypervisor::ConnectAfter(uv_work_t* req) {
-        HandleScope scope;
-
-        ConnectBaton *baton = static_cast<ConnectBaton*>(req->data);
-
-        if (baton->hasError()) {
-            Handle<Value> argv[] = { Error::New(baton->getError()) };
-
-            TryCatch try_catch;
-            baton->getCallback()->Call(Context::GetCurrent()->Global(), 1, argv);
-
-            if (try_catch.HasCaught()) {
-                node::FatalException(try_catch);
-            }
-        } else {
-            TryCatch try_catch;
-            baton->getCallback()->Call(Context::GetCurrent()->Global(), 0, NULL);
-
-            if (try_catch.HasCaught()) {
-                node::FatalException(try_catch);
+                if (cred[i].result == NULL) {
+                    return -1;
+                }
+                cred[i].resultlen = strlen(cred[i].result);
+            } else if (cred[i].type == VIR_CRED_PASSPHRASE) {
+                cred[i].result = hyp->password_;
+                if (cred[i].result == NULL) {
+                    return -1;
+                }
+                cred[i].resultlen = strlen(cred[i].result);
             }
         }
 
-        baton->getCallback().Dispose();
-        delete baton;
+        return 0;
     }
 
-    Handle<Value> Hypervisor::Connect(const Arguments& args) {
+    void ConnectWorker::Execute() {
+
+      static int supported_cred_types[] = {
+          VIR_CRED_AUTHNAME,
+          VIR_CRED_PASSPHRASE,
+      };
+
+      Hypervisor *hypervisor = this->getHypervisor();
+      virConnectAuth auth;
+      auth.credtype = supported_cred_types;
+      auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
+      auth.cb = ConnectWorker::auth_callback;
+      auth.cbdata = hypervisor;
+
+      hypervisor->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
+                                  &auth,
+                                  hypervisor->readOnly_ ? VIR_CONNECT_RO : 0);
+
+      if(hypervisor->conn_ == NULL) {
+          setVirError(virGetLastError());
+      }
+    }
+
+    NAN_METHOD(Hypervisor::Connect) {
         HandleScope scope;
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
@@ -559,61 +554,29 @@ namespace NodeLibvirt {
             String::New("You must specify a function as first argument")));
         }
 
-        Local<Function> callback = Local<Function>::Cast(args[0]);
+        NanCallback *callback = new NanCallback(args[0].As<Function>());
 
-        ConnectBaton *baton = new ConnectBaton(hypervisor, Persistent<Function>::New(callback));
+        NanAsyncQueueWorker(new ConnectWorker(callback, hypervisor));
 
-        uv_queue_work(uv_default_loop(), baton->getHandle(), Hypervisor::ConnectWorker, (uv_after_work_cb)Hypervisor::ConnectAfter);
-
-        return scope.Close(Undefined());
+        NanReturnUndefined();
     }
 
-    void Hypervisor::GetCapabilitiesWorker(uv_work_t* req) {
-        StringBaton *baton = static_cast<StringBaton*>(req->data);
-        Hypervisor *hypervisor = baton->getHypervisor();
+    void GetCapabilitiesWorker::Execute() {
+        Hypervisor *hypervisor = getHypervisor();
 
         char* capabilities_ = NULL;
 
-        capabilities_ = virConnectGetCapabilities(hypervisor->conn_);
+        capabilities_ = virConnectGetCapabilities(hypervisor->connection());
 
         if(capabilities_ == NULL) {
-            baton->setError(virGetLastError());
+            setVirError(virGetLastError());
             return;
         }
 
-        baton->setString(capabilities_);
+        setString(capabilities_);
     }
 
-    void Hypervisor::GetCapabilitiesAfter(uv_work_t* req) {
-        HandleScope scope;
-
-        StringBaton *baton = static_cast<StringBaton*>(req->data);
-
-        if (baton->hasError()) {
-            Handle<Value> argv[] = { Error::New(baton->getError()) };
-
-            TryCatch try_catch;
-            baton->getCallback()->Call(Context::GetCurrent()->Global(), 1, argv);
-
-            if (try_catch.HasCaught()) {
-                node::FatalException(try_catch);
-            }
-        } else {
-            TryCatch try_catch;
-            Local<Value> res = String::New((const char*)baton->getString());
-            Handle<Value> argv[] = { Undefined(), res };
-            baton->getCallback()->Call(Context::GetCurrent()->Global(), 2, argv);
-
-            if (try_catch.HasCaught()) {
-                node::FatalException(try_catch);
-            }
-         }
-
-        baton->getCallback().Dispose();
-        delete baton;
-    }
-
-    Handle<Value> Hypervisor::GetCapabilities(const Arguments& args) {
+    NAN_METHOD(Hypervisor::GetCapabilities) {
         HandleScope scope;
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
@@ -622,13 +585,11 @@ namespace NodeLibvirt {
             String::New("You must specify a function as first argument")));
         }
 
-        Local<Function> callback = Local<Function>::Cast(args[0]);
+        NanCallback *callback = new NanCallback(args[0].As<Function>());
 
-        StringBaton *baton = new StringBaton(hypervisor, Persistent<Function>::New(callback));
+        NanAsyncQueueWorker(new GetCapabilitiesWorker(callback, hypervisor));
 
-        uv_queue_work(uv_default_loop(), baton->getHandle(), Hypervisor::GetCapabilitiesWorker, (uv_after_work_cb)Hypervisor::GetCapabilitiesAfter);
-
-        return scope.Close(Undefined());
+        NanReturnUndefined();
     }
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {

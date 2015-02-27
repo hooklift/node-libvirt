@@ -13,11 +13,14 @@
 #include "storage_pool.h"
 #include "storage_volume.h"
 #include "error.h"
+#include "worker.h"
 #include <string>
 
 namespace NodeLibvirt {
 
     class Hypervisor : public ObjectWrap {
+        friend class ConnectWorker;
+
         public:
             static void Initialize(Handle<Object> target);
             static inline bool HasInstance(v8::Handle<v8::Value> value) {
@@ -33,12 +36,8 @@ namespace NodeLibvirt {
         protected:
             static Handle<Value> New(const Arguments& args);
 
-            static Handle<Value> Connect(const Arguments& args);
-            static void ConnectWorker(uv_work_t* req);
-            static void ConnectAfter(uv_work_t* req);
-            static Handle<Value> GetCapabilities(const Arguments& args);
-            static void GetCapabilitiesWorker(uv_work_t* req);
-            static void GetCapabilitiesAfter(uv_work_t* req);
+            static NAN_METHOD(Connect);
+            static NAN_METHOD(GetCapabilities);
             static Handle<Value> GetHostname(const Arguments& args);
             static Handle<Value> GetSysinfo(const Arguments& args);
             static Handle<Value> GetType(const Arguments& args);
@@ -98,12 +97,14 @@ namespace NodeLibvirt {
                         bool readOnly);
 
 
-        private:
+        protected:
             virConnectPtr conn_;
             char* uri_;
             char* username_;
             char* password_;
             bool readOnly_;
+
+        private:
 
             static void domain_event_free(void *opaque);
             static int domain_event_lifecycle_callback( virConnectPtr conn,
@@ -148,7 +149,22 @@ namespace NodeLibvirt {
                                         void *data);
     };
 
+    class ConnectWorker : public LibvirtWorker {
+        public:
+            ConnectWorker(NanCallback *callback, Hypervisor *hypervisor)
+                : LibvirtWorker(callback, hypervisor) {}
+            void Execute();
+            static int auth_callback(virConnectCredentialPtr cred, unsigned int ncred, void *data);
+        private:
+    };
+
+    class GetCapabilitiesWorker : public StringWorker {
+        public:
+            GetCapabilitiesWorker(NanCallback *callback, Hypervisor *hypervisor)
+                : StringWorker(callback, hypervisor) {}
+            void Execute();
+    };
+
 }  // namespace NodeLibvirt
 
 #endif  // SRC_HYPERVISOR_H_
-

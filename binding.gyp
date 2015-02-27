@@ -4,7 +4,7 @@
       'target_name': 'libvirt',
       'product_prefix': 'lib',
       'sources': [
-        'src/baton.cc',
+        'src/worker.cc',
         'src/node_libvirt.cc',
         'src/event_impl.cc',
         'src/domain.cc',
@@ -18,6 +18,9 @@
         'src/storage_pool.cc',
         'src/storage_volume.cc',
         'src/stream.cc',
+      ],
+      'include_dirs' : [
+        "<!(node -e \"require('nan')\")"
       ],
       'conditions': [
         ['OS!="win"', {
