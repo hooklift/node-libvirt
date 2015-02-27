@@ -6,39 +6,28 @@
 
 #define GET_LIST_OF(name, numof_function, list_function)                    \
                                                                             \
-Handle<Value> Hypervisor::name(const Arguments& args) {                     \
-    HandleScope scope;                                                      \
-    char **_names = NULL;                                                   \
-    int numInactiveItems;                                                   \
-    virConnectPtr connection;                                               \
+NAN_METHOD(Hypervisor::name) {                                              \
+    NanScope();                                                             \
                                                                             \
     Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());   \
-    connection = hypervisor->conn_;                                         \
                                                                             \
-    numInactiveItems = numof_function(connection);                          \
-                                                                            \
-    if(numInactiveItems == -1) {                                            \
-        ThrowException(Error::New(virGetLastError()));                      \
-        return Null();                                                      \
+    if (args.Length() == 1 && !args[0]->IsFunction()) {                     \
+        return ThrowException(Exception::TypeError(                         \
+        String::New("You must specify a function as first argument")));     \
     }                                                                       \
                                                                             \
-    _names = (char **)malloc(sizeof(*_names) * numInactiveItems);           \
-    if(_names == NULL) {                                                    \
-        LIBVIRT_THROW_EXCEPTION("unable to allocate memory");               \
-        return Null();                                                      \
-    }                                                                       \
+    NanCallback *callback = new NanCallback(args[0].As<Function>());        \
                                                                             \
-    int ret = list_function(connection, _names, numInactiveItems);          \
+    NanAsyncQueueWorker(                                                    \
+        new GetListOfWorker(                                                \
+            callback,                                                       \
+            hypervisor,                                                     \
+            numof_function,                                                 \
+            list_function)                                                  \
+    );                                                                      \
                                                                             \
-    if(ret == -1) {                                                         \
-        ThrowException(Error::New(virGetLastError()));                      \
-        free(_names);                                                       \
-        return Null();                                                      \
-    }                                                                       \
-                                                                            \
-    TO_V8_ARRAY(numInactiveItems, _names);                                  \
+    NanReturnUndefined();                                                   \
 }
-
 
 #define GET_NUM_OF(name, function)                                          \
                                                                             \
@@ -545,7 +534,7 @@ namespace NodeLibvirt {
     }
 
     NAN_METHOD(Hypervisor::Connect) {
-        HandleScope scope;
+        NanScope();
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
@@ -577,7 +566,8 @@ namespace NodeLibvirt {
     }
 
     NAN_METHOD(Hypervisor::GetCapabilities) {
-        HandleScope scope;
+        NanScope();
+        
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
 
         if (args.Length() == 1 && !args[0]->IsFunction()) {
