@@ -31,18 +31,27 @@ NAN_METHOD(Hypervisor::name) {                                              \
 
 #define GET_NUM_OF(name, function)                                          \
                                                                             \
-Handle<Value> Hypervisor::name(const Arguments& args) {                     \
-    HandleScope scope;                                                      \
-    Hypervisor *hypervisor =                                                \
-    ObjectWrap::Unwrap<Hypervisor>(args.This());                            \
+NAN_METHOD(Hypervisor::name) {                                              \
+    NanScope();                                                             \
                                                                             \
-    int ret = function(hypervisor->conn_);                                  \
-    if(ret == -1) {                                                         \
-        ThrowException(Error::New(virGetLastError()));                      \
-        return Null();                                                      \
+    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());   \
+                                                                            \
+    if (args.Length() == 1 && !args[0]->IsFunction()) {                     \
+        return ThrowException(Exception::TypeError(                         \
+        String::New("You must specify a function as first argument")));     \
     }                                                                       \
-    return scope.Close(Integer::New(ret));                                  \
-}                                                                           \
+                                                                            \
+    NanCallback *callback = new NanCallback(args[0].As<Function>());        \
+                                                                            \
+    NanAsyncQueueWorker(                                                    \
+        new GetNumOfWorker(                                                 \
+            callback,                                                       \
+            hypervisor,                                                     \
+            function)                                                       \
+    );                                                                      \
+                                                                            \
+    NanReturnUndefined();                                                   \
+}
 
 namespace NodeLibvirt {
 
@@ -533,22 +542,7 @@ namespace NodeLibvirt {
       }
     }
 
-    NAN_METHOD(Hypervisor::Connect) {
-        NanScope();
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        if (args.Length() == 1 && !args[0]->IsFunction()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a function as first argument")));
-        }
-
-        NanCallback *callback = new NanCallback(args[0].As<Function>());
-
-        NanAsyncQueueWorker(new ConnectWorker(callback, hypervisor));
-
-        NanReturnUndefined();
-    }
+    NOARGS_WORKER_METHOD(Hypervisor::Connect, ConnectWorker)
 
     void GetCapabilitiesWorker::Execute() {
         Hypervisor *hypervisor = getHypervisor();
@@ -565,22 +559,7 @@ namespace NodeLibvirt {
         setString(capabilities_);
     }
 
-    NAN_METHOD(Hypervisor::GetCapabilities) {
-        NanScope();
-        
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-        if (args.Length() == 1 && !args[0]->IsFunction()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a function as first argument")));
-        }
-
-        NanCallback *callback = new NanCallback(args[0].As<Function>());
-
-        NanAsyncQueueWorker(new GetCapabilitiesWorker(callback, hypervisor));
-
-        NanReturnUndefined();
-    }
+    NOARGS_WORKER_METHOD(Hypervisor::GetCapabilities, GetCapabilitiesWorker)
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
         HandleScope scope;

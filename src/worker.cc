@@ -117,4 +117,33 @@ namespace NodeLibvirt {
 
         callback->Call(2, argv);
     }
+
+    GetNumOfWorker::GetNumOfWorker(
+        NanCallback *callback,
+        Hypervisor *hypervisor,
+        GetNumOfType numof_function)
+    : LibvirtWorker(callback, hypervisor), numof_function_(numof_function), size_(0) {
+    }
+
+    void GetNumOfWorker::Execute() {
+        virConnectPtr connection;
+
+        Hypervisor *hypervisor = getHypervisor();
+        connection = hypervisor->connection();
+
+        size_ = numof_function_(connection);
+
+        if(size_ == -1) {
+            setVirError(virGetLastError());
+            return;
+        }
+    }
+
+    void GetNumOfWorker::HandleOKCallback() {
+        NanScope();
+
+        v8::Local<v8::Value> argv[] = { NanNull(), NanNew<v8::Integer>(size_) };
+
+        callback->Call(2, argv);
+    }
 }

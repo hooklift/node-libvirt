@@ -6,6 +6,25 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
+#define NOARGS_WORKER_METHOD(name, worker)                                  \
+                                                                            \
+NAN_METHOD(name) {                                                          \
+    NanScope();                                                             \
+                                                                            \
+    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());   \
+                                                                            \
+    if (args.Length() == 1 && !args[0]->IsFunction()) {                     \
+        return ThrowException(Exception::TypeError(                         \
+        String::New("You must specify a function as first argument")));     \
+    }                                                                       \
+                                                                            \
+    NanCallback *callback = new NanCallback(args[0].As<Function>());        \
+                                                                            \
+    NanAsyncQueueWorker(new worker(callback, hypervisor));                  \
+                                                                            \
+    NanReturnUndefined();                                                   \
+}
+
 namespace NodeLibvirt {
 
     typedef int (*GetNumOfType)(virConnectPtr);
@@ -55,6 +74,21 @@ namespace NodeLibvirt {
             GetNumOfType numof_function_;
             GetListOfType listof_function_;
             char **names_;
+            int size_;
+    };
+
+    class GetNumOfWorker : public LibvirtWorker {
+        public:
+            GetNumOfWorker(NanCallback *callback,
+                Hypervisor *hypervisor,
+                GetNumOfType numof_function
+            );
+            void Execute();
+
+        protected:
+            void HandleOKCallback();
+        private:
+            GetNumOfType numof_function_;
             int size_;
     };
 
