@@ -5,11 +5,13 @@
 #include "node_libvirt.h"
 #include "hypervisor.h"
 #include "error.h"
+#include "worker.h"
 
 namespace NodeLibvirt {
 
     class Domain : public ObjectWrap {
         friend class Hypervisor;
+        friend class LookupDomainByNameWorker;
 
         public:
             static void Initialize();
@@ -95,7 +97,19 @@ namespace NodeLibvirt {
             static Persistent<FunctionTemplate> constructor_template;
     };
 
+    class LookupDomainByNameWorker : public LibvirtWorker {
+        public:
+            LookupDomainByNameWorker(NanCallback *callback, Hypervisor *hypervisor, char *name)
+                : LibvirtWorker(callback, hypervisor) { name_ = strdup(name); }
+            ~LookupDomainByNameWorker() { free(name_); }
+            void Execute();
+        protected:
+            void HandleOKCallback();
+        private:
+            char *name_;
+            virDomainPtr domainptr_;
+    };
+
 }  //namespace NodeLibvirt
 
 #endif  // SRC_DOMAIN_H
-

@@ -478,12 +478,40 @@ namespace NodeLibvirt {
         return scope.Close(domain_obj);
     }
 
-    Handle<Value> Domain::LookupByName(const Arguments& args) {
-        HandleScope scope;
+    void LookupDomainByNameWorker::Execute() {
+        domainptr_ = virDomainLookupByName(getHypervisor()->connection(), (char *) name_);
 
-        if(args.Length() == 0 || !args[0]->IsString()) {
+        if(domainptr_ == NULL) {
+            setVirError(virGetLastError());
+            return;
+        }
+    }
+
+    void LookupDomainByNameWorker::HandleOKCallback() {
+        NanScope();
+
+        Domain *domain = new Domain();
+        domain->domain_ = domainptr_;
+
+        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+        domain->Wrap(domain_obj);
+
+        Local<Value> argv[] = { NanNull(), domain_obj };
+
+        callback->Call(2, argv);
+    }
+
+    NAN_METHOD(Domain::LookupByName) {
+        NanScope();
+
+        if(args.Length() < 1 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid Domain name.")));
+        }
+
+        if(args.Length() >= 2 && !args[1]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a function as second argument")));
         }
 
         Local<Object> hyp_obj = args.This();
@@ -496,20 +524,11 @@ namespace NodeLibvirt {
         String::Utf8Value name(args[0]->ToString());
 
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+        NanCallback *callback = new NanCallback(args[1].As<Function>());
 
-        Domain *domain = new Domain();
-        domain->domain_ = virDomainLookupByName(hypervisor->connection(), (const char *) *name);
+        NanAsyncQueueWorker(new LookupDomainByNameWorker(callback, hypervisor, (char*)*name));
 
-        if(domain->domain_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-
-        domain->Wrap(domain_obj);
-
-        return scope.Close(domain_obj);
+        NanReturnUndefined();
     }
 
     Handle<Value> Domain::LookupByUUID(const Arguments& args) {
@@ -986,7 +1005,7 @@ namespace NodeLibvirt {
         for(unsigned int i = 0; i < length; i++) {
             keycodes[i] = (unsigned int) keycodes_->Get(Integer::New(i))->Int32Value();
         }
-        
+
         ret = virDomainSendKey(domain->domain_, 0, 150, keycodes, length, 0);
 
         if(ret == -1) {
@@ -2233,4 +2252,3 @@ namespace NodeLibvirt {
     }
 
 } //namespace NodeLibvirt
-
