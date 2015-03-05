@@ -4,6 +4,25 @@
 #include <node_buffer.h>
 #include "domain.h"
 
+#define NOARGS_WORKER_METHOD(name, worker)                                  \
+                                                                            \
+NAN_METHOD(Domain::name) {                                                          \
+  NanScope();                                                               \
+                                                                            \
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());                 \
+                                                                            \
+  if (args.Length() == 1 && !args[0]->IsFunction()) {                       \
+    return ThrowException(Exception::TypeError(                             \
+    String::New("You must specify a function as first argument")));         \
+  }                                                                         \
+                                                                            \
+  NanCallback *callback = new NanCallback(args[0].As<Function>());          \
+                                                                            \
+  NanAsyncQueueWorker(new worker(callback, domain->domain_));               \
+                                                                            \
+  NanReturnUndefined();                                                     \
+}
+
 namespace NodeLibvirt {
     Persistent<FunctionTemplate> Domain::constructor_template;
 
@@ -479,7 +498,7 @@ namespace NodeLibvirt {
     }
 
     void LookupDomainByNameWorker::Execute() {
-        domainptr_ = virDomainLookupByName(getHypervisor()->connection(), (char *) name_);
+        domainptr_ = virDomainLookupByName(getConnection(), (char *) name_);
 
         if(domainptr_ == NULL) {
             setVirError(virGetLastError());
@@ -526,7 +545,7 @@ namespace NodeLibvirt {
         Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
         NanCallback *callback = new NanCallback(args[1].As<Function>());
 
-        NanAsyncQueueWorker(new LookupDomainByNameWorker(callback, hypervisor, (char*)*name));
+        NanAsyncQueueWorker(new LookupDomainByNameWorker(callback, hypervisor->connection(), (char*)*name));
 
         NanReturnUndefined();
     }
@@ -584,29 +603,42 @@ namespace NodeLibvirt {
         return scope.Close(Integer::NewFromUnsigned(id));
     }
 
-    Handle<Value> Domain::GetInfo(const Arguments& args) {
-        HandleScope scope;
-        virDomainInfo info;
+    void GetDomainInfoWorker::Execute() {
         int ret = -1;
 
-        Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+        info_ = (virDomainInfoPtr)malloc(sizeof(virDomainInfo));
 
-        ret = virDomainGetInfo(domain->domain_, &info);
+        if (info_ == NULL) {
+            SetErrorMessage("unable to allocate memory");
+            return;
+        }
+
+        ret = virDomainGetInfo(getDomainPtr(), info_);
 
         if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
+            setVirError(virGetLastError());
         }
-        Local<Object> object = Object::New();
-
-        object->Set(state_symbol, Integer::New(info.state)); //virDomainState
-        object->Set(max_memory_symbol, Number::New(info.maxMem)); //KBytes
-        object->Set(memory_symbol, Number::New(info.memory)); //KBytes
-        object->Set(vcpus_number_symbol, Integer::New(info.nrVirtCpu));
-        object->Set(cpu_time_symbol, Number::New(info.cpuTime)); //nanoseconds
-
-        return scope.Close(object);
     }
+
+    void GetDomainInfoWorker::HandleOKCallback() {
+        NanScope();
+
+        Local<Object> object = NanNew<Object>();
+
+        object->Set(state_symbol, NanNew<Integer>(info_->state)); //virDomainState
+        object->Set(max_memory_symbol, NanNew<Number>(info_->maxMem)); //KBytes
+        object->Set(memory_symbol, NanNew<Number>(info_->memory)); //KBytes
+        object->Set(vcpus_number_symbol, NanNew<Integer>(info_->nrVirtCpu));
+        object->Set(cpu_time_symbol, NanNew<Number>(info_->cpuTime)); //nanoseconds
+
+        free(info_);
+
+        Local<Value> argv[] = { NanNull(), object };
+
+        callback->Call(2, argv);
+    }
+
+    NOARGS_WORKER_METHOD(GetInfo, GetDomainInfoWorker)
 
     Handle<Value> Domain::GetName(const Arguments& args) {
         HandleScope scope;
@@ -624,7 +656,23 @@ namespace NodeLibvirt {
         return scope.Close(String::New(name));
     }
 
-    Handle<Value> Domain::GetUUID(const Arguments& args) {
+    void GetDomainUUIDWorker::Execute() {
+      int ret = -1;
+      char *uuid = new char[VIR_UUID_STRING_BUFLEN];
+
+      ret = virDomainGetUUIDString(getDomainPtr(), uuid);
+
+      if(ret == -1) {
+        setVirError(virGetLastError());
+        return;
+      }
+
+      setVal(uuid);
+    }
+
+    NOARGS_WORKER_METHOD(GetUUID, GetDomainUUIDWorker)
+
+    /*NAN_METHOD(Domain::GetUUID) {
         HandleScope scope;
         int ret = -1;
         char *uuid = new char[VIR_UUID_STRING_BUFLEN];
@@ -644,7 +692,7 @@ namespace NodeLibvirt {
         delete[] uuid;
 
         return scope.Close(uuid_str);
-    }
+    }*/
 
     Handle<Value> Domain::GetAutostart(const Arguments& args) {
         HandleScope scope;

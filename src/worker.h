@@ -6,25 +6,6 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
-#define NOARGS_WORKER_METHOD(name, worker)                                  \
-                                                                            \
-NAN_METHOD(name) {                                                          \
-    NanScope();                                                             \
-                                                                            \
-    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());   \
-                                                                            \
-    if (args.Length() == 1 && !args[0]->IsFunction()) {                     \
-        return ThrowException(Exception::TypeError(                         \
-        String::New("You must specify a function as first argument")));     \
-    }                                                                       \
-                                                                            \
-    NanCallback *callback = new NanCallback(args[0].As<Function>());        \
-                                                                            \
-    NanAsyncQueueWorker(new worker(callback, hypervisor));                  \
-                                                                            \
-    NanReturnUndefined();                                                   \
-}
-
 namespace NodeLibvirt {
 
     typedef int (*GetNumOfType)(virConnectPtr);
@@ -34,35 +15,79 @@ namespace NodeLibvirt {
 
     class LibvirtWorker : public NanAsyncWorker {
         public:
-            LibvirtWorker(NanCallback *callback, Hypervisor *hypervisor);
+            LibvirtWorker(NanCallback *callback, virConnectPtr conn);
 
-            Hypervisor* getHypervisor();
+            virConnectPtr getConnection();
             void setVirError(virErrorPtr error);
             virErrorPtr getVirError();
             virtual void WorkComplete();
         protected:
             virtual void HandleErrorCallback ();
         private:
-            Hypervisor *hypervisor_;
+            virConnectPtr conn_;
             virErrorPtr virerror_;
     };
 
-    class StringWorker : public LibvirtWorker {
+    template <class T, class U, class V, class W>
+    class HelperWorker : public T {
         public:
-            StringWorker(NanCallback *callback, Hypervisor *hypervisor);
+            HelperWorker(NanCallback *callback, U conn);
 
-            void setString(char *str);
-            char* getString();
+            void setVal(V val);
+            V getVal();
         protected:
             void HandleOKCallback();
-        private:
-            char *str_;
+        //private:
+            V val_;
     };
+
+    template <class T, class U, class V, class W>
+    HelperWorker<T, U, V, W>::HelperWorker(NanCallback *callback, U obj)
+    : T(callback, obj) {
+    }
+
+    template <class T, class U, class V, class W>
+    void HelperWorker<T, U, V, W>::setVal(V val) {
+        val_ = val;
+    }
+
+    template <class T, class U, class V, class W>
+    V HelperWorker<T, U, V, W>::getVal() {
+        return val_;
+    }
+
+    template <class T, class U, class V, class W>
+    void HelperWorker<T, U, V, W>::HandleOKCallback() {
+        NanScope();
+
+        v8::Local<v8::Value> argv[] = { NanNull(), NanNew<W>(val_) };
+
+        this->callback->Call(2, argv);
+    }
+
+    template <class T, class U>
+    class StringReturnWorker : public HelperWorker<T, U, char*, v8::String> {
+        public:
+            StringReturnWorker(NanCallback *callback, U obj);
+            ~StringReturnWorker();
+    };
+
+    template <class T, class U>
+    StringReturnWorker<T, U>::StringReturnWorker(NanCallback *callback, U obj)
+    : HelperWorker<T, U, char*, v8::String>(callback, obj) {
+        this->setVal(NULL);
+    }
+
+    template <class T, class U>
+    StringReturnWorker<T, U>::~StringReturnWorker() {
+        if (this->getVal())
+        free(this->getVal());
+    }
 
     class GetListOfWorker : public LibvirtWorker {
         public:
             GetListOfWorker(NanCallback *callback,
-                Hypervisor *hypervisor,
+                virConnectPtr conn,
                 GetNumOfType numof_function,
                 GetListOfType listof_function
             );
@@ -80,7 +105,7 @@ namespace NodeLibvirt {
     class GetNumOfWorker : public LibvirtWorker {
         public:
             GetNumOfWorker(NanCallback *callback,
-                Hypervisor *hypervisor,
+                virConnectPtr conn,
                 GetNumOfType numof_function
             );
             void Execute();

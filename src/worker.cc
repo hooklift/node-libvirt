@@ -4,12 +4,12 @@
 
 namespace NodeLibvirt {
 
-    LibvirtWorker::LibvirtWorker(NanCallback *callback, Hypervisor *hypervisor)
-    : NanAsyncWorker(callback), hypervisor_(hypervisor), virerror_(NULL) {
+    LibvirtWorker::LibvirtWorker(NanCallback *callback, virConnectPtr conn)
+    : NanAsyncWorker(callback), conn_(conn), virerror_(NULL) {
     }
 
-    Hypervisor* LibvirtWorker::getHypervisor() {
-        return hypervisor_;
+    virConnectPtr LibvirtWorker::getConnection() {
+        return conn_;
     }
 
     void LibvirtWorker::setVirError(virErrorPtr error) {
@@ -46,42 +46,16 @@ namespace NodeLibvirt {
         }
     }
 
-    StringWorker::StringWorker(NanCallback *callback, Hypervisor *hypervisor)
-    : LibvirtWorker(callback, hypervisor), str_(NULL) {
-    }
-
-    void StringWorker::setString(char *str) {
-        str_ = str;
-    }
-
-    char* StringWorker::getString() {
-        return str_;
-    }
-
-    void StringWorker::HandleOKCallback() {
-        NanScope();
-
-        v8::Local<v8::Value> argv[] = { NanNull(), NanNew<v8::String>(str_) };
-        free(str_);
-
-        callback->Call(2, argv);
-    }
-
     GetListOfWorker::GetListOfWorker(
         NanCallback *callback,
-        Hypervisor *hypervisor,
+        virConnectPtr conn,
         GetNumOfType numof_function,
         GetListOfType listof_function)
-    : LibvirtWorker(callback, hypervisor), numof_function_(numof_function), listof_function_(listof_function), names_(NULL), size_(0) {
+    : LibvirtWorker(callback, conn), numof_function_(numof_function), listof_function_(listof_function), names_(NULL), size_(0) {
     }
 
     void GetListOfWorker::Execute() {
-        virConnectPtr connection;
-
-        Hypervisor *hypervisor = getHypervisor();
-        connection = hypervisor->connection();
-
-        size_ = numof_function_(connection);
+        size_ = numof_function_(getConnection());
 
         if(size_ == -1) {
             setVirError(virGetLastError());
@@ -94,7 +68,7 @@ namespace NodeLibvirt {
             return;
         }
 
-        int ret = listof_function_(connection, names_, size_);
+        int ret = listof_function_(getConnection(), names_, size_);
 
         if(ret == -1) {
             setVirError(virGetLastError());
@@ -120,18 +94,13 @@ namespace NodeLibvirt {
 
     GetNumOfWorker::GetNumOfWorker(
         NanCallback *callback,
-        Hypervisor *hypervisor,
+        virConnectPtr conn,
         GetNumOfType numof_function)
-    : LibvirtWorker(callback, hypervisor), numof_function_(numof_function), size_(0) {
+    : LibvirtWorker(callback, conn), numof_function_(numof_function), size_(0) {
     }
 
     void GetNumOfWorker::Execute() {
-        virConnectPtr connection;
-
-        Hypervisor *hypervisor = getHypervisor();
-        connection = hypervisor->connection();
-
-        size_ = numof_function_(connection);
+        size_ = numof_function_(getConnection());
 
         if(size_ == -1) {
             setVirError(virGetLastError());

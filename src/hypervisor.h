@@ -152,16 +152,17 @@ namespace NodeLibvirt {
     class ConnectWorker : public LibvirtWorker {
         public:
             ConnectWorker(NanCallback *callback, Hypervisor *hypervisor)
-                : LibvirtWorker(callback, hypervisor) {}
+                : LibvirtWorker(callback, NULL), hypervisor_(hypervisor) {}
             void Execute();
             static int auth_callback(virConnectCredentialPtr cred, unsigned int ncred, void *data);
         private:
+            Hypervisor *hypervisor_;
     };
 
-    class GetCapabilitiesWorker : public StringWorker {
+    class GetCapabilitiesWorker : public StringReturnWorker<LibvirtWorker, virConnectPtr> {
         public:
-            GetCapabilitiesWorker(NanCallback *callback, Hypervisor *hypervisor)
-                : StringWorker(callback, hypervisor) {}
+            GetCapabilitiesWorker(NanCallback *callback, virConnectPtr conn)
+                : StringReturnWorker(callback, conn) {}
             void Execute();
     };
 

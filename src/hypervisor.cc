@@ -21,7 +21,7 @@ NAN_METHOD(Hypervisor::name) {                                              \
     NanAsyncQueueWorker(                                                    \
         new GetListOfWorker(                                                \
             callback,                                                       \
-            hypervisor,                                                     \
+            hypervisor->conn_,                                              \
             numof_function,                                                 \
             list_function)                                                  \
     );                                                                      \
@@ -46,11 +46,30 @@ NAN_METHOD(Hypervisor::name) {                                              \
     NanAsyncQueueWorker(                                                    \
         new GetNumOfWorker(                                                 \
             callback,                                                       \
-            hypervisor,                                                     \
+            hypervisor->conn_,                                              \
             function)                                                       \
     );                                                                      \
                                                                             \
     NanReturnUndefined();                                                   \
+}
+
+#define NOARGS_WORKER_METHOD(name, worker)                                  \
+                                                                            \
+NAN_METHOD(Hypervisor::name) {                                                          \
+  NanScope();                                                               \
+                                                                            \
+  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());     \
+                                                                            \
+  if (args.Length() == 1 && !args[0]->IsFunction()) {                       \
+    return ThrowException(Exception::TypeError(                             \
+    String::New("You must specify a function as first argument")));         \
+  }                                                                         \
+                                                                            \
+  NanCallback *callback = new NanCallback(args[0].As<Function>());          \
+                                                                            \
+  NanAsyncQueueWorker(new worker(callback, hypervisor->conn_));             \
+                                                                            \
+  NanReturnUndefined();                                                     \
 }
 
 namespace NodeLibvirt {
@@ -497,18 +516,18 @@ namespace NodeLibvirt {
     int ConnectWorker::auth_callback(  virConnectCredentialPtr cred,
                                     unsigned int ncred,
                                     void *data) {
-        Hypervisor *hyp = static_cast<Hypervisor*>(data);
+        ConnectWorker *worker = static_cast<ConnectWorker*>(data);
 
         for (unsigned int i = 0; i < ncred; i++) {
             if (cred[i].type == VIR_CRED_AUTHNAME) {
-                cred[i].result = hyp->username_;
+                cred[i].result = worker->hypervisor_->username_;
 
                 if (cred[i].result == NULL) {
                     return -1;
                 }
                 cred[i].resultlen = strlen(cred[i].result);
             } else if (cred[i].type == VIR_CRED_PASSPHRASE) {
-                cred[i].result = hyp->password_;
+                cred[i].result = worker->hypervisor_->password_;
                 if (cred[i].result == NULL) {
                     return -1;
                 }
@@ -526,40 +545,52 @@ namespace NodeLibvirt {
           VIR_CRED_PASSPHRASE,
       };
 
-      Hypervisor *hypervisor = this->getHypervisor();
       virConnectAuth auth;
       auth.credtype = supported_cred_types;
       auth.ncredtype = sizeof(supported_cred_types)/sizeof(int);
       auth.cb = ConnectWorker::auth_callback;
-      auth.cbdata = hypervisor;
+      auth.cbdata = this;
 
-      hypervisor->conn_ = virConnectOpenAuth( (const char*) hypervisor->uri_,
+      hypervisor_->conn_ = virConnectOpenAuth( (const char*) hypervisor_->uri_,
                                   &auth,
-                                  hypervisor->readOnly_ ? VIR_CONNECT_RO : 0);
+                                  hypervisor_->readOnly_ ? VIR_CONNECT_RO : 0);
 
-      if(hypervisor->conn_ == NULL) {
+      if(hypervisor_->conn_ == NULL) {
           setVirError(virGetLastError());
       }
     }
 
-    NOARGS_WORKER_METHOD(Hypervisor::Connect, ConnectWorker)
+    NAN_METHOD(Hypervisor::Connect) {                                                          \
+        NanScope();
+
+        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+
+        if (args.Length() == 1 && !args[0]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a function as first argument")));
+        }
+
+        NanCallback *callback = new NanCallback(args[0].As<Function>());
+
+        NanAsyncQueueWorker(new ConnectWorker(callback, hypervisor));
+
+        NanReturnUndefined();
+    }
 
     void GetCapabilitiesWorker::Execute() {
-        Hypervisor *hypervisor = getHypervisor();
-
         char* capabilities_ = NULL;
 
-        capabilities_ = virConnectGetCapabilities(hypervisor->connection());
+        capabilities_ = virConnectGetCapabilities(getConnection());
 
         if(capabilities_ == NULL) {
             setVirError(virGetLastError());
             return;
         }
 
-        setString(capabilities_);
+        setVal(capabilities_);
     }
 
-    NOARGS_WORKER_METHOD(Hypervisor::GetCapabilities, GetCapabilitiesWorker)
+    NOARGS_WORKER_METHOD(GetCapabilities, GetCapabilitiesWorker)
 
     Handle<Value> Hypervisor::GetHostname(const Arguments& args) {
         HandleScope scope;

@@ -31,14 +31,14 @@ namespace NodeLibvirt {
         protected:
             static Handle<Value> Create(const Arguments& args);
             static Handle<Value> LookupById(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
+            static NAN_METHOD(LookupByName);
             static Handle<Value> LookupByUUID(const Arguments& args);
             static Handle<Value> Define(const Arguments& args);
             static Handle<Value> Undefine(const Arguments& args);
             static Handle<Value> GetId(const Arguments& args);
-            static Handle<Value> GetInfo(const Arguments& args);
+            static NAN_METHOD(GetInfo);
             static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
+            static NAN_METHOD(GetUUID);
             static Handle<Value> GetAutostart(const Arguments& args);
             static Handle<Value> SetAutostart(const Arguments& args);
             static Handle<Value> GetOsType(const Arguments& args);
@@ -99,15 +99,51 @@ namespace NodeLibvirt {
 
     class LookupDomainByNameWorker : public LibvirtWorker {
         public:
-            LookupDomainByNameWorker(NanCallback *callback, Hypervisor *hypervisor, char *name)
-                : LibvirtWorker(callback, hypervisor) { name_ = strdup(name); }
+            LookupDomainByNameWorker(NanCallback *callback, virConnectPtr conn, char *name)
+                : LibvirtWorker(callback, conn) { name_ = strdup(name); }
             ~LookupDomainByNameWorker() { free(name_); }
+
             void Execute();
         protected:
             void HandleOKCallback();
         private:
             char *name_;
             virDomainPtr domainptr_;
+    };
+
+    class DomainWorker : public LibvirtWorker {
+        public:
+            DomainWorker(NanCallback *callback, virDomainPtr domainptr)
+                : LibvirtWorker(callback, associateConn(domainptr)), domainptr_(domainptr) {
+            }
+
+            virDomainPtr getDomainPtr() { return domainptr_; }
+        private:
+            virConnectPtr associateConn(virDomainPtr domainptr) {
+                return virDomainGetConnect(domainptr);
+            }
+
+            virDomainPtr domainptr_;
+    };
+
+    class GetDomainInfoWorker : public DomainWorker {
+        public:
+            GetDomainInfoWorker(NanCallback *callback, virDomainPtr domainptr)
+                : DomainWorker(callback, domainptr), info_(NULL) {
+            }
+
+            void Execute();
+        protected:
+            void HandleOKCallback();
+        private:
+            virDomainInfoPtr info_;
+    };
+
+    class GetDomainUUIDWorker : public StringReturnWorker<DomainWorker, virDomainPtr> {
+        public:
+            GetDomainUUIDWorker(NanCallback *callback, virDomainPtr domainptr)
+                : StringReturnWorker(callback, domainptr) {}
+            void Execute();
     };
 
 }  //namespace NodeLibvirt
