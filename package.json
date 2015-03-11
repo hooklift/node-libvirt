@@ -18,7 +18,9 @@
   ],
   "devDependencies": {
     "expresso": "*",
-    "segfault-handler": "*"
+    "mocha": "*",
+    "segfault-handler": "*",
+    "should": "*"
   },
   "main": "build/Release/libvirt.node",
   "scripts": {

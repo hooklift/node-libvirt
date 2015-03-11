@@ -32,18 +32,23 @@ namespace NodeLibvirt {
     class HelperWorker : public T {
         public:
             HelperWorker(NanCallback *callback, U conn);
+            HelperWorker(NanCallback *callback, U conn, V val);
 
-            void setVal(V val);
-            V getVal();
+            virtual void setVal(V val);
+            virtual V getVal();
         protected:
             void HandleOKCallback();
-        //private:
             V val_;
     };
 
     template <class T, class U, class V, class W>
     HelperWorker<T, U, V, W>::HelperWorker(NanCallback *callback, U obj)
     : T(callback, obj) {
+    }
+
+    template <class T, class U, class V, class W>
+    HelperWorker<T, U, V, W>::HelperWorker(NanCallback *callback, U obj, V val)
+    : T(callback, obj), val_(val) {
     }
 
     template <class T, class U, class V, class W>
@@ -68,20 +73,32 @@ namespace NodeLibvirt {
     template <class T, class U>
     class StringReturnWorker : public HelperWorker<T, U, char*, v8::String> {
         public:
-            StringReturnWorker(NanCallback *callback, U obj);
+            StringReturnWorker(NanCallback *callback, U obj, bool freeit = true);
             ~StringReturnWorker();
+        private:
+            bool freeit_;
     };
 
     template <class T, class U>
-    StringReturnWorker<T, U>::StringReturnWorker(NanCallback *callback, U obj)
-    : HelperWorker<T, U, char*, v8::String>(callback, obj) {
-        this->setVal(NULL);
+    StringReturnWorker<T, U>::StringReturnWorker(NanCallback *callback, U obj, bool freeit)
+    : HelperWorker<T, U, char*, v8::String>(callback, obj, NULL), freeit_(freeit) {
     }
 
     template <class T, class U>
     StringReturnWorker<T, U>::~StringReturnWorker() {
-        if (this->getVal())
-        free(this->getVal());
+        if (this->getVal() != NULL && freeit_)
+            delete this->getVal();
+    }
+
+    template <class T, class U>
+    class BooleanReturnWorker : public HelperWorker<T, U, bool, v8::Boolean> {
+        public:
+            BooleanReturnWorker(NanCallback *callback, U obj);
+    };
+
+    template <class T, class U>
+    BooleanReturnWorker<T, U>::BooleanReturnWorker(NanCallback *callback, U obj)
+    : HelperWorker<T, U, bool, v8::Boolean>(callback, obj, false) {
     }
 
     class GetListOfWorker : public LibvirtWorker {
