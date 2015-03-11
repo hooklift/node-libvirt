@@ -15,6 +15,7 @@ namespace NodeLibvirt {
         friend class DomainDefineWorker;
         friend class DomainLookupByNameWorker;
         friend class DomainLookupByIdWorker;
+        friend class DomainMigrateWorker;
 
         public:
             static void Initialize();
@@ -64,8 +65,8 @@ namespace NodeLibvirt {
             static Handle<Value> SendKey(const Arguments& args);
             static NAN_METHOD(GetVcpus);
             static NAN_METHOD(SetVcpus);
-            static Handle<Value> Migrate(const Arguments& args);
-            static Handle<Value> SetMigrationMaxDowntime(const Arguments& args);
+            static NAN_METHOD(Migrate);
+            static NAN_METHOD(SetMigrationMaxDowntime);
             static NAN_METHOD(PinVcpu);
             static NAN_METHOD(AttachDevice);
             static NAN_METHOD(DetachDevice);
@@ -361,6 +362,37 @@ namespace NodeLibvirt {
             void Execute();
         private:
             unsigned int vcpus_;
+    };
+
+    class DomainMigrateWorker : public DomainWorker {
+        public:
+            DomainMigrateWorker(NanCallback *callback, virDomainPtr domainptr, char *uri)
+                : DomainWorker(callback, domainptr), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
+            DomainMigrateWorker(NanCallback *callback, virDomainPtr domainptr, virConnectPtr conn)
+                : DomainWorker(callback, domainptr), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
+            void Execute();
+            void setFlags(unsigned long flags) { flags_ = flags; }
+            void setBandwidth(unsigned long bandwidth) { bandwidth_ = bandwidth; }
+            void setDestname(const char *destname) { destname_ = destname; }
+        protected:
+            void HandleOKCallback();
+        private:
+            std::string uri_;
+            virConnectPtr conn_;
+            virDomainPtr migrated_;
+            std::string destname_;
+            unsigned long flags_;
+            unsigned long bandwidth_;
+    };
+
+    class DomainSetMigrationMaxDowntimeWorker : public DomainWorker {
+        public:
+            DomainSetMigrationMaxDowntimeWorker(NanCallback *callback, virDomainPtr domainptr, long long downtime, unsigned int flags)
+                : DomainWorker(callback, domainptr), downtime_(downtime), flags_(flags) {}
+            void Execute();
+        private:
+            long long downtime_;
+            unsigned int flags_;
     };
 
     class DomainPinVcpuWorker : public DomainWorker {

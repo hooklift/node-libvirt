@@ -273,6 +273,49 @@ describe('Domain', function() {
             });
         });
 
+        it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
+            var hypervisor2 = new libvirt.Hypervisor('test:///default');
+            var flags = [domain.VIR_MIGRATE_LIVE,
+                domain.VIR_MIGRATE_PEER2PEER,
+                domain.VIR_MIGRATE_PAUSED,
+                domain.VIR_MIGRATE_PERSIST_DEST
+            ];
+
+            hypervisor2.connect(function(err) {
+                if (err) return done(err);
+                domain.migrate({
+                    dest_hypervisor: hypervisor2,
+                    dest_name: 'test2',
+                    dest_uri: '',
+                    bandwidth: 100,
+                    flags: flags
+                }, function(err, domain) {
+                    should.exists(err);
+                    err.code.should.be.equal(err.VIR_ERR_NO_SUPPORT)
+                    done();
+                });
+            });
+        });
+
+        it('should migrate a domain to another hypervisor through an uri', function(done) {
+            var flags = [domain.VIR_MIGRATE_LIVE,
+                domain.VIR_MIGRATE_PEER2PEER,
+                domain.VIR_MIGRATE_PAUSED,
+                domain.VIR_MIGRATE_PERSIST_DEST
+            ];
+
+            domain.migrate({
+                dest_name: 'test2',
+                dest_uri: 'test:///default',
+                bandwidth: 100,
+                flags: flags
+            }, function(err) {
+                should.exists(err);
+                err.code.should.be.equal(err.VIR_ERR_NO_SUPPORT)
+                done();
+            });
+        });
+
         it('should allow to change real CPUs, which can be allocated to a virtual CPU', function(done) {
             domain.getVcpus(function(err, res) {
                 if (err) return done(err);

@@ -394,12 +394,7 @@ namespace NodeLibvirt {
 
         int argsl = args.Length();
 
-        if(argsl < 2) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify at least two argument")));
-        }
-
-        if(!args[0]->IsString()) {
+        if(argsl != 2 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as first argument")));
         }
@@ -453,12 +448,7 @@ namespace NodeLibvirt {
 
         int argsl = args.Length();
 
-        if(argsl < 2) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify at least two argument")));
-        }
-
-        if(!args[0]->IsString()) {
+        if(argsl != 2 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as first argument")));
         }
@@ -527,12 +517,12 @@ namespace NodeLibvirt {
 
         int id = -1;
 
-        if(args.Length() < 1 || !args[0]->IsInt32()) {
+        if(args.Length() != 2 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid Domain Id.")));
         }
 
-        if(args.Length() >= 2 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -581,12 +571,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::LookupByName) {
         NanScope();
 
-        if(args.Length() < 1 || !args[0]->IsString()) {
+        if(args.Length() != 2 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid Domain name.")));
         }
 
-        if(args.Length() >= 2 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -753,12 +743,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::SetAutostart) {
         NanScope();
 
-        if(args.Length() < 1 || !args[0]->IsBoolean()) {
+        if(args.Length() != 2 || !args[0]->IsBoolean()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a boolean as first argument")));
         }
 
-        if (args.Length() > 1 && !args[1]->IsFunction()) {
+        if (!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -809,12 +799,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::SetMaxMemory) {
         NanScope();
 
-        if(args.Length() < 1 || !args[0]->IsInt32()) {
+        if(args.Length() != 2 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a number as first argument")));
         }
 
-        if (args.Length() > 1 && !args[1]->IsFunction()) {
+        if (!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -842,12 +832,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::SetMemory) {
         NanScope();
 
-        if(args.Length() < 1 || !args[0]->IsInt32()) {
+        if(args.Length() != 2 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a valid amount of memory")));
         }
 
-        if (args.Length() > 1 && !args[1]->IsFunction()) {
+        if (!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -954,12 +944,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::Save) {
         HandleScope scope;
 
-        if(args.Length() < 1 && !args[0]->IsString()) {
+        if(args.Length() != 2 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as first argument")));
         }
 
-        if(args.Length() > 1 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -988,12 +978,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::Restore) {
         HandleScope scope;
 
-        if(args.Length() < 1 && !args[0]->IsString()) {
+        if(args.Length() != 2 || !args[0]->IsString()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a string as first argument")));
         }
 
-        if(args.Length() > 1 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -1172,12 +1162,12 @@ namespace NodeLibvirt {
     NAN_METHOD(Domain::SetVcpus) {
         HandleScope scope;
 
-        if(args.Length() < 1 && !args[0]->IsInt32()) {
+        if(args.Length() != 2 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a number as first argument")));
         }
 
-        if(args.Length() > 1 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
@@ -1191,21 +1181,65 @@ namespace NodeLibvirt {
         NanReturnUndefined();
     }
 
+    void DomainMigrateWorker::Execute() {
+
+        if(conn_) {
+            migrated_ = virDomainMigrate(getDomainPtr(),
+                conn_,
+                flags_,
+                destname_.c_str(),
+                uri_.c_str(),
+                bandwidth_);
+
+            if(migrated_ == NULL) {
+                setVirError(virGetLastError());
+            }
+        } else {
+            int ret = -1;
+
+            ret = virDomainMigrateToURI(getDomainPtr(),
+                uri_.c_str(),
+                flags_,
+                destname_.c_str(),
+                bandwidth_);
+
+            if(ret == -1) {
+                setVirError(virGetLastError());
+            }
+        }
+    }
+
+    void DomainMigrateWorker::HandleOKCallback() {
+        NanScope();
+
+        if (migrated_ != NULL) {
+            Domain *domain = new Domain();
+            domain->domain_ = migrated_;
+
+            Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
+            domain->Wrap(domain_obj);
+
+            Local<Value> argv[] = { NanNull(), domain_obj };
+
+            callback->Call(2, argv);
+        } else {
+            callback->Call(0, NULL);
+        }
+    }
+
     Handle<Value> Domain::Migrate(const Arguments& args) {
         HandleScope scope;
         unsigned long flags = 0;
         unsigned long bandwidth = 0;
-//        const char* dest_name = NULL;
-        int ret = -1;
 
-        if(args.Length() == 0) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify arguments to invoke this function")));
-        }
-
-        if(!args[0]->IsObject()) {
+        if(args.Length() != 2 || !args[0]->IsObject()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify an object as first argument")));
+        }
+
+        if(!args[1]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify an function as second argument")));
         }
 
         Local<Object> args_ = args[0]->ToObject();
@@ -1241,6 +1275,9 @@ namespace NodeLibvirt {
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
+        NanCallback *callback = new NanCallback(args[1].As<Function>());
+        DomainMigrateWorker *worker;
+
         if(args_->Has(migration_hypervisor_symbol)) {
             Local<Object> hyp_obj = args_->Get(migration_hypervisor_symbol)->ToObject();
 
@@ -1251,65 +1288,50 @@ namespace NodeLibvirt {
 
             Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
 
-            Domain *migrated_domain = new Domain();
-            migrated_domain->domain_ = virDomainMigrate(domain->domain_,
-                                                        hypervisor->connection(),
-                                                        flags,
-                                                        (const char *) *dest_name,
-                                                        (const char *) *dest_uri,
-                                                        bandwidth);
-
-            if(migrated_domain->domain_ == NULL) {
-                ThrowException(Error::New(virGetLastError()));
-                return False();
-            }
-
-            migrated_domain->Wrap(args.This());
-
-            return scope.Close(migrated_domain->constructor_template->GetFunction()->NewInstance());
+            worker = new DomainMigrateWorker(callback, domain->domain_, hypervisor->connection());
         } else {
-            ret = virDomainMigrateToURI(domain->domain_,
-                                        (const char *) *dest_uri,
-                                        flags,
-                                        (const char *) *dest_name,
-                                        bandwidth);
+            worker = new DomainMigrateWorker(callback, domain->domain_, *dest_uri);
         }
 
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
+        worker->setBandwidth(bandwidth);
+        worker->setFlags(flags);
+        worker->setDestname(*dest_name);
 
-        return True();
+        NanAsyncQueueWorker(worker);
+
+        NanReturnUndefined();
     }
 
-    Handle<Value> Domain::SetMigrationMaxDowntime(const Arguments& args) {
+    void DomainSetMigrationMaxDowntimeWorker::Execute() {
+        if(virDomainMigrateSetMaxDowntime(getDomainPtr(), downtime_, flags_) == -1) {
+            setVirError(virGetLastError());
+        }
+    }
+
+    NAN_METHOD(Domain::SetMigrationMaxDowntime) {
         HandleScope scope;
         long long downtime = 0;
         unsigned int flags = 0;
-        int ret = -1;
 
-        if(args.Length() == 0) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify arguments to invoke this function")));
-        }
-
-        if(!args[0]->IsInt32()) {
+        if(args.Length() != 2 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a number as first argument")));
+        }
+
+        if(!args[1]->IsFunction()) {
+            return ThrowException(Exception::TypeError(
+            String::New("You must specify a function as second argument")));
         }
 
         downtime = args[0]->Int32Value();
 
         Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
 
-        ret = virDomainMigrateSetMaxDowntime(domain->domain_, downtime, flags);
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
+        NanCallback *callback = new NanCallback(args[1].As<Function>());
 
-        return True();
+        NanAsyncQueueWorker(new DomainSetMigrationMaxDowntimeWorker(callback, domain->domain_, downtime, flags));
+
+        NanReturnUndefined();
     }
 
     DomainPinVcpuWorker::DomainPinVcpuWorker(NanCallback *callback, virDomainPtr domainptr, int vcpu, Handle<Array> cpus)
@@ -1373,7 +1395,7 @@ namespace NodeLibvirt {
             String::New("You must specify two arguments")));
         }
 
-        if(!args[0]->IsInt32()) {
+        if(args.Length() != 3 || !args[0]->IsInt32()) {
             return ThrowException(Exception::TypeError(
             String::New("The first argument must be an integer")));
         }
@@ -1383,7 +1405,7 @@ namespace NodeLibvirt {
             String::New("The second argument must be an array of objects")));
         }
 
-        if(args.Length() > 2 && !args[2]->IsFunction()) {
+        if(!args[2]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("The third argument must be a function")));
         }
@@ -1420,9 +1442,9 @@ namespace NodeLibvirt {
 
         int argsl = args.Length();
 
-        if(argsl < 1 || argsl > 2) {
+        if(argsl != 2 && argsl != 3) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify at two or three arguments")));
+            String::New("You must specify two or three arguments")));
         }
 
         if(!args[0]->IsString()) {
@@ -1432,12 +1454,12 @@ namespace NodeLibvirt {
 
         if(argsl == 2 && !args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
-            String::New("The second argument must be an function")));
+            String::New("The second argument must be an function or an array with flags")));
         }
 
         if(argsl == 3 && !args[1]->IsArray()) {
             return ThrowException(Exception::TypeError(
-            String::New("You must specify an object with flags")));
+            String::New("You must specify an array with flags")));
         }
 
         if(argsl == 3 && !args[2]->IsFunction()) {
@@ -1484,7 +1506,7 @@ namespace NodeLibvirt {
 
         int argsl = args.Length();
 
-        if(argsl < 1 || argsl > 2) {
+        if(argsl != 2 && argsl != 3) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify at two or three arguments")));
         }
@@ -1496,7 +1518,7 @@ namespace NodeLibvirt {
 
         if(argsl == 2 && !args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
-            String::New("The second argument must be an function")));
+            String::New("The second argument must be an function or an object with flags")));
         }
 
         if(argsl == 3 && !args[1]->IsArray()) {
@@ -1612,12 +1634,12 @@ namespace NodeLibvirt {
 
         int flags = 0;
 
-        if(args.Length() < 1 && !args[0]->IsArray()) {
+        if(args.Length() != 2 || !args[0]->IsArray()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify an array as first argument to invoke this function")));
         }
 
-        if(args.Length() < 2 && !args[1]->IsFunction()) {
+        if(!args[1]->IsFunction()) {
             return ThrowException(Exception::TypeError(
             String::New("You must specify a function as second argument")));
         }
