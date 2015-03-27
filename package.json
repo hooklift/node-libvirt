@@ -10,26 +10,21 @@
     "Michael Maier - https://github.com/binBASH"
   ],
   "description": "libvirt bindings for v8 javascript engine",
-  "repositories": [
-    {
-      "type": "git",
-      "url": "http://github.com/c4milo/node-libvirt.git"
-    }
-  ],
-  "devDependencies": {
-    "expresso": "*",
-    "mocha": "*",
-    "segfault-handler": "*",
-    "should": "*"
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/c4milo/node-libvirt.git"
   },
-  "main": "build/Release/libvirt.node",
-  "scripts": {
-    "test": "expresso"
-  },
+  "main": "lib/index.js",
   "engines": {
-    "node": ">=0.6.0"
+    "node": ">=0.10.0"
   },
   "dependencies": {
-    "nan": "^1.6.2"
+    "nan": "^1.7.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.1",
+    "chai": "^2.2.0",
+    "segfault-handler": "^0.2.4",
+    "jshint": "^2.6.0"
   }
 }
