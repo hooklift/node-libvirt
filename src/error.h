@@ -6,20 +6,22 @@
 
 namespace NodeLibvirt {
 
-    class Error : ObjectWrap {
-        public:
-            static void Initialize();
-            static Handle<Value> New(virErrorPtr error);
-        private:
-            virErrorPtr error_;
-            static Persistent<FunctionTemplate> constructor_template;
-            static Handle<Value> Getter(Local<String> property,
-                                        const AccessorInfo& info);
+class Error : ObjectWrap
+{
+public:
+  static void Initialize();
+  static Handle<Value> New(virErrorPtr error);
 
-            Error(virErrorPtr error);
-    };
+private:
+  explicit Error(virErrorPtr error);
+  static Persistent<FunctionTemplate> constructor_template;
+
+  static NAN_GETTER(Getter);
+
+  virErrorPtr error_;
+
+};
 
 } //namespace NodeLibvirt
 
 #endif // SRC_ERROR_H_
-
