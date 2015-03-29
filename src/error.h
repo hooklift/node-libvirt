@@ -2,11 +2,17 @@
 #ifndef SRC_ERROR_H_
 #define SRC_ERROR_H_
 
-#include "node_libvirt.h"
+#include <nan.h>
+
+#include <libvirt/libvirt.h>
+#include <libvirt/virterror.h>
+
+using namespace v8;
+using namespace node;
 
 namespace NodeLibvirt {
 
-class Error : ObjectWrap
+class Error : public ObjectWrap
 {
 public:
   static void Initialize();

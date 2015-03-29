@@ -2,44 +2,36 @@
 #ifndef SRC_STORAGE_VOLUME_H_
 #define SRC_STORAGE_VOLUME_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
 
 namespace NodeLibvirt {
 
-    class StorageVolume : public ObjectWrap {
-        friend class Hypervisor;
-        friend class StoragePool;
+class StorageVolume : public ObjectWrap
+{
+public:
+  static void Initialize();
 
-        public:
-            static void Initialize();
-            static inline bool HasInstance(v8::Handle<v8::Value> value) {
-                if (!value->IsObject()) {
-                    return false;
-                }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
-            }
+private:
+  static Persistent<FunctionTemplate> constructor_template;
+  virStorageVolPtr volume_;
 
-        protected:
-            static Handle<Value> Create(const Arguments& args);
-            static Handle<Value> GetInfo(const Arguments& args);
-            static Handle<Value> GetKey(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetPath(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> LookupByKey(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByPath(const Arguments& args);
-            static Handle<Value> Wipe(const Arguments& args);
-            static Handle<Value> Delete(const Arguments& args);
-            static Handle<Value> Clone(const Arguments& args);
+  friend class StoragePool;
 
-        private:
-            virStorageVolPtr volume_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+protected:
+  static NAN_METHOD(Create);
+  static NAN_METHOD(GetInfo);
+  static NAN_METHOD(GetKey);
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetPath);
+  static NAN_METHOD(ToXml);
+  static NAN_METHOD(LookupByKey);
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(LookupByPath);
+  static NAN_METHOD(Wipe);
+  static NAN_METHOD(Delete);
+  static NAN_METHOD(Clone);
+
+};
 
 }  //namespace NodeLibvirt
 

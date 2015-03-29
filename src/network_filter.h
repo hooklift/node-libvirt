@@ -2,31 +2,29 @@
 #ifndef SRC_NETWORK_FILTER_H_
 #define SRC_NETWORK_FILTER_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
 
 namespace NodeLibvirt {
 
-    class NetworkFilter : public ObjectWrap {
-        friend class Hypervisor;
+class NetworkFilter : public ObjectWrap
+{
+public:
+    static void Initialize();
 
-        public:
-            static void Initialize();
+private:
+    static Persistent<FunctionTemplate> constructor_template;
+    virNWFilterPtr filter_;
 
-        protected:
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
+protected:
+    static NAN_METHOD(LookupByName);
+    static NAN_METHOD(LookupByUUID);
+    static NAN_METHOD(Define);
+    static NAN_METHOD(Undefine);
+    static NAN_METHOD(GetName);
+    static NAN_METHOD(GetUUID);
+    static NAN_METHOD(ToXml);
 
-        private:
-            virNWFilterPtr filter_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+};
 
 }  //namespace NodeLibvirt
 

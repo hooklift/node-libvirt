@@ -2,39 +2,38 @@
 #ifndef SRC_NETWORK_H_
 #define SRC_NETWORK_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
 
 namespace NodeLibvirt {
 
-    class Network : public ObjectWrap {
-        friend class Hypervisor;
+class Network : public ObjectWrap {
+public:
+  static void Initialize();
 
-        public:
-            static void Initialize();
+private:
+  static Persistent<FunctionTemplate> constructor_template;
+  virNetworkPtr network_;
 
-        protected:
-            static Handle<Value> Create(const Arguments& args);
-            static Handle<Value> Start(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> GetAutostart(const Arguments& args);
-            static Handle<Value> SetAutostart(const Arguments& args);
-            static Handle<Value> IsActive(const Arguments& args);
-            static Handle<Value> IsPersistent(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> GetBridgeName(const Arguments& args);
-            static Handle<Value> Destroy(const Arguments& args);
+  friend class Hypervisor;
 
-        private:
-            virNetworkPtr network_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+protected:
+  static NAN_METHOD(Create);
+  static NAN_METHOD(Start);
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(Define);
+  static NAN_METHOD(Undefine);
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetUUID);
+  static NAN_METHOD(GetAutostart);
+  static NAN_METHOD(SetAutostart);
+  static NAN_METHOD(IsActive);
+  static NAN_METHOD(IsPersistent);
+  static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetBridgeName);
+  static NAN_METHOD(Destroy);
+
+};
 
 }  // namespace NodeLibvirt
 

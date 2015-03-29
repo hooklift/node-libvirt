@@ -2,34 +2,32 @@
 #ifndef SRC_SECRET_H_
 #define SRC_SECRET_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
 
 namespace NodeLibvirt {
 
-    class Secret : public ObjectWrap {
-        friend class Hypervisor;
+class Secret : public ObjectWrap
+{
+public:
+  static void Initialize();
 
-        public:
-            static void Initialize();
+private:
+  static Persistent<FunctionTemplate> constructor_template;
+  virSecretPtr secret_;
 
-        protected:
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> LookupByUsage(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> GetUsageId(const Arguments& args);
-            static Handle<Value> GetUsageType(const Arguments& args);
-            static Handle<Value> GetValue(const Arguments& args);
-            static Handle<Value> SetValue(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
+private:
+  static NAN_METHOD(Define);
+  static NAN_METHOD(Undefine);
+  static NAN_METHOD(LookupByUsage);
+  static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(GetUUID);
+  static NAN_METHOD(GetUsageId);
+  static NAN_METHOD(GetUsageType);
+  static NAN_METHOD(GetValue);
+  static NAN_METHOD(SetValue);
+  static NAN_METHOD(ToXml);
 
-        private:
-            virSecretPtr secret_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+};
 
 }  // namespace NodeLibvirt
 

@@ -2,34 +2,35 @@
 #ifndef SRC_INTERFACE_H_
 #define SRC_INTERFACE_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
 
 namespace NodeLibvirt {
 
-    class Interface : public ObjectWrap {
-        friend class Hypervisor;
+class Interface : public ObjectWrap
+{
+public:
+  static void Initialize();
 
-        public:
-            static void Initialize();
+private:
+  explicit Interface();
+  friend class Hypervisor;
 
-        protected:
-            static Handle<Value> Start(const Arguments& args);
-            static Handle<Value> Stop(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByMacAddress(const Arguments& args);
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> IsActive(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> GetMacAddress(const Arguments& args);
+  static Persistent<FunctionTemplate> constructor_template;
+  virInterfacePtr interface_;
 
-        private:
-            virInterfacePtr interface_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+private:
+  static NAN_METHOD(Start);
+  static NAN_METHOD(Stop);
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(LookupByMacAddress);
+  static NAN_METHOD(Define);
+  static NAN_METHOD(Undefine);
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(IsActive);
+  static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetMacAddress);
+
+};
 
 }  // namespace NodeLibvirt
 
