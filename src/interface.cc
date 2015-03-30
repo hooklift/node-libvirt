@@ -1,9 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#include <stdlib.h>
-
 #include "hypervisor.h"
-#include "error.h"
-
+#include "worker_macros.h"
 #include "interface.h"
 
 namespace NodeLibvirt {
@@ -32,238 +29,198 @@ void Interface::Initialize()
   constructor_template->SetClassName(NanNew("Interface"));
 }
 
-NAN_METHOD(Interface::Start)
+Local<Object> Interface::NewInstance(const LibVirtHandle &handle)
 {
   NanScope();
-
-  int ret = -1;
-  unsigned int flags = 0;
-
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  ret = virInterfaceCreate(interface->interface_, flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
-  }
-
-  NanReturnValue(NanTrue());
+  Interface *interface = new Interface(handle.ToInterface());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  interface->Wrap(object);
+  return NanEscapeScope(object);
 }
 
-NAN_METHOD(Interface::Stop)
+virInterfacePtr Interface::GetInterface() const
 {
-  NanScope();
+  return handle_;
+}
 
-  int ret = -1;
+NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
+void Interface::StartWorker::Execute()
+{
+  NLV_WORKER_ASSERT_INTERFACE();
+
   unsigned int flags = 0;
-
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  ret = virInterfaceDestroy(interface->interface_, flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  int result = virInterfaceCreate(Handle().ToInterface(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  if (interface->interface_ != NULL) {
-    virInterfaceFree(interface->interface_);
+  data_ = static_cast<bool>(result);
+}
+
+NLV_WORKER_METHOD_NO_ARGS(Interface, Stop)
+void Interface::StopWorker::Execute()
+{
+  NLV_WORKER_ASSERT_INTERFACE();
+
+  unsigned int flags = 0;
+  int result = virInterfaceDestroy(Handle().ToInterface(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanTrue());
+  virInterfaceFree(Handle().ToInterface());
+  data_ = static_cast<bool>(result);
 }
 
 NAN_METHOD(Interface::Define)
 {
   NanScope();
-
-  unsigned int flags = 0;
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as argument to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Interface *interface = new Interface();
-  interface->interface_ =
-    virInterfaceDefineXML(hypervisor->Connection(), (const char *) *xml, flags);
-
-  if (interface->interface_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> interface_obj =
-    constructor_template->GetFunction()->NewInstance();
-  interface->Wrap(interface_obj);
-  NanReturnValue(interface_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Interface::Undefine)
+void Interface::DefineWorker::Execute()
 {
-  NanScope();
-
-  int ret = -1;
-
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  ret = virInterfaceUndefine(interface->interface_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virInterfaceDefineXML(Handle().ToConnection(), value_.c_str(), flags);
+  if (lookupHandle_.ToInterface() == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
-
-  NanReturnValue(NanTrue());
 }
 
+NLV_WORKER_METHOD_NO_ARGS(Interface, Undefine)
+void Interface::UndefineWorker::Execute()
+{
+  NLV_WORKER_ASSERT_INTERFACE();
+  int result = virInterfaceUndefine(Handle().ToInterface());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = static_cast<bool>(result);
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE(Interface, LookupByName, virInterfaceLookupByName)
 NAN_METHOD(Interface::LookupByName)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a valid Interface name.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid Interface name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value name(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Interface *interface = new Interface();
-  interface->interface_ =
-    virInterfaceLookupByName(hypervisor->Connection(), (const char *) *name);
-
-  if (interface->interface_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnNull();
-  }
-
-  Local<Object> interface_obj =
-    constructor_template->GetFunction()->NewInstance();
-  interface->Wrap(interface_obj);
-  NanReturnValue(interface_obj);
+  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, unwrapped->handle_, name));
+  NanReturnUndefined();
 }
 
+NLV_LOOKUP_BY_VALUE_EXECUTE(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
 NAN_METHOD(Interface::LookupByMacAddress)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(
-    String::New("You must specify a string as argument to call this function")));
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid Interface MAC address and callback.");
+    NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value mac(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Interface *interface = new Interface();
-  interface->interface_ =
-    virInterfaceLookupByMACString(hypervisor->Connection(), (const char *) *mac);
-
-  if (interface->interface_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> interface_obj =
-    constructor_template->GetFunction()->NewInstance();
-  interface->Wrap(interface_obj);
-  NanReturnValue(interface_obj);
+  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string uuid(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, unwrapped->handle_, uuid));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Interface::GetName)
+NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
+void Interface::GetNameWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  const char *name = NULL;
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  name = virInterfaceGetName(interface->interface_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  const char *result = virInterfaceGetName(Handle().ToInterface());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(name));
+  data_ = result;
 }
 
-NAN_METHOD(Interface::GetMacAddress)
+NLV_WORKER_METHOD_NO_ARGS(Interface, GetMacAddress)
+void Interface::GetMacAddressWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  const char *mac = NULL;
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  mac = virInterfaceGetMACString(interface->interface_);
-  if (mac == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  const char *result = virInterfaceGetMACString(Handle().ToInterface());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(mac));
+  data_ = result;
 }
 
-NAN_METHOD(Interface::IsActive)
+NLV_WORKER_METHOD_NO_ARGS(Interface, IsActive)
+void Interface::IsActiveWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  int ret = -1;
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  ret = virInterfaceIsActive(interface->interface_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int result = virInterfaceIsActive(Handle().ToInterface());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(static_cast<bool>(ret)));
+  data_ = static_cast<bool>(result);
 }
 
-NAN_METHOD(Interface::ToXml)
+NLV_WORKER_METHOD_NO_ARGS(Interface, ToXml)
+void Interface::ToXmlWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  char* xml_ = NULL;
-  int flags = 0;
-  if (args.Length() == 0 || !args[0]->IsArray()) {
-    NanThrowTypeError("You must specify an array as argument to invoke this function");
-    NanReturnUndefined();
+  unsigned int flags = 0;
+  char *result = virInterfaceGetXMLDesc(Handle().ToInterface(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  //flags
-  Local<Array> flags_ = Local<Array>::Cast(args[0]);
-  unsigned int length = flags_->Length();
-  for (unsigned int i = 0; i < length; i++) {
-    flags |= flags_->Get(Integer::New(i))->Int32Value();
-  }
-
-  Interface *interface = ObjectWrap::Unwrap<Interface>(args.This());
-  xml_ = virInterfaceGetXMLDesc(interface->interface_, flags);
-  if (xml_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<String> xml = NanNew(xml_);
-  free(xml_);
-  NanReturnValue(xml);
+  data_ = strdup(result);
+  free(result);
 }
 
 }   // namespace NodeLibvirt
