@@ -11,17 +11,17 @@ void Network::Initialize()
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "start", Network::Start);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName", Network::GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID", Network::GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "getAutostart", Network::GetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "setAutostart", Network::SetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "isActive", Network::IsActive);
-  NODE_SET_PROTOTYPE_METHOD(t, "isPersistent", Network::IsPersistent);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine", Network::Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "destroy", Network::Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml", Network::ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBridgeName", Network::GetBridgeName);
+  NODE_SET_PROTOTYPE_METHOD(t, "start",           Start);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName",         GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getUUID",         GetUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "getAutostart",    GetAutostart);
+  NODE_SET_PROTOTYPE_METHOD(t, "setAutostart",    SetAutostart);
+  NODE_SET_PROTOTYPE_METHOD(t, "isActive",        IsActive);
+  NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",    IsPersistent);
+  NODE_SET_PROTOTYPE_METHOD(t, "undefine",        Undefine);
+  NODE_SET_PROTOTYPE_METHOD(t, "destroy",         Destroy);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",           ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "getBridgeName",   GetBridgeName);
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("Network"));
@@ -274,6 +274,11 @@ NAN_METHOD(Network::Undefine)
 
   int ret = -1;
   Network *network = ObjectWrap::Unwrap<Network>(args.This());
+  if (network->network_ == NULL) {
+    NanThrowError("invalid network");
+    NanReturnUndefined();
+  }
+
   ret = virNetworkUndefine(network->network_);
   if (ret == -1) {
     ThrowException(Error::New(virGetLastError()));
@@ -298,6 +303,7 @@ NAN_METHOD(Network::Destroy)
 
   if (network->network_ != NULL) {
     virNetworkFree(network->network_);
+    network->network_ = NULL;
   }
 
   NanReturnValue(NanTrue());

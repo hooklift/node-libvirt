@@ -2,7 +2,7 @@
 #ifndef SRC_STORAGE_VOLUME_H_
 #define SRC_STORAGE_VOLUME_H_
 
-#include <nan.h>
+#include "node_libvirt.h"
 
 namespace NodeLibvirt {
 
@@ -16,6 +16,7 @@ private:
   virStorageVolPtr volume_;
 
   friend class StoragePool;
+  friend class Hypervisor;
 
 protected:
   static NAN_METHOD(Create);

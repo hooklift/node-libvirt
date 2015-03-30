@@ -8,6 +8,7 @@
 #include "worker.h"
 
 using namespace v8;
+using namespace node;
 using namespace std;
 
 #define HYPERVISOR_LIBVIRTWORKER(WorkerName) \
@@ -52,16 +53,28 @@ class Hypervisor : public ObjectWrap
 public:
   static void Initialize(Handle<Object> exports);
 
+  virConnectPtr Connection() const;
+
 private:
   explicit Hypervisor(string uri, string user, string pass, bool readOnly);
   ~Hypervisor();
 
-  static v8::Persistent<v8::Function> constructor;
+  static Persistent<Function> constructor;
+  static Persistent<FunctionTemplate> constructor_template;
+
   virConnectPtr conn_;
   string uri_;
   string username_;
   string password_;
   bool readOnly_;
+
+  friend class Interface;
+  friend class Network;
+  friend class NetworkFilter;
+  friend class NodeDevice;
+  friend class Secret;
+  friend class StorageVolume;
+  friend class StoragePool;
 
 private:
   static NAN_METHOD(New);

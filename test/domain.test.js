@@ -1,222 +1,219 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+'use strict';
 
-var sys = require('sys');
-var libvirt = require('../build/Release/libvirt');
-var fixture = require('./lib/helper').fixture;
+var libvirt = require('../build/Release/libvirt'),
+    Hypervisor = libvirt.Hypervisor,
+    SegfaultHandler = require('segfault-handler'),
+    fixture = require('./lib/helper').fixture,
+    expect = require('chai').expect;
 
-var Hypervisor = libvirt.Hypervisor;
-
-var hypervisor = new Hypervisor('test:///default');
-var domain;
-
-module.exports = {
-  'should lookup a domain by id': function(beforeExit, assert) {
+var test = {};
+describe('Domain', function() {
+  it('should lookup a domain by id', function() {
     domain = hypervisor.lookupDomainById(1);
-    assert.isNotNull(domain);
-  },
+    expect(domain).to.exist;
+  });
 
-  'should create a persistent Domain from its JSON Description': function(beforeExit, assert) {
+  it('should create a persistent Domain from its JSON Description', function() {
     try {
       var xml = fixture('domain.xml');
       hypervisor.createDomain(xml);
 
       var dom = hypervisor.lookupDomainByName('nodejs-test');
-      assert.eql(dom.getName(), 'nodejs-test');
-      assert.eql(dom.destroy(), true);
+      expect(dom.getName()).to.equal('nodejs-test');
+      expect(dom.destroy()).to.equal(true);
     } catch (err) {}
-  },
+  });
 
-  'should return the id': function(beforeExit, assert) {
-    assert.eql(domain.getId(), 1);
-  },
+  it('should return the id', function() {
+    expect(domain.getId()).to.equal(1);
+  });
 
-  'should return the operating system type': function(beforeExit, assert) {
-    assert.eql(domain.getOsType(), 'linux');
-  },
+  it('should return the operating system type', function() {
+    expect(domain.getOsType()).to.equal('linux');
+  });
 
-  'should return the domain information': function(beforeExit, assert) {
+  it('should return the domain information', function() {
     var info = domain.getInfo();
 
-    assert.eql(info.state, domain.VIR_DOMAIN_RUNNING);
-    assert.eql(info.max_memory, 8388608);
-    assert.eql(info.memory, 2097152);
-    assert.eql(info.vcpus_number, 2);
-    assert.isDefined(info.cpu_time);
-    assert.ok(info.cpu_time);
-  },
+    expect(info.state).to.equal(domain.VIR_DOMAIN_RUNNING);
+    expect(info.max_memory).to.equal(8388608);
+    expect(info.memory).to.equal(2097152);
+    expect(info.vcpus_number).to.equal(2);
+    expect(info.cpu_time).to.exist;
+    expect(info.cpu_time).to.exist;
+  });
 
-  'should return the name': function(beforeExit, assert) {
-    assert.eql(domain.getName(), 'test');
-  },
+  it('should return the name', function() {
+    expect(domain.getName()).to.equal('test');
+  });
 
-  'should return the uuid': function(beforeExit, assert) {
-    assert.isNotNull(domain.getUUID());
-  },
+  it('should return the uuid', function() {
+    expect(domain.getUUID()).to.exist;
+  });
 
-  'should indicate if autostart is enable': function(beforeExit, assert) {
-    assert.eql(domain.getAutostart(), true);
-  },
+  it('should indicate if autostart is enable', function() {
+    expect(domain.getAutostart()).to.equal(true);
+  });
 
-  'should enable or disable autostart': function(beforeExit, assert) {
-    assert.eql(domain.setAutostart(false), true);
-    assert.eql(domain.getAutostart(), false);
+  it('should enable or disable autostart', function() {
+    expect(domain.setAutostart(false)).to.equal(true);
+    expect(domain.getAutostart()).to.equal(false);
 
-    assert.eql(domain.setAutostart(true), true);
-    assert.eql(domain.getAutostart(), true);
-  },
+    expect(domain.setAutostart(true)).to.equal(true);
+    expect(domain.getAutostart()).to.equal(true);
+  });
 
-  'should return maximum amount of physical memory allocated to a domain': function(beforeExit, assert) {
-    assert.eql(domain.getMaxMemory(), 8388608);
-  },
+  it('should return maximum amount of physical memory allocated to a domain', function() {
+    expect(domain.getMaxMemory()).to.equal(8388608);
+  });
 
-  'should change the maximum amount of physical memory allocated to a domain': function(beforeExit, assert) {
+  it('should change the maximum amount of physical memory allocated to a domain', function() {
     //kilobytes
-    assert.eql(domain.setMaxMemory(512000), true);
-    assert.eql(domain.getMaxMemory(), 512000);
-  },
+    expect(domain.setMaxMemory(512000)).to.equal(true);
+    expect(domain.getMaxMemory()).to.equal(512000);
+  });
 
-  'should dynamically change the runtime amount of memory allocated to a domain': function(beforeExit, assert) {
-    assert.eql(domain.setMemory(256000), true);
+  it('should dynamically change the runtime amount of memory allocated to a domain', function() {
+    expect(domain.setMemory(256000)).to.equal(true);
     var info = domain.getInfo();
-    assert.eql(info.memory, 256000);
-  },
+    expect(info.memory).to.equal(256000);
+  });
 
-  'should return the maximum number of virtual CPUs supported for the guest VM': function(beforeExit, assert) {
-    assert.eql(domain.getMaxVcpus(), 2);
-  },
+  it('should return the maximum number of virtual CPUs supported for the guest VM', function() {
+    expect(domain.getMaxVcpus()).to.equal(2);
+  });
 
-  'should indicate whether the domain is active': function(beforeExit, assert) {
-    assert.eql(domain.isActive(), true);
-  },
+  it('should indicate whether the domain is active', function() {
+    expect(domain.isActive()).to.equal(true);
+  });
 
-  'should indicate whether the domain is persistent': function(beforeExit, assert) {
-    assert.eql(domain.isPersistent(), true);
-  },
+  it('should indicate whether the domain is persistent', function() {
+    expect(domain.isPersistent()).to.equal(true);
+  });
 
-  'should reset the domain': function(beforeExit, assert) {
-    //assert.eql(domain.reset(), false);
-    assert.eql(true, true);
-  },
+  it('should reset the domain', function() {
+    //expect(domain.reset()).to.equal(false);
+    expect(true).to.equal(true);
+  });
 
-  'should reboot the domain': function(beforeExit, assert) {
-    assert.eql(domain.reboot(), true);
-  },
+  it('should reboot the domain', function() {
+    expect(domain.reboot()).to.equal(true);
+  });
 
-  'should save and restore the domain': function(beforeExit, assert) {
+  it('should save and restore the domain', function() {
     var path = '/tmp/' + domain.getName() + '-saved.img';
     domain.save(path);
-    assert.eql(hypervisor.restoreDomain(path), true);
-  },
+    expect(hypervisor.restoreDomain(path)).to.equal(true);
+  });
 
-  'should suspend and resume the domain': function(beforeExit, assert) {
-    assert.eql(domain.suspend(), true);
-    assert.eql(domain.resume(), true);
-  },
+  it('should suspend and resume the domain', function() {
+    expect(domain.suspend()).to.equal(true);
+    expect(domain.resume()).to.equal(true);
+  });
 
-  'should shutdown the domain': function(beforeExit, assert) {
-    assert.eql(domain.shutdown(), true);
-  },
+  it('should shutdown the domain', function() {
+    expect(domain.shutdown()).to.equal(true);
+  });
 
-  'should dynamically change the number of virtual CPUs used by the domain': function(beforeExit, assert) {
+  it('should dynamically change the number of virtual CPUs used by the domain', function() {
     //expresso doesn't have hooks pre and post each test so this is a hack
     if (!domain.isActive()) {
       domain.start();
     }
-    assert.eql(domain.setVcpus(1), true);
-  },
+    expect(domain.setVcpus(1)).to.equal(true);
+  });
 
-  'should get information about vcpus': function(beforeExit, assert) {
+  it('should get information about vcpus', function() {
     var vcpus = domain.getVcpus();
-    assert.ok(vcpus instanceof Array);
-    assert.isDefined(vcpus[0].number);
-    assert.isDefined(vcpus[0].state);
-    assert.isDefined(vcpus[0].cpu_time);
-    assert.isDefined(vcpus[0].cpu);
-    assert.isDefined(vcpus[0].affinity);
+    expect(vcpus).to.be.instanceOf(Array);
+    expect(vcpus[0].number).to.exist;
+    expect(vcpus[0].state).to.exist;
+    expect(vcpus[0].cpu_time).to.exist;
+    expect(vcpus[0].cpu).to.exist;
+    expect(vcpus[0].affinity).to.exist;
 
     var affinity = vcpus[0].affinity;
     var real_cpu = 0; //pedagogical purpose
-    assert.isDefined(affinity[real_cpu].usable);
-  },
+    expect(affinity[real_cpu].usable).to.exist;
+  });
 
-  'should allow to change real CPUs, which can be allocated to a virtual CPU': function(beforeExit, assert) {
+  it('should allow to change real CPUs, which can be allocated to a virtual CPU', function() {
     var vcpus = domain.getVcpus();
     var affinity = vcpus[0].affinity;
     affinity[0].usable = false;
     affinity[1].usable = false;
-    assert.eql(domain.pinVcpu(vcpus[0].number, affinity), true);
+    expect(domain.pinVcpu(vcpus[0].number, affinity)).to.equal(true);
 
     var vcpus2 = domain.getVcpus();
     var affinity2 = vcpus2[0].affinity;
-    assert.eql(affinity2[0].usable, false);
-    assert.eql(affinity2[1].usable, false);
+    expect(affinity2[0].usable).to.equal(false);
+    expect(affinity2[1].usable).to.equal(false);
 
     try {
       domain.pinVcpu();
     } catch (error) {
-      assert.eql(error.message, 'You must specify two arguments');
+      expect(error.message).to.equal('You must specify two arguments');
     }
 
     try {
       domain.pinVcpu(vcpus[0].number, 2);
     } catch (error) {
-      assert.eql(error.message, 'The second argument must be an array of objects');
+      expect(error.message).to.equal('The second argument must be an array of objects');
     }
 
     try {
       domain.pinVcpu('test', affinity);
     } catch (error) {
-      assert.eql(error.message, 'The first argument must be an integer');
+      expect(error.message).to.equal('The first argument must be an integer');
     }
 
     try {
       domain.pinVcpu(vcpus[0].number);
     } catch (error) {
-      assert.eql(error.message, 'You must specify two arguments');
+      expect(error.message).to.equal('You must specify two arguments');
     }
 
     try {
       domain.pinVcpu(vcpus[0].number, ['']);
     } catch (error) {
-      assert.eql(error.message, 'The second argument must be an array of objects');
+      expect(error.message).to.equal('The second argument must be an array of objects');
     }
-  },
+  });
 
-  'should attach a device': function(beforeExit, assert) {
+  it('should attach a device', function() {
     var device = fixture('device.xml');
     //no supported by test driver
     try {
-      assert.isNotNull(domain);
+      expect(domain).to.exist;
       domain.attachDevice(device);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
     //domain.attachDevice(device).should_be true
-  },
+  });
 
-  'should detach a device': function(beforeExit, assert) {
+  it('should detach a device', function() {
     var device = fixture('device.xml');
     //no supported by test driver
     try {
-      assert.eql(domain.detachDevice(device), true);
+      expect(domain.detachDevice(device)).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should update a device': function(beforeExit, assert) {
+  it('should update a device', function() {
     var device = fixture('device_update.xml');
     var flags = [libvirt.VIR_DOMAIN_DEVICE_MODIFY_CONFIG];
 
     try {
       domain.updateDevice(device, flags);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should migrate a domain to another hypervisor through a hypervisor connection': function(beforeExit, assert) {
+  it('should migrate a domain to another hypervisor through a hypervisor connection', function() {
     var hypervisor2 = new Hypervisor('test:///default');
     var flags = [domain.VIR_MIGRATE_LIVE,
       domain.VIR_MIGRATE_PEER2PEER,
@@ -228,11 +225,11 @@ module.exports = {
     try {
       domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags });
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should migrate a domain to another hypervisor through an uri': function(beforeExit, assert) {
+  it('should migrate a domain to another hypervisor through an uri', function() {
     var flags = [domain.VIR_MIGRATE_LIVE,
       domain.VIR_MIGRATE_PEER2PEER,
       domain.VIR_MIGRATE_PAUSED,
@@ -243,34 +240,34 @@ module.exports = {
     try {
       domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags });
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration': function(beforeExit, assert) {
+  it('should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration', function() {
     //test driver doesn't support this function
     //Milliseconds
     try {
       domain.setMigrationMaxDowntime(100000);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return domain xml representation': function(beforeExit, assert) {
+  it('should return domain xml representation', function() {
     var flags = [libvirt.VIR_DOMAIN_XML_SECURE,
       libvirt.VIR_DOMAIN_XML_INACTIVE];
 
     var xml = domain.toXml(flags);
-    assert.match(xml, /<name>test<\/name>/);
-  },
+    expect(xml).to.match(/<name>test<\/name>/);
+  });
 
-  'should return domain json representation': function(beforeExit, assert) {
+  it('should return domain json representation', function() {
     //test driver doesn't support this function
     try {
       var info = domain.getJobInfo();
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
 
     //        info.type.should_not_be undefined
@@ -285,230 +282,230 @@ module.exports = {
     //        info.file.total.should_not_be undefined
     //        info.file.processed.should_not_be undefined
     //        info.file.remaining.should_not_be undefined
-  },
+  });
 
-  'should extract information about progress of a background job on the domain': function(beforeExit, assert) {
+  it('should extract information about progress of a background job on the domain', function() {
     try {
-      assert.eql(domain.abortCurrentJob(), true);
+      expect(domain.abortCurrentJob()).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should abort the current background job on the domain': function(beforeExit, assert) {
+  it('should abort the current background job on the domain', function() {
     var params = domain.getSchedParams();
-    assert.eql(params.weight, 50);
-  },
+    expect(params.weight).to.equal(50);
+  });
 
-  'should get the domain scheduler parameters': function(beforeExit, assert) {
+  it('should get the domain scheduler parameters', function() {
     //test driver always return 50 as weight
     // and it doesn't set new values for weight
     var params = domain.getSchedParams();
-    assert.eql(params.weight, 50);
+    expect(params.weight).to.equal(50);
     params.weight = 30;
 
-    assert.eql(domain.setSchedParams(params), true);
+    expect(domain.setSchedParams(params)).to.equal(true);
     params = domain.getSchedParams();
     //params.weight.should_be 30
-    assert.eql(params.weight, 50);
-  },
+    expect(params.weight).to.equal(50);
+  });
 
-  'should set the domain scheduler parameters': function(beforeExit, assert) {
+  it('should set the domain scheduler parameters', function() {
     try {
       var info = domain.getSecurityLabel();
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
     //info.label.should_not_be undefined
     //info.enforcing.should_not_be undefined
-  },
+  });
 
-  'should return the domain security labels': function(beforeExit, assert) {
+  it('should return the domain security labels', function() {
     try {
       var info = domain.getSecurityLabel();
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
     //info.label.should_not_be undefined
     //info.enforcing.should_not_be undefined
-  },
+  });
 
-  'should save a managed image of the domain': function(beforeExit, assert) {
+  it('should save a managed image of the domain', function() {
     //test driver doesn't support these functions
     try {
-      assert.eql(domain.saveManagedImage(), true);
-      assert.eql(domain.hasManagedImage(), true);
+      expect(domain.saveManagedImage()).to.equal(true);
+      expect(domain.hasManagedImage()).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should remove a managed image of the domain': function(beforeExit, assert) {
+  it('should remove a managed image of the domain', function() {
     //test driver doesn't support these functions
     try {
-      assert.eql(domain.removeManagedImage(), true);
-      assert.eql(domain.hasManagedImage(), true);
+      expect(domain.removeManagedImage()).to.equal(true);
+      expect(domain.hasManagedImage()).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should allow to read the domain\'s memory content and return it in a Buffer object': function(beforeExit, assert) {
+  it('should allow to read the domain\'s memory content and return it in a Buffer object', function() {
     var physical = [domain.VIR_MEMORY_PHYSICAL];
     var virtual = [domain.VIR_MEMORY_VIRTUAL];
 
     try {
       var psegment = domain.memoryPeek(0, 1024, physical);
-      assert.ok(psegment instanceof Buffer);
+      expect(psegment instanceof Buffer);
 
       var vsegment = domain.memoryPeek(0, 1024, virtual);
-      assert.ok(vsegment instanceof Buffer);
+      expect(vsegment instanceof Buffer);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should allow to read the content of a domain\'s disk device and return it in a Buffer object': function(beforeExit, assert) {
+  it('should allow to read the content of a domain\'s disk device and return it in a Buffer object', function() {
     try {
       var blocks = domain.blockPeek('/dev/sda', 0, 1024);
-      assert.ok(blocks instanceof Buffer);
+      expect(blocks instanceof Buffer);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return domain\'s memory statistics': function(beforeExit, assert) {
+  it('should return domain\'s memory statistics', function() {
     //memory statistics in kbs
     try {
       var stats = domain.getMemoryStats();
-      assert.isDefined(stats.swap_in);
-      assert.isDefined(stats.swap_out);
-      assert.isDefined(stats.major_fault);
-      assert.isDefined(stats.minor_fault);
-      assert.isDefined(stats.unused);
-      assert.isDefined(stats.available);
+      expect(stats.swap_in).to.exist;
+      expect(stats.swap_out).to.exist;
+      expect(stats.major_fault).to.exist;
+      expect(stats.minor_fault).to.exist;
+      expect(stats.unused).to.exist;
+      expect(stats.available).to.exist;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return block device stats for block devices attached to the domain': function(beforeExit, assert) {
+  it('should return block device stats for block devices attached to the domain', function() {
     try {
       var stats = domain.getBlockStats('/dev/sda');
-      assert.isDefined(stats.read_requests);
-      assert.isDefined(stats.read_bytes);
-      assert.isDefined(stats.write_requests);
-      assert.isDefined(stats.write_bytes);
+      expect(stats.read_requests).to.exist;
+      expect(stats.read_bytes).to.exist;
+      expect(stats.write_requests).to.exist;
+      expect(stats.write_bytes).to.exist;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_INVALID_ARG);
+      expect(error.code).to.equal(error.VIR_ERR_INVALID_ARG);
     }
-  },
+  });
 
-  'should return basic information about a domain\'s block device': function(beforeExit, assert) {
+  it('should return basic information about a domain\'s block device', function() {
     try {
       var info = domain.getBlockInfo('/path');
-      assert.isDefined(info.capacity);
-      assert.isDefined(info.allocation);
-      assert.isDefined(info.physical);
+      expect(info.capacity).to.exist;
+      expect(info.allocation).to.exist;
+      expect(info.physical).to.exist;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should dump the core of a domain on a given file for analysis': function(beforeExit, assert) {
+  it('should dump the core of a domain on a given file for analysis', function() {
     var path = '/tmp/dumpcore-test.txt';
-    assert.ok(domain.coreDump(path));
-  },
+    expect(domain.coreDump(path));
+  });
 
-  'should return network interface statistics of the domain': function(beforeExit, assert) {
+  it('should return network interface statistics of the domain', function() {
     //FIXME, attach network device eth1 to the domain
     try {
       var stats = domain.getInterfaceStats('eth1');
       var ifaces = domain.getInterfaces();
 
-      assert.isDefined(stats.rx_bytes);
-      assert.isDefined(stats.rx_packets);
-      assert.isDefined(stats.rx_errors);
-      assert.isDefined(stats.rx_drop);
-      assert.isDefined(stats.tx_bytes);
-      assert.isDefined(stats.tx_packets);
-      assert.isDefined(stats.tx_errors);
-      assert.isDefined(stats.tx_drop);
+      expect(stats.rx_bytes).to.exist;
+      expect(stats.rx_packets).to.exist;
+      expect(stats.rx_errors).to.exist;
+      expect(stats.rx_drop).to.exist;
+      expect(stats.tx_bytes).to.exist;
+      expect(stats.tx_packets).to.exist;
+      expect(stats.tx_errors).to.exist;
+      expect(stats.tx_drop).to.exist;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_INVALID_ARG);
+      expect(error.code).to.equal(error.VIR_ERR_INVALID_ARG);
     }
-  },
+  });
 
-  'should show if the domain has a current snapshot': function(beforeExit, assert) {
+  it('should show if the domain has a current snapshot', function() {
     try {
-      assert.eql(domain.hasCurrentSnapshot(), false);
+      expect(domain.hasCurrentSnapshot()).to.equal(false);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should revert the domain to a snapshot taken before': function(beforeExit, assert) {
+  it('should revert the domain to a snapshot taken before', function() {
     //take a snapshot and then revert to it
     try {
-      assert.eql(domain.revertToSnapshot('test-snapshot'), true);
+      expect(domain.revertToSnapshot('test-snapshot')).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should take a snapshot of the domain': function(beforeExit, assert) {
+  it('should take a snapshot of the domain', function() {
     try {
-      assert.eql(domain.takeSnapshot(), true);
+      expect(domain.takeSnapshot(), true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should take a snapshot of the domain using a xml domain description': function(beforeExit, assert) {
+  it('should take a snapshot of the domain using a xml domain description', function() {
     try {
       var xml = fixture('snapshot.xml');
-      assert.eql(domain.takeSnapshot(xml), true);
+      expect(domain.takeSnapshot(xml)).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return information about the current domain snapshot': function(beforeExit, assert) {
+  it('should return information about the current domain snapshot', function() {
     try {
       var fixture = fixture('snapshot.xml');
-      assert.eql(domain.takeSnapshot(fixture), true);
+      expect(domain.takeSnapshot(fixture)).to.equal(true);
 
       var xml = domain.getCurrentSnapshot();
-      assert.ok(xml);
+      expect(xml);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should delete a snapshot': function(beforeExit, assert) {
+  it('should delete a snapshot', function() {
     try {
-      assert.eql(domain.deleteSnapshot('test-snapshot'), true);
+      expect(domain.deleteSnapshot('test-snapshot')).to.equal(true);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should lookup a snapshot by name': function(beforeExit, assert) {
+  it('should lookup a snapshot by name', function() {
     try {
       var xml = domain.lookupSnapshotByName('test-snapshot');
-      assert.ok(xml);
+      expect(xml).to.be.ok;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return all the domain snapshots': function(beforeExit, assert) {
+  it('should return all the domain snapshots', function() {
     try {
       var snapshots = domain.getSnapshots();
-      assert.ok(snapshots instanceof Array);
+      expect(snapshots).to.be.instanceOf(Array);
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  }
-};
+  });
 
+});

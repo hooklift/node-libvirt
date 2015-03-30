@@ -1,78 +1,128 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+'use strict';
 
-var sys = require('sys');
-var libvirt = require('../build/Release/libvirt');
-var fixture = require('./lib/helper').fixture;
+var libvirt = require('../build/Release/libvirt'),
+    Hypervisor = libvirt.Hypervisor,
+    SegfaultHandler = require('segfault-handler'),
+    fixture = require('./lib/helper').fixture,
+    expect = require('chai').expect;
 
-var Hypervisor = libvirt.Hypervisor;
+var test = {};
+describe('Storage Volume', function() {
+  before(function() {
+    SegfaultHandler.registerHandler();
+  });
 
-var hypervisor = new Hypervisor('test:///default');
-var xml = fixture('storage_volume.xml');
-var pool = hypervisor.lookupStoragePoolByName('default-pool');
-var volume;
+  beforeEach(function(done) {
+    test.hypervisor = new Hypervisor('test:///default');
+    test.hypervisor.connect(function(err) {
+      expect(err).to.not.exist;
+      done();
+    });
+  });
 
-module.exports = {
-  'should be created': function(beforeExit, assert) {
-    volume = pool.createVolume(xml);
-    assert.eql(volume.getName(), 'sparse.img');
-  },
+  afterEach(function(done) {
+    test.hypervisor.disconnect(function(err) {
+      expect(err).to.not.exist;
+      done();
+    });
+  });
 
-  'should clone an existent volume': function(beforeExit, assert) {
-    var xml = fixture('clone_volume.xml');
-    var clone_vol = pool.cloneVolume(volume, xml);
-    assert.eql(clone_vol.getName(), 'sparse_clone.img');
-  },
+  describe('storage pool methods', function() {
+    beforeEach(function() {
+      test.pool = test.hypervisor.lookupStoragePoolByName('default-pool');
+    });
 
-  'should return volume information': function(beforeExit, assert) {
-    var info = volume.getInfo();
-    assert.eql(info.type, volume.VIR_STORAGE_VOL_FILE);
-    //bytes
-    assert.eql(info.capacity, 5368709120);
-    assert.eql(info.allocation, 0);
-  },
+    afterEach(function() {
+      test.pool = undefined;
+    });
 
-  'should be wiped': function(beforeExit, assert) {
-    try {
-      assert.ok(volume.wipe());
-    } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-    }
-  },
+    it('should be created', function() {
+      var xml = fixture('storage_volume.xml');
+      var volume = test.pool.createVolume(xml);
+      expect(volume.getName()).to.equal('sparse.img');
+      expect(volume.remove()).to.be.ok;
+    });
 
-  'should return its key': function(beforeExit, assert) {
-    assert.eql(volume.getKey(), '/default-pool/sparse.img');
-  },
+    it('should clone an existent volume', function() {
+      var xml = fixture('storage_volume.xml');
+      var volume = test.pool.createVolume(xml);
+      expect(volume.getName()).to.equal('sparse.img');
 
-  'should return its name': function(beforeExit, assert) {
-    assert.eql(volume.getName(), 'sparse.img');
-  },
+      var clone_xml = fixture('clone_volume.xml');
+      var clone_vol = test.pool.cloneVolume(volume, xml);
+      expect(clone_vol.getName()).to.equal('sparse_clone.img');
+      expect(clone_vol.remove()).to.be.ok;
+      expect(volume.remove()).to.be.ok;
+    });
+  });
 
-  'should return its path': function(beforeExit, assert) {
-    assert.eql(volume.getPath(), '/default-pool/sparse.img');
-  },
+  describe('methods', function() {
+    beforeEach(function() {
+      try {
+        test.pool = test.hypervisor.lookupStoragePoolByName('default-pool');
 
-  'should return its xml description': function(beforeExit, assert) {
-    assert.match(volume.toXml(), /<name>sparse.img<\/name>/);
-  },
+        var xml = fixture('storage_volume.xml');
+        test.volume = test.pool.createVolume(xml);
+      } catch (err) {
+        console.log(err);
+      }
+    });
 
-  'should be located by its key': function(beforeExit, assert) {
-    var volume_ = hypervisor.lookupStorageVolumeByKey(volume.getKey());
-    assert.eql(volume_.getName(), volume.getName());
-  },
+    afterEach(function() {
+      test.pool = undefined;
+      test.volume = undefined;
+    });
 
-  'should be located by its name': function(beforeExit, assert) {
-    var volume_ = pool.lookupVolumeByName(volume.getName());
-    assert.eql(volume_.getKey(), volume.getKey());
-  },
+    it('should return volume information', function() {
+      var info = test.volume.getInfo();
+      expect(info.type).to.equal(test.volume.VIR_STORAGE_VOL_FILE);
+      expect(info.capacity).to.equal(5368709120);
+      expect(info.allocation).to.equal(0);
+    });
 
-  'should be located by its path': function(beforeExit, assert) {
-    var volume_ = hypervisor.lookupStorageVolumeByPath(volume.getPath());
-    assert.eql(volume_.getKey(), volume.getKey());
-  },
+    it('should be wiped', function() {
+      expect(function() { test.volume.wipe(); }).to.throw(Error);
 
-  'should be removed from the pool': function(beforeExit, assert) {
-    assert.ok(volume.remove());
-  }
-};
+      // try {
+      //   assert.ok(volume.wipe());
+      // } catch (error) {
+      //   assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      // }
+    });
 
+    it('should return its key', function() {
+      expect(test.volume.getKey()).to.equal('/default-pool/sparse.img');
+    });
+
+    it('should return its name', function() {
+      expect(test.volume.getName()).to.equal('sparse.img');
+    });
+
+    it('should return its path', function() {
+      expect(test.volume.getPath()).to.equal('/default-pool/sparse.img');
+    });
+
+    it('should return its xml description', function() {
+      expect(test.volume.toXml()).to.match(/<name>sparse.img<\/name>/);
+    });
+
+    it('should be located by its key', function() {
+      var volume_ = test.hypervisor.lookupStorageVolumeByKey(test.volume.getKey());
+      expect(volume_.getName()).to.equal(test.volume.getName());
+    });
+
+    it('should be located by its name', function() {
+      var volume_ = test.pool.lookupVolumeByName(test.volume.getName());
+      expect(volume_.getKey()).to.equal(test.volume.getKey());
+    });
+
+    it('should be located by its path', function() {
+      var volume_ = test.hypervisor.lookupStorageVolumeByPath(test.volume.getPath());
+      expect(volume_.getKey()).to.equal(test.volume.getKey());
+    });
+
+    it('should be removed from the pool', function() {
+      expect(test.volume.remove()).to.be.ok;
+    });
+  });
+});

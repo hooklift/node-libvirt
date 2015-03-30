@@ -5,6 +5,10 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
+#include <nan.h>
+using namespace v8;
+using namespace node;
+
 #define NODE_LIBVIRT_VERSION "v0.1.0"
 #define LIBVIRT_THROW_EXCEPTION(err)                                        \
         v8::Local<v8::Value> exception = v8::Exception::Error(              \

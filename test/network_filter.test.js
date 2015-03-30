@@ -1,64 +1,80 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+'use strict';
 
-var sys = require('sys');
-var libvirt = require('../build/Release/libvirt');
-var fixture = require('./lib/helper').fixture;
+var libvirt = require('../build/Release/libvirt'),
+    Hypervisor = libvirt.Hypervisor,
+    SegfaultHandler = require('segfault-handler'),
+    fixture = require('./lib/helper').fixture,
+    expect = require('chai').expect;
 
-var Hypervisor = libvirt.Hypervisor;
+var test = {};
+describe('Network Filter', function() {
+  before(function() {
+    SegfaultHandler.registerHandler();
+  });
 
-var hypervisor = new Hypervisor('test:///default');
+  beforeEach(function(done) {
+    test.hypervisor = new Hypervisor('test:///default');
+    test.hypervisor.connect(function(err) {
+      expect(err).to.not.exist;
+      done();
+    });
+  });
 
-module.exports = {
-  'should define network filter from its xml description': function(beforeExit, assert) {
+  afterEach(function(done) {
+    test.hypervisor.disconnect(function(err) {
+      expect(err).to.not.exist;
+      done();
+    });
+  });
+
+  it('should define network filter from its xml description', function() {
     //test driver does not provide mechanisms to test this function
     try {
       var xml = fixture('network_filter.xml');
-      assert.ok(hypervisor.defineNetworkFilter(xml));
+      expect(test.hypervisor.defineNetworkFilter(xml)).to.be.ok;
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should return the network filter name': function(beforeExit, assert) {
+  it('should return the network filter name', function() {
     //test driver does not provide mechanisms to test this function
     //filter.getName().should_be 'default'
-  },
+  });
 
-  'should return the network filter UUID': function(beforeExit, assert) {
+  it('should return the network filter UUID', function() {
     //test driver does not provide mechanisms to test this function
     //filter.GetUUID().should_not_be undefined
-  },
+  });
 
-  'should return the xml description of the network filter': function(beforeExit, assert) {
+  it('should return the xml description of the network filter', function() {
     //test driver does not provide mechanisms to test this function
     //var xml = filter.toXml();
-  },
+  });
 
-  'should look up the network filter based in its name': function(beforeExit, assert) {
+  it('should look up the network filter based in its name', function() {
     //test driver does not provide mechanisms to test this function
     try {
-      var filter = hypervisor.lookupNetworkFilterByName('test-eth0');
-      assert.eql(filter.getName(), 'default');
+      var filter = test.hypervisor.lookupNetworkFilterByName('test-eth0');
+      expect(filter.getName()).to.equal('default');
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should look up the network filter based in its UUID': function(beforeExit, assert) {
+  it('should look up the network filter based in its UUID', function() {
     //test driver does not provide mechanisms to test this function
     try {
-      var filter = hypervisor.lookupNetworkFilterByName('test-eth0');
-      var filter2 = hypervisor.lookupNetworkFilterByUUID(filter.getUUID());
-      assert.eql(filter2.getName(), 'test-eth0');
+      var filter = test.hypervisor.lookupNetworkFilterByName('test-eth0');
+      var filter2 = test.hypervisor.lookupNetworkFilterByUUID(filter.getUUID());
+      expect(filter2.getName()).to.equal('test-eth0');
     } catch (error) {
-      assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
+      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
-  },
+  });
 
-  'should undefine the network filter': function(beforeExit, assert) {
+  it('should undefine the network filter', function() {
     //test driver does not provide mechanisms to test this function
     //filter.undefine().should_be true
-  }
-};
-
+  });
+});

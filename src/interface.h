@@ -2,7 +2,7 @@
 #ifndef SRC_INTERFACE_H_
 #define SRC_INTERFACE_H_
 
-#include <nan.h>
+#include "node_libvirt.h"
 
 namespace NodeLibvirt {
 
@@ -12,11 +12,10 @@ public:
   static void Initialize();
 
 private:
-  explicit Interface();
-  friend class Hypervisor;
-
   static Persistent<FunctionTemplate> constructor_template;
   virInterfacePtr interface_;
+
+  friend class Hypervisor;
 
 private:
   static NAN_METHOD(Start);

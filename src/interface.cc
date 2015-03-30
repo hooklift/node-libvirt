@@ -14,13 +14,13 @@ void Interface::Initialize()
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "start", Interface::Start);
-  NODE_SET_PROTOTYPE_METHOD(t, "stop", Interface::Stop);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName", Interface::GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMacAddress", Interface::GetMacAddress);
-  NODE_SET_PROTOTYPE_METHOD(t, "isActive", Interface::IsActive);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine", Interface::Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml", Interface::ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "start",         Start);
+  NODE_SET_PROTOTYPE_METHOD(t, "stop",          Stop);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName",       GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getMacAddress", GetMacAddress);
+  NODE_SET_PROTOTYPE_METHOD(t, "isActive",      IsActive);
+  NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 

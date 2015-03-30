@@ -2,7 +2,7 @@
 #ifndef SRC_NETWORK_H_
 #define SRC_NETWORK_H_
 
-#include <nan.h>
+#include "node_libvirt.h"
 
 namespace NodeLibvirt {
 

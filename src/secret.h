@@ -2,7 +2,7 @@
 #ifndef SRC_SECRET_H_
 #define SRC_SECRET_H_
 
-#include <nan.h>
+#include "node_libvirt.h"
 
 namespace NodeLibvirt {
 
@@ -14,6 +14,8 @@ public:
 private:
   static Persistent<FunctionTemplate> constructor_template;
   virSecretPtr secret_;
+
+  friend class Hypervisor;
 
 private:
   static NAN_METHOD(Define);

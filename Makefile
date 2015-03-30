@@ -3,7 +3,7 @@ TESTS = $(shell find ./test/* -name "*.test.js")
 NPM_BIN = ./node_modules/.bin
 
 jshint:
-	$(NPM_BIN)/jshint lib test tools
+	$(NPM_BIN)/jshint lib test
 
 fixjsstyle:
 	fixjsstyle -r lib -r test --strict --jslint_error=all

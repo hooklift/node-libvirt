@@ -3,14 +3,14 @@
 // #include "event_impl.h"
 // #include "domain.h"
 // #include "node_device.h"
-// #include "network.h"
 // #include "network_filter.h"
-// #include "interface.h"
-// #include "secret.h"
-// #include "storage_pool.h"
-// #include "storage_volume.h"
 // #include "error.h"
 
+#include "secret.h"
+#include "storage_pool.h"
+#include "storage_volume.h"
+#include "network.h"
+#include "interface.h"
 #include "hypervisor.h"
 
 #define HYPERVISOR_NOARGS_WORKER_METHOD(name) \
@@ -56,7 +56,7 @@ namespace NodeLibvirt {
 // static Persistent<String> domain_event_graphics_authscheme_sym;
 
 Persistent<Function> Hypervisor::constructor;
-
+Persistent<FunctionTemplate> Hypervisor::constructor_template;
 void Hypervisor::Initialize(Handle<Object> exports)
 {
   NanScope();
@@ -66,34 +66,34 @@ void Hypervisor::Initialize(Handle<Object> exports)
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   // methods
-  NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
-  NODE_SET_PROTOTYPE_METHOD(t, "disconnect", Disconnect);
+  NODE_SET_PROTOTYPE_METHOD(t, "connect",                 Connect);
+  NODE_SET_PROTOTYPE_METHOD(t, "disconnect",              Disconnect);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities", GetCapabilities);
-  NODE_SET_PROTOTYPE_METHOD(t, "getHostname", GetHostname);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSysInfo", GetSysInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getType", GetType);
-  NODE_SET_PROTOTYPE_METHOD(t, "getConnectionUri", GetConnectionUri);
-  NODE_SET_PROTOTYPE_METHOD(t, "getVersion", GetVersion);
-  NODE_SET_PROTOTYPE_METHOD(t, "getLibVirtVersion", GetLibVirtVersion);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted", IsConnectionEncrypted);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure", IsConnectionSecure);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionAlive", IsConnectionAlive);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus", GetMaxVcpus);
-  NODE_SET_PROTOTYPE_METHOD(t, "setKeepAlive", SetKeepAlive);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU", GetBaselineCPU);
-  NODE_SET_PROTOTYPE_METHOD(t, "compareCPU", CompareCPU);
+  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",         GetCapabilities);
+  NODE_SET_PROTOTYPE_METHOD(t, "getHostname",             GetHostname);
+  NODE_SET_PROTOTYPE_METHOD(t, "getSysInfo",              GetSysInfo);
+  NODE_SET_PROTOTYPE_METHOD(t, "getType",                 GetType);
+  NODE_SET_PROTOTYPE_METHOD(t, "getConnectionUri",        GetConnectionUri);
+  NODE_SET_PROTOTYPE_METHOD(t, "getVersion",              GetVersion);
+  NODE_SET_PROTOTYPE_METHOD(t, "getLibVirtVersion",       GetLibVirtVersion);
+  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted",   IsConnectionEncrypted);
+  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",      IsConnectionSecure);
+  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionAlive",       IsConnectionAlive);
+  NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",             GetMaxVcpus);
+  NODE_SET_PROTOTYPE_METHOD(t, "setKeepAlive",            SetKeepAlive);
+  NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",          GetBaselineCPU);
+  NODE_SET_PROTOTYPE_METHOD(t, "compareCPU",              CompareCPU);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedDomains", ListDefinedDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks", ListDefinedNetworks);
+  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedDomains",      ListDefinedDomains);
+  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks",     ListDefinedNetworks);
   NODE_SET_PROTOTYPE_METHOD(t, "listDefinedStoragePools", ListDefinedStoragePools);
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces", ListDefinedInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveDomains", ListActiveDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveInterfaces", ListActiveInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveNetworks", ListActiveNetworks);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveStoragePools", ListActiveStoragePools);
-  NODE_SET_PROTOTYPE_METHOD(t, "listNetworkFilters", ListNetworkFilters);
-  NODE_SET_PROTOTYPE_METHOD(t, "listSecrets", ListSecrets);
+  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces",   ListDefinedInterfaces);
+  NODE_SET_PROTOTYPE_METHOD(t, "listActiveDomains",       ListActiveDomains);
+  NODE_SET_PROTOTYPE_METHOD(t, "listActiveInterfaces",    ListActiveInterfaces);
+  NODE_SET_PROTOTYPE_METHOD(t, "listActiveNetworks",      ListActiveNetworks);
+  NODE_SET_PROTOTYPE_METHOD(t, "listActiveStoragePools",  ListActiveStoragePools);
+  NODE_SET_PROTOTYPE_METHOD(t, "listNetworkFilters",      ListNetworkFilters);
+  NODE_SET_PROTOTYPE_METHOD(t, "listSecrets",             ListSecrets);
 
   NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedDomains", GetNumberOfDefinedDomains);
   NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedInterfaces", GetNumberOfDefinedInterfaces);
@@ -106,13 +106,45 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfSecrets", GetNumberOfSecrets);
   NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveStoragePools", GetNumberOfActiveStoragePools);
 
-  // NODE API
+  // NODE
   NODE_SET_PROTOTYPE_METHOD(t, "listNodeDevices", ListNodeDevices);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel", GetNodeSecurityModel);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo", GetNodeInfo);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory", GetNodeFreeMemory);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeCellsFreeMemory", GetNodeCellsFreeMemory);
-  
+
+  // INTERFACE
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByName",       Interface::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByMacAddress", Interface::LookupByMacAddress);
+  NODE_SET_PROTOTYPE_METHOD(t, "defineInterface",             Interface::Define);
+
+  // NETWORK
+  NODE_SET_PROTOTYPE_METHOD(t, "createNetwork",               Network::Create);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByName",         Network::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByUUID",         Network::LookupByUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork",               Network::Define);
+
+  // NETWORK FILTER
+  // NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter",         NetworkFilter::Define);
+  // NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName",   NetworkFilter::LookupByName);
+  // NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID",   NetworkFilter::LookupByUUID);
+
+  // STORAGE POOL
+  NODE_SET_PROTOTYPE_METHOD(t, "createStoragePool",           StoragePool::Create);
+  NODE_SET_PROTOTYPE_METHOD(t, "defineStoragePool",           StoragePool::Define);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByName",     StoragePool::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByUUID",     StoragePool::LookupByUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByVolume",   StoragePool::LookupByVolume);
+
+  // STORAGE VOLUME
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByKey",    StorageVolume::LookupByKey);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByPath",   StorageVolume::LookupByPath);
+
+  // SECRET
+  NODE_SET_PROTOTYPE_METHOD(t, "defineSecret",                Secret::Define);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUsage",         Secret::LookupByUsage);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID",          Secret::LookupByUUID);
+
 
 /*
   // NODE
@@ -130,27 +162,7 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName", Domain::LookupByName);
   NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID", Domain::LookupByUUID);
 
-  // NETWORK
-  NODE_SET_PROTOTYPE_METHOD(t, "createNetwork", Network::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByName", Network::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByUUID", Network::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork", Network::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter", NetworkFilter::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName", NetworkFilter::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID", NetworkFilter::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByName", Interface::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByMacAddress", Interface::LookupByMacAddress);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineInterface", Interface::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineSecret", Secret::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUsage", Secret::LookupByUsage);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID", Secret::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "createStoragePool", StoragePool::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineStoragePool", StoragePool::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByName", StoragePool::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByUUID", StoragePool::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByVolume", StoragePool::LookupByVolume);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByKey", StorageVolume::LookupByKey);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByPath", StorageVolume::LookupByPath);
+
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
@@ -216,6 +228,7 @@ void Hypervisor::Initialize(Handle<Object> exports)
   target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
 */
 
+  NanAssignPersistent(constructor_template, t);
   NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("Hypervisor"), t->GetFunction());
 }
@@ -232,6 +245,11 @@ Hypervisor::Hypervisor(string uri, string username, string password, bool readon
 
 Hypervisor::~Hypervisor()
 {
+}
+
+virConnectPtr Hypervisor::Connection() const
+{
+  return conn_;
 }
 
 NAN_METHOD(Hypervisor::New)
@@ -402,7 +420,7 @@ void Hypervisor::GetVersionWorker::Execute()
 {
   HYPERVISOR_ASSERT_CONNECTION();
 
-  unsigned long version; 
+  unsigned long version;
   int result = virConnectGetVersion(Connection(), &version);
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -685,43 +703,43 @@ void Hypervisor::CompareCPUWorker::Execute()
 
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedDomains)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedDomains, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedDomains,
   virConnectNumOfDefinedDomains, virConnectListDefinedDomains)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedNetworks)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedNetworks, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedNetworks,
   virConnectNumOfDefinedNetworks, virConnectListDefinedNetworks)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedStoragePools)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedStoragePools, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedStoragePools,
   virConnectNumOfDefinedStoragePools, virConnectListDefinedStoragePools)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedInterfaces)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedInterfaces, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedInterfaces,
   virConnectNumOfDefinedInterfaces, virConnectListDefinedInterfaces)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveDomains)
-HYPERVISOR_INT_LIST_RETURN_EXECUTE(ListActiveDomains, 
+HYPERVISOR_INT_LIST_RETURN_EXECUTE(ListActiveDomains,
   virConnectNumOfDomains, virConnectListDomains)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveInterfaces)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveInterfaces, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveInterfaces,
   virConnectNumOfInterfaces, virConnectListInterfaces)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListNetworkFilters)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListNetworkFilters, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListNetworkFilters,
   virConnectNumOfNWFilters, virConnectListNWFilters)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveNetworks)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveNetworks, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveNetworks,
   virConnectNumOfNetworks, virConnectListNetworks)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListSecrets)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListSecrets, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListSecrets,
   virConnectNumOfSecrets, virConnectListSecrets)
 
 HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveStoragePools)
-HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveStoragePools, 
+HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveStoragePools,
   virConnectNumOfStoragePools, virConnectListStoragePools)
 
 
@@ -1212,7 +1230,7 @@ Handle<Value> Hypervisor::GetNodeInfo(const Arguments& args) {
       // of an event is only valid for the duration of execution of the callback
       // If the callback wishes to keep the domain object after the callback,
       // it shall take a reference to it, by calling virDomainRef
-      
+
       virDomainRef(dom);
 
       Local<Value> argv[3];
@@ -1256,7 +1274,7 @@ Handle<Value> Hypervisor::GetNodeInfo(const Arguments& args) {
       // of an event is only valid for the duration of execution of the callback
       // If the callback wishes to keep the domain object after the callback,
       // it shall take a reference to it, by calling virDomainRef
-      
+
       virDomainRef(dom);
 
       Local<Value> argv[2];

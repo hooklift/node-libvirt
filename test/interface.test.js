@@ -1,59 +1,95 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+'use strict';
 
-var sys = require('sys');
-var libvirt = require('../build/Release/libvirt');
-var fixture = require('./lib/helper').fixture;
+var libvirt = require('../build/Release/libvirt'),
+    Hypervisor = libvirt.Hypervisor,
+    SegfaultHandler = require('segfault-handler'),
+    fixture = require('./lib/helper').fixture,
+    expect = require('chai').expect;
 
-var Hypervisor = libvirt.Hypervisor;
+var test = {};
+describe('Interface', function() {
+  before(function() {
+    SegfaultHandler.registerHandler();
+  });
 
-var hypervisor = new Hypervisor('test:///default');
-var interface = hypervisor.lookupInterfaceByName('eth1');
+  describe('hypervisor methods', function() {
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
+    });
 
-module.exports = {
-  'should define the interface from its xml description': function(beforeExit, assert) {
-    var xml = fixture('interface.xml');
-    var iface = hypervisor.defineInterface(xml);
-    assert.eql(iface.getName(), 'eth0');
-  },
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
+    });
 
-  'should undefine the interface': function(beforeExit, assert) {
-    var iface = hypervisor.lookupInterfaceByName('eth0');
-    assert.eql(iface.undefine(), true);
-  },
+    it('should define the interface from its xml description', function() {
+      var xml = fixture('interface.xml');
+      var iface = test.hypervisor.defineInterface(xml);
+      expect(iface.getName()).to.equal('eth0');
+    });
 
-  'should be located through its name': function(beforeExit, assert) {
-    var iface = hypervisor.lookupInterfaceByName('eth1');
-    assert.eql(iface.getName(), 'eth1');
-  },
+    it('should undefine the interface', function() {
+      var iface = test.hypervisor.lookupInterfaceByName('eth0');
+      expect(iface.undefine()).to.be.ok;
+    });
 
-  'should be located through its mac address': function(beforeExit, assert) {
-    var iface = hypervisor.lookupInterfaceByMacAddress('aa:bb:cc:dd:ee:ff');
-    assert.eql(iface.getName(), 'eth1');
-  },
+    it('should be located through its name', function() {
+      var iface = test.hypervisor.lookupInterfaceByName('eth1');
+      expect(iface.getName()).to.equal('eth1');
+    });
 
-  'should stop': function(beforeExit, assert) {
-    assert.eql(interface.stop(), true);
-  },
+    it('should be located through its mac address', function() {
+      var iface = test.hypervisor.lookupInterfaceByMacAddress('aa:bb:cc:dd:ee:ff');
+      expect(iface.getName()).to.equal('eth1');
+    });
+  });
 
-  'should start': function(beforeExit, assert) {
-    try { assert.eql(interface.start(), true); } catch (err) {}
-  },
+  describe('methods', function() {
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
+        test.interface = test.hypervisor.lookupInterfaceByName('eth1');
+        done();
+      });
+    });
 
-  'should indicate if is active and running': function(beforeExit, assert) {
-    try { assert.eql(interface.isActive(), true); } catch (err) {}
-  },
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        test.interface = undefined;
+        done();
+      });
+    });
 
-  'should return the name': function(beforeExit, assert) {
-    try { assert.eql(interface.getName(), 'eth1'); } catch (err) {}
-  },
+    it('should stop', function() {
+      expect(test.interface.stop()).to.be.ok;
+    });
 
-  'should return the mac address': function(beforeExit, assert) {
-    try { assert.eql(interface.getMacAddress(), 'aa:bb:cc:dd:ee:ff'); } catch (err) {}
-  },
+    it('should start', function() {
+      expect(test.interface.start()).to.be.ok;
+    });
 
-  'should return its xml description': function(beforeExit, assert) {
-    try { assert.match(interface.toXml([]), /eth1/); } catch (err) {}
-  }
-};
+    it('should indicate if is active and running', function() {
+      expect(test.interface.isActive()).to.be.true;
+    });
 
+    it('should return the name', function() {
+      expect(test.interface.getName()).to.equal('eth1');
+    });
+
+    it('should return the mac address', function() {
+      expect(test.interface.getMacAddress()).to.equal('aa:bb:cc:dd:ee:ff');
+    });
+
+    it('should return its xml description', function() {
+      expect(test.interface.toXml([])).to.match(/eth1/);
+    });
+  });
+});
