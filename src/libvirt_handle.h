@@ -12,16 +12,17 @@ class LibVirtHandle
 {
 public:
   LibVirtHandle();
-  ~LibVirtHandle();
   LibVirtHandle(virConnectPtr connection);
   LibVirtHandle(virInterfacePtr interface);
   LibVirtHandle(virNetworkPtr network);
+  LibVirtHandle(virNWFilterPtr networkFilter);
 
   void Clear();
 
   virConnectPtr ToConnection() const;
   virInterfacePtr ToInterface() const;
   virNetworkPtr ToNetwork() const;
+  virNWFilterPtr ToNetworkFilter() const;
 
 private:
   shared_ptr<LibVirtHandlePrivate> d;

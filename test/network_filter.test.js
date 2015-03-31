@@ -27,14 +27,15 @@ describe('Network Filter', function() {
     });
   });
 
-  it('should define network filter from its xml description', function() {
-    //test driver does not provide mechanisms to test this function
-    try {
-      var xml = fixture('network_filter.xml');
-      expect(test.hypervisor.defineNetworkFilter(xml)).to.be.ok;
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
+  it('should define network filter from its xml description', function(done) {
+    // NOTE: test driver does not provide mechanisms to test this function
+    var xml = fixture('network_filter.xml');
+    test.hypervisor.defineNetworkFilter(xml, function(err, filter) {
+      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      // expect(err).to.not.exist;
+      // expect(filter).to.exist;
+      done();
+    });
   });
 
   it('should return the network filter name', function() {
@@ -52,25 +53,44 @@ describe('Network Filter', function() {
     //var xml = filter.toXml();
   });
 
-  it('should look up the network filter based in its name', function() {
-    //test driver does not provide mechanisms to test this function
-    try {
-      var filter = test.hypervisor.lookupNetworkFilterByName('test-eth0');
-      expect(filter.getName()).to.equal('default');
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
+  it('should look up the network filter based in its name', function(done) {
+    // NOTE: test driver does not provide mechanisms to test this function
+    test.hypervisor.lookupNetworkFilterByName('test-eth0', function(err, filter) {
+      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      done();
+
+      // expect(err).to.not.exist;
+
+      // filter.getName(function(err, name) {
+      //   expect(err).to.not.exist;
+      //   expect(name).to.equal('default');
+      //   done();
+      // });
+    });
   });
 
-  it('should look up the network filter based in its UUID', function() {
-    //test driver does not provide mechanisms to test this function
-    try {
-      var filter = test.hypervisor.lookupNetworkFilterByName('test-eth0');
-      var filter2 = test.hypervisor.lookupNetworkFilterByUUID(filter.getUUID());
-      expect(filter2.getName()).to.equal('test-eth0');
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
+  it('should look up the network filter based in its UUID', function(done) {
+    // NOTE: test driver does not provide mechanisms to test this function
+    test.hypervisor.lookupNetworkFilterByName('test-eth0', function(err, filter1) {
+      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      done();
+
+      // expect(err).to.not.exist;
+
+      // filter.getUUID(function(err, uuid) {
+      //   expect(err).to.not.exist;
+
+      //   test.hypervisor.lookupNetworkFilterByUUID(function(err, filter2) {
+      //     expect(err).to.not.exist;
+
+      //     filter2.getName(function(err, name) {
+      //       expect(err).to.not.exist();
+      //       expect(name).to.equal('test-eth0');
+      //       done();
+      //     });
+      //   });
+      // });
+    });
   });
 
   it('should undefine the network filter', function() {

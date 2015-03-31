@@ -7,185 +7,163 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> NetworkFilter::constructor_template;
-void NetworkFilter::Initialize() {
-    Local<FunctionTemplate> t = FunctionTemplate::New();
-    t->InstanceTemplate()->SetInternalFieldCount(1);
+void NetworkFilter::Initialize()
+{
+  Local<FunctionTemplate> t = FunctionTemplate::New();
+  t->InstanceTemplate()->SetInternalFieldCount(1);
 
-    NODE_SET_PROTOTYPE_METHOD(t, "getName", NetworkFilter::GetName);
-    NODE_SET_PROTOTYPE_METHOD(t, "getUUID", NetworkFilter::GetUUID);
-    NODE_SET_PROTOTYPE_METHOD(t, "undefine", NetworkFilter::Undefine);
-    NODE_SET_PROTOTYPE_METHOD(t, "toXml", NetworkFilter::ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName", NetworkFilter::GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getUUID", NetworkFilter::GetUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "undefine", NetworkFilter::Undefine);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml", NetworkFilter::ToXml);
 
-    NanAssignPersistent(constructor_template, t);
-    constructor_template->SetClassName(NanNew("NetworkFilter"));
+  NanAssignPersistent(constructor_template, t);
+  constructor_template->SetClassName(NanNew("NetworkFilter"));
 }
 
+Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  NetworkFilter *filter = new NetworkFilter(handle.ToNetworkFilter());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  filter->Wrap(object);
+  return NanEscapeScope(object);
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a valid Network Filter name.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network filter name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value name(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  NetworkFilter *nwfilter = new NetworkFilter();
-  nwfilter->filter_ = virNWFilterLookupByName(hypervisor->Connection(), (const char *) *name);
-  if (nwfilter->filter_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> nwfilter_obj = constructor_template->GetFunction()->NewInstance();
-  nwfilter->Wrap(nwfilter_obj);
-  NanReturnValue(nwfilter_obj);
+  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, unwrapped->handle_, name));
+  NanReturnUndefined();
 }
 
+NLV_LOOKUP_BY_VALUE_EXECUTE(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
 NAN_METHOD(NetworkFilter::LookupByUUID)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a UUID string.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network filter uuid and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value uuid(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  NetworkFilter *nwfilter = new NetworkFilter();
-  nwfilter->filter_ = virNWFilterLookupByUUIDString(hypervisor->Connection(), (const char *) *uuid);
-  if (nwfilter->filter_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> nwfilter_obj = constructor_template->GetFunction()->NewInstance();
-  nwfilter->Wrap(nwfilter_obj);
-  NanReturnValue(nwfilter_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string uuid(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanReturnUndefined();
 }
 
 NAN_METHOD(NetworkFilter::Define)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as argument to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  NetworkFilter *nwfilter = new NetworkFilter();
-  nwfilter->filter_ = virNWFilterDefineXML(hypervisor->Connection(), (const char *) *xml);
-  if (nwfilter->filter_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> nwfilter_obj = constructor_template->GetFunction()->NewInstance();
-  nwfilter->Wrap(nwfilter_obj);
-  NanReturnValue(nwfilter_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(NetworkFilter::GetName)
+void NetworkFilter::DefineWorker::Execute()
 {
-  NanScope();
-
-  const char *name = NULL;
-  NetworkFilter *nwfilter = ObjectWrap::Unwrap<NetworkFilter>(args.This());
-  name = virNWFilterGetName(nwfilter->filter_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  lookupHandle_ =
+    virNWFilterDefineXML(Handle().ToConnection(), value_.c_str());
+  if (lookupHandle_.ToInterface() == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
-
-  NanReturnValue(NanNew(name));
 }
 
-NAN_METHOD(NetworkFilter::GetUUID)
+NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetName)
+void NetworkFilter::GetNameWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  int ret = -1;
+  const char *result = virNWFilterGetName(Handle().ToNetworkFilter());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetUUID)
+void NetworkFilter::GetUUIDWorker::Execute()
+{
+  NLV_WORKER_ASSERT_INTERFACE();
+
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  NetworkFilter *nwfilter = ObjectWrap::Unwrap<NetworkFilter>(args.This());
-  ret = virNWFilterGetUUIDString(nwfilter->filter_, uuid);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+  int result = virNWFilterGetUUIDString(Handle().ToNetworkFilter(), uuid);
+  if (result == -1) {
+    SetVirError(virGetLastError());
     delete[] uuid;
-    NanReturnUndefined();
+    return;
   }
 
-  Local<String> uuid_str = NanNew(uuid);
+  data_ = result;
   delete[] uuid;
-  NanReturnValue(uuid_str);
 }
 
-NAN_METHOD(NetworkFilter::Undefine)
+NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, Undefine)
+void NetworkFilter::UndefineWorker::Execute()
 {
-  NanScope();
-
-  int ret = -1;
-  NetworkFilter *nwfilter = ObjectWrap::Unwrap<NetworkFilter>(args.This());
-  ret = virNWFilterUndefine(nwfilter->filter_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  NLV_WORKER_ASSERT_INTERFACE();
+  int result = virNWFilterUndefine(Handle().ToNetworkFilter());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanTrue());
+  data_ = true;
 }
 
-NAN_METHOD(NetworkFilter::ToXml)
+NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, ToXml)
+void NetworkFilter::ToXmlWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_INTERFACE();
 
-  char* xml_ = NULL;
-  int flags = 0;
-  if (args.Length() == 0 || !args[0]->IsArray()) {
-    NanThrowTypeError("You must specify an array as argument to invoke this function");
-    NanReturnUndefined();
+  unsigned int flags = 0;
+  char *result = virNWFilterGetXMLDesc(Handle().ToNetworkFilter(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  //flags
-  Local<Array> flags_ = Local<Array>::Cast(args[0]);
-  unsigned int length = flags_->Length();
-  for (unsigned int i = 0; i < length; i++) {
-    flags |= flags_->Get(Integer::New(i))->Int32Value();
-  }
-
-  NetworkFilter *nwfilter = ObjectWrap::Unwrap<NetworkFilter>(args.This());
-  xml_ = virNWFilterGetXMLDesc(nwfilter->filter_, flags);
-  if (xml_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<String> xml = NanNew(xml_);
-  free(xml_);
-  NanReturnValue(xml);
+  data_ = result;
+  free(result);
 }
 
 }   // namespce NodeLibvirt
