@@ -14,219 +14,216 @@ void NodeDevice::Initialize()
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "destroy", NodeDevice::Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "detach", NodeDevice::Detach);
-  NODE_SET_PROTOTYPE_METHOD(t, "reattach", NodeDevice::Reattach);
-  NODE_SET_PROTOTYPE_METHOD(t, "reset", NodeDevice::Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName", NodeDevice::GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getParentName", NodeDevice::GetParentName);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml", NodeDevice::ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities", NodeDevice::GetCapabilities);
+  NODE_SET_PROTOTYPE_METHOD(t, "destroy",           Destroy);
+  NODE_SET_PROTOTYPE_METHOD(t, "detach",            Detach);
+  NODE_SET_PROTOTYPE_METHOD(t, "reattach",          Reattach);
+  NODE_SET_PROTOTYPE_METHOD(t, "reset",             Destroy);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName",           GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getParentName",     GetParentName);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",             ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",   GetCapabilities);
 
   NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(String::NewSymbol("NodeDevice"));
+  constructor_template->SetClassName(NanNew("NodeDevice"));
 }
 
+Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  NodeDevice *nodeDevice = new NodeDevice(handle.ToNodeDevice());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  nodeDevice->Wrap(object);
+  return NanEscapeScope(object);
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value name(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  NodeDevice *device = new NodeDevice();
-  device->device_ = virNodeDeviceLookupByName(hypervisor->Connection(), (const char *) *name);
-  if (device->device_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> device_obj = constructor_template->GetFunction()->NewInstance();
-  device->Wrap(device_obj);
-  NanReturnValue(device_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanReturnUndefined();
 }
 
 NAN_METHOD(NodeDevice::Create)
 {
   NanScope();
-
-  unsigned int flags = 0;
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  NodeDevice *device = new NodeDevice();
-  device->device_ = virNodeDeviceCreateXML(hypervisor->Connection(), (const char *) *xml, flags);
-  if (device->device_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
+}
 
-  Local<Object> device_obj = constructor_template->GetFunction()->NewInstance();
-  device->Wrap(device_obj);
-  NanReturnValue(device_obj);
+void NodeDevice::CreateWorker::Execute()
+{
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virNodeDeviceCreateXML(Handle().ToConnection(), value_.c_str(), flags);
+  if (lookupHandle_.ToNodeDevice() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
 }
 
 //Really neccesary call destroy from javascript ???
-NAN_METHOD(NodeDevice::Destroy)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
+void NodeDevice::DestroyWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
-  int ret = -1;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  ret = virNodeDeviceDestroy(device->device_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  int result = virNodeDeviceDestroy(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanTrue());
-}
-
-NAN_METHOD(NodeDevice::Detach)
-{
-  NanScope();
-
-  int ret = -1;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  ret = virNodeDeviceDettach(device->device_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  if (Handle().ToNodeDevice() != NULL) {
+    Handle().Clear();
   }
 
-  NanReturnValue(NanTrue());
+  data_ = true;
 }
 
-Handle<Value> NodeDevice::Reattach(const Arguments& args) {
-    HandleScope scope;
-    int ret = -1;
-
-    NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-    ret = virNodeDeviceReAttach(device->device_);
-
-    if(ret == -1) {
-        ThrowException(Error::New(virGetLastError()));
-        return False();
-    }
-
-    return True();
-}
-
-NAN_METHOD(NodeDevice::Reset)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
+void NodeDevice::DetachWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
-  int ret = -1;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  ret = virNodeDeviceReset(device->device_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  int result = virNodeDeviceDettach(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanTrue());
+  data_ = true;
 }
 
-NAN_METHOD(NodeDevice::GetName)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
+void NodeDevice::ReattachWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
-  const char *name = NULL;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  name = virNodeDeviceGetName(device->device_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int result = virNodeDeviceReAttach(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(name));
+  data_ = true;
 }
 
-NAN_METHOD(NodeDevice::GetParentName)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
+void NodeDevice::ResetWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
-  const char *name = NULL;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  name = virNodeDeviceGetParent(device->device_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int result = virNodeDeviceReset(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(name));
+  data_ = true;
 }
 
-NAN_METHOD(NodeDevice::ToXml)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
+void NodeDevice::GetNameWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  const char *result = virNodeDeviceGetName(Handle().ToNodeDevice());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
+void NodeDevice::GetParentNameWorker::Execute()
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  const char *result = virNodeDeviceGetParent(Handle().ToNodeDevice());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
+void NodeDevice::ToXmlWorker::Execute()
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
   unsigned int flags = 0;
-  const char *xml = NULL;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  xml = virNodeDeviceGetXMLDesc(device->device_, flags);
-  if (xml == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  char *result = virNodeDeviceGetXMLDesc(Handle().ToNodeDevice(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(xml));
+  data_ = result;
+  free(result);
 }
 
-NAN_METHOD(NodeDevice::GetCapabilities)
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
+void NodeDevice::GetCapabilitiesWorker::Execute()
 {
   NanScope();
-
-  char **names_ = NULL;
-  int numcaps = -1;
-  NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-  numcaps = virNodeDeviceNumOfCaps(device->device_);
-  if (numcaps == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int num_caps = virNodeDeviceNumOfCaps(Handle().ToNodeDevice());
+  if (num_caps == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  names_ = (char**) malloc(sizeof(*names_) * numcaps);
-  if (names_ == NULL) {
-    LIBVIRT_THROW_EXCEPTION("Unable to allocate memory");
-    NanReturnUndefined();
+  char **names = (char**) malloc(sizeof(*names) * num_caps);
+  if (names == NULL) {
+    SetErrorMessage("Unable to allocate memory");
+    return;
   }
 
-  numcaps = virNodeDeviceListCaps(device->device_, names_, numcaps);
-  if (numcaps == -1) {
-    free(names_);
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  num_caps = virNodeDeviceListCaps(Handle().ToNodeDevice(), names, num_caps);
+  if (num_caps == -1) {
+    free(names);
+    SetVirError(virGetLastError());
+    return;
   }
 
-  Local<Array> names = Array::New(numcaps);
-  for (int i = 0; i < numcaps; ++i) {
-    names->Set(NanNew(i), NanNew(names_[i]));
-    free(names_[i]);
+  for (int i = 0; i < num_caps; ++i) {
+    data_.push_back(names[i]);
+    free(names[i]);
   }
 
-  free(names_);
-  NanReturnValue(names);
+  free(names);
 }
 
 } //namespace NodeLibvirt

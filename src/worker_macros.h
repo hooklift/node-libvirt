@@ -36,6 +36,12 @@
     return; \
   }
 
+#define NLV_WORKER_ASSERT_NODEDEVICE() \
+  if (Handle().ToNodeDevice() == NULL) { \
+    SetErrorMessage("invalid node device");  \
+    return; \
+  }
+
 
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \
@@ -57,6 +63,14 @@ NAN_METHOD(Class::Method) {  \
   public: \
     Method##Worker(NanCallback *callback, HandleType handle) \
       : PrimitiveReturnWorker<Type>(callback, handle) {} \
+    void Execute(); \
+  };
+
+#define NLV_LIST_RETURN_WORKER(Method, HandleType, CType, V8Type)  \
+  class Method##Worker : public ListReturnWorker<CType, V8Type> { \
+  public: \
+    Method##Worker(NanCallback *callback, HandleType handle) \
+      : ListReturnWorker<CType, V8Type>(callback, handle) {} \
     void Execute(); \
   };
 

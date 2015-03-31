@@ -18,6 +18,7 @@ public:
   LibVirtHandle(virNWFilterPtr networkFilter);
   LibVirtHandle(virStoragePoolPtr storagePool);
   LibVirtHandle(virStorageVolPtr storageVolume);
+  LibVirtHandle(virNodeDevicePtr nodeDevice);
 
   void Clear();
 
@@ -27,6 +28,7 @@ public:
   virNWFilterPtr ToNetworkFilter() const;
   virStoragePoolPtr ToStoragePool() const;
   virStorageVolPtr ToStorageVolume() const;
+  virNodeDevicePtr ToNodeDevice() const;
 
 private:
   shared_ptr<LibVirtHandlePrivate> d;
