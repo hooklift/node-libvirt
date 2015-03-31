@@ -87,27 +87,7 @@ NAN_METHOD(Network::LookupByUUID)
   NanReturnUndefined();
 }
 
-NAN_METHOD(Network::Create)
-{
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a string and callback");
-    NanReturnUndefined();
-  }
-
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
-  }
-
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string xmlData(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
-  NanReturnUndefined();
-}
-
+NLV_WORKER_METHOD_CREATE(Network)
 NLV_WORKER_EXECUTE(Network, Create)
 {
   lookupHandle_ =
@@ -118,27 +98,7 @@ NLV_WORKER_EXECUTE(Network, Create)
   }
 }
 
-NAN_METHOD(Network::Define)
-{
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a string and callback");
-    NanReturnUndefined();
-  }
-
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
-  }
-
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string xmlData(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
-  NanReturnUndefined();
-}
-
+NLV_WORKER_METHOD_DEFINE(Network)
 NLV_WORKER_EXECUTE(Network, Define)
 {
   lookupHandle_ =

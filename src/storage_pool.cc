@@ -154,27 +154,7 @@ NLV_WORKER_EXECUTE(StoragePool, Create)
   }
 }
 
-NAN_METHOD(StoragePool::Define)
-{
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a string and callback");
-    NanReturnUndefined();
-  }
-
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
-  }
-
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string xmlData(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
-  NanReturnUndefined();
-}
-
+NLV_WORKER_METHOD_DEFINE(StoragePool)
 NLV_WORKER_EXECUTE(StoragePool, Define)
 {
   unsigned int flags = 0;
