@@ -14,8 +14,7 @@ class StoragePool : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
-
-  virStoragePoolPtr Pool() const;
+  virtual ~StoragePool();
 
 private:
   explicit StoragePool(virStoragePoolPtr handle) : handle_(handle) {}

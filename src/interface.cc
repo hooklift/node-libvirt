@@ -38,13 +38,20 @@ Local<Object> Interface::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
+Interface::~Interface()
+{
+  if (handle_ != NULL)
+    virInterfaceFree(handle_);
+  handle_ = 0;
+}
+
 virInterfacePtr Interface::GetInterface() const
 {
   return handle_;
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
-void Interface::StartWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, Start)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -59,7 +66,7 @@ void Interface::StartWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Stop)
-void Interface::StopWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, Stop)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -98,7 +105,7 @@ NAN_METHOD(Interface::Define)
   NanReturnUndefined();
 }
 
-void Interface::DefineWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, Define)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -110,7 +117,7 @@ void Interface::DefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Undefine)
-void Interface::UndefineWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, Undefine)
 {
   NLV_WORKER_ASSERT_INTERFACE();
   int result = virInterfaceUndefine(Handle().ToInterface());
@@ -122,7 +129,7 @@ void Interface::UndefineWorker::Execute()
   data_ = true;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(Interface, LookupByName, virInterfaceLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByName, virInterfaceLookupByName)
 NAN_METHOD(Interface::LookupByName)
 {
   NanScope();
@@ -145,7 +152,7 @@ NAN_METHOD(Interface::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
 NAN_METHOD(Interface::LookupByMacAddress)
 {
   NanScope();
@@ -169,7 +176,7 @@ NAN_METHOD(Interface::LookupByMacAddress)
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
-void Interface::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, GetName)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -183,7 +190,7 @@ void Interface::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetMacAddress)
-void Interface::GetMacAddressWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -197,7 +204,7 @@ void Interface::GetMacAddressWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, IsActive)
-void Interface::IsActiveWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, IsActive)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -211,7 +218,7 @@ void Interface::IsActiveWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, ToXml)
-void Interface::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(Interface, ToXml)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 

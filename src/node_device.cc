@@ -36,7 +36,14 @@ Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(NodeDevice, LookupByName, virNodeDeviceLookupByName)
+NodeDevice::~NodeDevice()
+{
+  if (handle_ != NULL)
+    virNodeDeviceFree(handle_);
+  handle_ = 0;
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)
 {
   NanScope();
@@ -79,7 +86,7 @@ NAN_METHOD(NodeDevice::Create)
   NanReturnUndefined();
 }
 
-void NodeDevice::CreateWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -92,7 +99,7 @@ void NodeDevice::CreateWorker::Execute()
 
 //Really neccesary call destroy from javascript ???
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
-void NodeDevice::DestroyWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -110,7 +117,7 @@ void NodeDevice::DestroyWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
-void NodeDevice::DetachWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, Detach)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -124,7 +131,7 @@ void NodeDevice::DetachWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
-void NodeDevice::ReattachWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -138,7 +145,7 @@ void NodeDevice::ReattachWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
-void NodeDevice::ResetWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, Reset)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -152,7 +159,7 @@ void NodeDevice::ResetWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
-void NodeDevice::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, GetName)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -166,7 +173,7 @@ void NodeDevice::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
-void NodeDevice::GetParentNameWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -180,7 +187,7 @@ void NodeDevice::GetParentNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
-void NodeDevice::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
@@ -196,7 +203,7 @@ void NodeDevice::ToXmlWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
-void NodeDevice::GetCapabilitiesWorker::Execute()
+NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
 {
   NanScope();
   int num_caps = virNodeDeviceNumOfCaps(Handle().ToNodeDevice());

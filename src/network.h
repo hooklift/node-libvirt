@@ -14,6 +14,7 @@ class Network : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~Network();
 
 private:
   explicit Network(virNetworkPtr handle) : handle_(handle) {}

@@ -14,6 +14,7 @@ class Secret : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~Secret();
 
 private:
   explicit Secret(virSecretPtr handle) : handle_(handle) {}

@@ -42,6 +42,13 @@ Local<Object> StorageVolume::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
+StorageVolume::~StorageVolume()
+{
+  if (handle_ != NULL)
+    virStorageVolFree(handle_);
+  handle_ = 0;
+}
+
 NAN_METHOD(StorageVolume::Create)
 {
   NanScope();
@@ -63,7 +70,7 @@ NAN_METHOD(StorageVolume::Create)
   NanReturnUndefined();
 }
 
-void StorageVolume::CreateWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, Create)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -74,9 +81,8 @@ void StorageVolume::CreateWorker::Execute()
   }
 }
 
-
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)
-void StorageVolume::DeleteWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, Delete)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -95,7 +101,7 @@ void StorageVolume::DeleteWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Wipe)
-void StorageVolume::WipeWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, Wipe)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -123,7 +129,7 @@ NAN_METHOD(StorageVolume::GetInfo)
   NanReturnUndefined();
 }
 
-void StorageVolume::GetInfoWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
 {
   int result = virStorageVolGetInfo(Handle().ToStorageVolume(), &info_);
   if (result == -1) {
@@ -145,7 +151,7 @@ void StorageVolume::GetInfoWorker::HandleOKCallback()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetKey)
-void StorageVolume::GetKeyWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, GetKey)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -159,7 +165,7 @@ void StorageVolume::GetKeyWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetName)
-void StorageVolume::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, GetName)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -173,7 +179,7 @@ void StorageVolume::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetPath)
-void StorageVolume::GetPathWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, GetPath)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -187,7 +193,7 @@ void StorageVolume::GetPathWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, ToXml)
-void StorageVolume::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, ToXml)
 {
   NLV_WORKER_ASSERT_STORAGEVOLUME();
 
@@ -202,7 +208,7 @@ void StorageVolume::ToXmlWorker::Execute()
   free(result);
 }
 
-NLV_SP_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByName, virStorageVolLookupByName)
+NLV_SP_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByName, virStorageVolLookupByName)
 NAN_METHOD(StorageVolume::LookupByName)
 {
   NanScope();
@@ -225,7 +231,7 @@ NAN_METHOD(StorageVolume::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByKey, virStorageVolLookupByKey)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByKey, virStorageVolLookupByKey)
 NAN_METHOD(StorageVolume::LookupByKey)
 {
   NanScope();
@@ -248,7 +254,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByPath, virStorageVolLookupByPath)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByPath, virStorageVolLookupByPath)
 NAN_METHOD(StorageVolume::LookupByPath)
 {
   NanScope();
@@ -309,7 +315,7 @@ NAN_METHOD(StorageVolume::Clone)
   NanReturnUndefined();
 }
 
-void StorageVolume::CloneWorker::Execute()
+NLV_WORKER_EXECUTE(StorageVolume, Clone)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -320,49 +326,4 @@ void StorageVolume::CloneWorker::Execute()
   }
 }
 
-// NAN_METHOD(StorageVolume::Clone)
-// {
-//   NanScope();
-
-//   unsigned int flags = 0;
-//   if (args.Length() < 2) {
-//     NanThrowTypeError("You must specify two arguments to call this function");
-//     NanReturnUndefined();
-//   }
-
-//   if (!NanHasInstance(StorageVolume::constructor_template, args[0])) {
-//     NanThrowTypeError("You must specify a StorageVolume instance as first argument");
-//     NanReturnUndefined();
-//   }
-
-//   if (!args[1]->IsString()) {
-//     NanThrowTypeError("You must specify a string as second argument");
-//     NanReturnUndefined();
-//   }
-
-//   Local<Object> pool_obj = args.This();
-//   if (!NanHasInstance(StoragePool::constructor_template, pool_obj)) {
-//     NanThrowTypeError("You must specify a StoragePool instance");
-//     NanReturnUndefined();
-//   }
-
-//   String::Utf8Value xml(args[1]->ToString());
-//   StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-//   StorageVolume *source_volume = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
-
-//   virStorageVolPtr handle =
-//     virStorageVolCreateXMLFrom(pool->Pool(), (const char *) *xml, source_volume->handle_, flags);
-//   if (handle == NULL) {
-//     ThrowException(Error::New(virGetLastError()));
-//     NanReturnUndefined();
-//   }
-
-//   StorageVolume *clone_volume = new StorageVolume(handle);
-
-//   Local<Object> clone_vol_obj = constructor_template->GetFunction()->NewInstance();
-//   clone_volume->Wrap(clone_vol_obj);
-//   NanReturnValue(clone_vol_obj);
-// }
-
 } //namespace NodeLibvirt
-

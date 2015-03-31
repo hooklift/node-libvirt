@@ -14,6 +14,7 @@ class NodeDevice : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~NodeDevice();
 
 private:
   explicit NodeDevice(virNodeDevicePtr handle) : handle_(handle) {}

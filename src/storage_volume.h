@@ -14,6 +14,7 @@ class StorageVolume : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~StorageVolume();
 
 private:
   explicit StorageVolume(virStorageVolPtr handle) : handle_(handle) {}

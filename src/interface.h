@@ -14,6 +14,7 @@ class Interface : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~Interface();
 
   virInterfacePtr GetInterface() const;
 

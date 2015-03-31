@@ -64,12 +64,14 @@ Local<Object> StoragePool::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
-virStoragePoolPtr StoragePool::Pool() const
+StoragePool::~StoragePool()
 {
-  return handle_;
+  if (handle_ != NULL)
+    virStoragePoolFree(handle_);
+  handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(StoragePool, LookupByName, virStoragePoolLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StoragePool, LookupByName, virStoragePoolLookupByName)
 NAN_METHOD(StoragePool::LookupByName)
 {
   NanScope();
@@ -92,7 +94,7 @@ NAN_METHOD(StoragePool::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(StoragePool, LookupByUUID, virStoragePoolLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StoragePool, LookupByUUID, virStoragePoolLookupByUUIDString)
 NAN_METHOD(StoragePool::LookupByUUID)
 {
   NanScope();
@@ -141,7 +143,7 @@ NAN_METHOD(StoragePool::Create)
   NanReturnUndefined();
 }
 
-void StoragePool::CreateWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Create)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -173,7 +175,7 @@ NAN_METHOD(StoragePool::Define)
   NanReturnUndefined();
 }
 
-void StoragePool::DefineWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Define)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -185,7 +187,7 @@ void StoragePool::DefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Build)
-void StoragePool::BuildWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Build)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -200,7 +202,7 @@ void StoragePool::BuildWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Undefine)
-void StoragePool::UndefineWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Undefine)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -214,7 +216,7 @@ void StoragePool::UndefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Start)
-void StoragePool::StartWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Start)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -229,7 +231,7 @@ void StoragePool::StartWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Stop)
-void StoragePool::StopWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Stop)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -268,7 +270,7 @@ NAN_METHOD(StoragePool::Erase)
   NanReturnUndefined();
 }
 
-void StoragePool::EraseWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Erase)
 {
   if (flags_ == 0) {
     flags_ |= VIR_STORAGE_POOL_DELETE_NORMAL;
@@ -288,7 +290,7 @@ void StoragePool::EraseWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetAutostart)
-void StoragePool::GetAutostartWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, GetAutostart)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -318,7 +320,7 @@ NAN_METHOD(StoragePool::SetAutostart)
   NanReturnUndefined();
 }
 
-void StoragePool::SetAutostartWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, SetAutostart)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -345,7 +347,7 @@ NAN_METHOD(StoragePool::GetInfo)
   NanReturnUndefined();
 }
 
-void StoragePool::GetInfoWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, GetInfo)
 {
   int result = virStoragePoolGetInfo(Handle().ToStoragePool(), &info_);
   if (result == -1) {
@@ -368,7 +370,7 @@ void StoragePool::GetInfoWorker::HandleOKCallback()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetName)
-void StoragePool::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, GetName)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -382,7 +384,7 @@ void StoragePool::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetUUID)
-void StoragePool::GetUUIDWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, GetUUID)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -399,7 +401,7 @@ void StoragePool::GetUUIDWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, ToXml)
-void StoragePool::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, ToXml)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -415,7 +417,7 @@ void StoragePool::ToXmlWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, IsActive)
-void StoragePool::IsActiveWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, IsActive)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -429,7 +431,7 @@ void StoragePool::IsActiveWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, IsPersistent)
-void StoragePool::IsPersistentWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, IsPersistent)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 
@@ -456,7 +458,7 @@ NAN_METHOD(StoragePool::GetVolumes)
   NanReturnUndefined();
 }
 
-void StoragePool::GetVolumesWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
 {
   int num_volumes = virStoragePoolNumOfVolumes(Handle().ToStoragePool());
   if (num_volumes == -1) {
@@ -487,7 +489,7 @@ void StoragePool::GetVolumesWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Refresh)
-void StoragePool::RefreshWorker::Execute()
+NLV_WORKER_EXECUTE(StoragePool, Refresh)
 {
   NLV_WORKER_ASSERT_STORAGEPOOL();
 

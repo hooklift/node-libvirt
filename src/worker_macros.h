@@ -88,8 +88,9 @@ NAN_METHOD(Class::Method) {  \
   };
 
 // EXECUTE HELPERS
-#define NLV_INT_RETURN_EXECUTE(Class, Method, Accessor)  \
-  void Class::Method##Worker::Execute() {  \
+#define NLV_WORKER_EXECUTE(Class, Method) void Class::Method##Worker::Execute()
+#define NLV_INT_RETURN_EXECUTE_IMPL(Class, Method, Accessor)  \
+  NLV_WORKER_EXECUTE(Class, Method) {  \
     HYPERVISOR_ASSERT_CONNECTION(); \
     int result = Accessor(Handle().ToConnection());  \
     if (result == -1) { \
@@ -99,8 +100,8 @@ NAN_METHOD(Class::Method) {  \
     data_ = result;  \
   }
 
-#define NLV_BOOL_RETURN_EXECUTE(Class, Method, Accessor)  \
-  void Class::Method##Worker::Execute() {  \
+#define NLV_BOOL_RETURN_EXECUTE_IMPL(Class, Method, Accessor)  \
+  NLV_WORKER_EXECUTE(Class, Method) {  \
     HYPERVISOR_ASSERT_CONNECTION(); \
     int result = Accessor(Handle().ToConnection());  \
     if (result == -1) { \
@@ -110,8 +111,8 @@ NAN_METHOD(Class::Method) {  \
     data_ = static_cast<bool>(result);  \
   }
 
-#define NLV_LOOKUP_BY_VALUE_EXECUTE(Class, Method, Accessor) \
-  void Class::Method##Worker::Execute() { \
+#define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
+  NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(Handle().ToConnection(), value_.c_str());  \
     if (lookupHandle_.NLV_CAT(To, Class)() == NULL) { \
       SetVirError(virGetLastError()); \
@@ -119,8 +120,8 @@ NAN_METHOD(Class::Method) {  \
     } \
   }
 
-#define NLV_SP_LOOKUP_BY_VALUE_EXECUTE(Class, Method, Accessor) \
-  void Class::Method##Worker::Execute() { \
+#define NLV_SP_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
+  NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(Handle().ToStoragePool(), value_.c_str());  \
     if (lookupHandle_.NLV_CAT(To, Class)() == NULL) { \
       SetVirError(virGetLastError()); \

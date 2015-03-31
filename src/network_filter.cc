@@ -30,7 +30,14 @@ Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(NetworkFilter, LookupByName, virNWFilterLookupByName)
+NetworkFilter::~NetworkFilter()
+{
+  if (handle_ != NULL)
+    virNWFilterFree(handle_);
+  handle_ = 0;
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)
 {
   NanScope();
@@ -53,7 +60,7 @@ NAN_METHOD(NetworkFilter::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
 NAN_METHOD(NetworkFilter::LookupByUUID)
 {
   NanScope();
@@ -96,7 +103,7 @@ NAN_METHOD(NetworkFilter::Define)
   NanReturnUndefined();
 }
 
-void NetworkFilter::DefineWorker::Execute()
+NLV_WORKER_EXECUTE(NetworkFilter, Define)
 {
   lookupHandle_ =
     virNWFilterDefineXML(Handle().ToConnection(), value_.c_str());
@@ -107,7 +114,7 @@ void NetworkFilter::DefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetName)
-void NetworkFilter::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -121,7 +128,7 @@ void NetworkFilter::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetUUID)
-void NetworkFilter::GetUUIDWorker::Execute()
+NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 
@@ -138,7 +145,7 @@ void NetworkFilter::GetUUIDWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, Undefine)
-void NetworkFilter::UndefineWorker::Execute()
+NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 {
   NLV_WORKER_ASSERT_INTERFACE();
   int result = virNWFilterUndefine(Handle().ToNetworkFilter());
@@ -151,7 +158,7 @@ void NetworkFilter::UndefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, ToXml)
-void NetworkFilter::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
 {
   NLV_WORKER_ASSERT_INTERFACE();
 

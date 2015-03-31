@@ -32,6 +32,13 @@ Local<Object> Secret::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
+Secret::~Secret()
+{
+  if (handle_ != NULL)
+    virSecretFree(handle_);
+  handle_ = 0;
+}
+
 NAN_METHOD(Secret::Define)
 {
   NanScope();
@@ -53,7 +60,7 @@ NAN_METHOD(Secret::Define)
   NanReturnUndefined();
 }
 
-void Secret::DefineWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, Define)
 {
   unsigned int flags = 0;
   lookupHandle_ =
@@ -65,7 +72,7 @@ void Secret::DefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, Undefine)
-void Secret::UndefineWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, Undefine)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -119,7 +126,7 @@ NAN_METHOD(Secret::LookupByUsage)
   NanReturnUndefined();
 }
 
-void Secret::LookupByUsageWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
   lookupHandle_ =
     virSecretLookupByUsage(Handle().ToConnection(), usageType_, value_.c_str());
@@ -129,7 +136,7 @@ void Secret::LookupByUsageWorker::Execute()
   }
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(Secret, LookupByUUID, virSecretLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Secret, LookupByUUID, virSecretLookupByUUIDString)
 NAN_METHOD(Secret::LookupByUUID)
 {
   NanScope();
@@ -152,7 +159,7 @@ NAN_METHOD(Secret::LookupByUUID)
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
-void Secret::GetUUIDWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, GetUUID)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -169,7 +176,7 @@ void Secret::GetUUIDWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageId)
-void Secret::GetUsageIdWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, GetUsageId)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -183,7 +190,7 @@ void Secret::GetUsageIdWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageType)
-void Secret::GetUsageTypeWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, GetUsageType)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -198,7 +205,7 @@ void Secret::GetUsageTypeWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetValue)
-void Secret::GetValueWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, GetValue)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -231,7 +238,7 @@ NAN_METHOD(Secret::SetValue)
   NanReturnUndefined();
 }
 
-void Secret::SetValueWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, SetValue)
 {
   NLV_WORKER_ASSERT_SECRET();
 
@@ -247,7 +254,7 @@ void Secret::SetValueWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, ToXml)
-void Secret::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(Secret, ToXml)
 {
   NLV_WORKER_ASSERT_SECRET();
 

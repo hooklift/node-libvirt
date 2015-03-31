@@ -14,6 +14,7 @@ class NetworkFilter : public ObjectWrap
 public:
   static void Initialize();
   static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~NetworkFilter();
 
 private:
   explicit NetworkFilter(virNWFilterPtr handle) : handle_(handle) {}

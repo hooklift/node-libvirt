@@ -36,7 +36,14 @@ Local<Object> Network::NewInstance(const LibVirtHandle &handle)
   return NanEscapeScope(object);
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(Network, LookupByName, virNetworkLookupByName)
+Network::~Network()
+{
+  if (handle_ != NULL)
+    virNetworkFree(handle_);
+  handle_ = 0;
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)
 NAN_METHOD(Network::LookupByName)
 {
   NanScope();
@@ -58,7 +65,7 @@ NAN_METHOD(Network::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE(Network, LookupByUUID, virNetworkLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByUUID, virNetworkLookupByUUIDString)
 NAN_METHOD(Network::LookupByUUID)
 {
   NanScope();
@@ -101,7 +108,7 @@ NAN_METHOD(Network::Create)
   NanReturnUndefined();
 }
 
-void Network::CreateWorker::Execute()
+NLV_WORKER_EXECUTE(Network, Create)
 {
   lookupHandle_ =
     virNetworkCreateXML(Handle().ToConnection(), value_.c_str());
@@ -132,7 +139,7 @@ NAN_METHOD(Network::Define)
   NanReturnUndefined();
 }
 
-void Network::DefineWorker::Execute()
+NLV_WORKER_EXECUTE(Network, Define)
 {
   lookupHandle_ =
     virNetworkDefineXML(Handle().ToConnection(), value_.c_str());
@@ -143,7 +150,7 @@ void Network::DefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, Start)
-void Network::StartWorker::Execute()
+NLV_WORKER_EXECUTE(Network, Start)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -157,7 +164,7 @@ void Network::StartWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, GetName)
-void Network::GetNameWorker::Execute()
+NLV_WORKER_EXECUTE(Network, GetName)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -171,7 +178,7 @@ void Network::GetNameWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, GetUUID)
-void Network::GetUUIDWorker::Execute()
+NLV_WORKER_EXECUTE(Network, GetUUID)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -188,7 +195,7 @@ void Network::GetUUIDWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, GetAutostart)
-void Network::GetAutostartWorker::Execute()
+NLV_WORKER_EXECUTE(Network, GetAutostart)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -218,7 +225,7 @@ NAN_METHOD(Network::SetAutostart)
   NanReturnUndefined();
 }
 
-void Network::SetAutostartWorker::Execute()
+NLV_WORKER_EXECUTE(Network, SetAutostart)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -232,7 +239,7 @@ void Network::SetAutostartWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, IsActive)
-void Network::IsActiveWorker::Execute()
+NLV_WORKER_EXECUTE(Network, IsActive)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -246,7 +253,7 @@ void Network::IsActiveWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, IsPersistent)
-void Network::IsPersistentWorker::Execute()
+NLV_WORKER_EXECUTE(Network, IsPersistent)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -260,7 +267,7 @@ void Network::IsPersistentWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, Undefine)
-void Network::UndefineWorker::Execute()
+NLV_WORKER_EXECUTE(Network, Undefine)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -274,7 +281,7 @@ void Network::UndefineWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, Destroy)
-void Network::DestroyWorker::Execute()
+NLV_WORKER_EXECUTE(Network, Destroy)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -292,7 +299,7 @@ void Network::DestroyWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, ToXml)
-void Network::ToXmlWorker::Execute()
+NLV_WORKER_EXECUTE(Network, ToXml)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
@@ -308,7 +315,7 @@ void Network::ToXmlWorker::Execute()
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Network, GetBridgeName)
-void Network::GetBridgeNameWorker::Execute()
+NLV_WORKER_EXECUTE(Network, GetBridgeName)
 {
   NLV_WORKER_ASSERT_NETWORK();
 
