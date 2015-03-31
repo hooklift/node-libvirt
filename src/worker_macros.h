@@ -42,6 +42,11 @@
     return; \
   }
 
+#define NLV_WORKER_ASSERT_SECRET() \
+  if (Handle().ToSecret() == NULL) { \
+    SetErrorMessage("invalid secret");  \
+    return; \
+  }
 
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \

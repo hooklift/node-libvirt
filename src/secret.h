@@ -4,30 +4,73 @@
 
 #include "node_libvirt.h"
 
+#include "worker.h"
+#include "worker_macros.h"
+
 namespace NodeLibvirt {
 
 class Secret : public ObjectWrap
 {
 public:
   static void Initialize();
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
 
 private:
+  explicit Secret(virSecretPtr handle) : handle_(handle) {}
   static Persistent<FunctionTemplate> constructor_template;
-  virSecretPtr secret_;
+  virSecretPtr handle_;
 
   friend class Hypervisor;
 
 private:
-  static NAN_METHOD(Define);
-  static NAN_METHOD(Undefine);
+  // HYPERVISOR METHODS
   static NAN_METHOD(LookupByUsage);
   static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(Define);
+
+  // ACTIONS
+  static NAN_METHOD(Undefine);
+
+  // ACCESSORS/MUTATORS
   static NAN_METHOD(GetUUID);
   static NAN_METHOD(GetUsageId);
   static NAN_METHOD(GetUsageType);
   static NAN_METHOD(GetValue);
   static NAN_METHOD(SetValue);
   static NAN_METHOD(ToXml);
+
+private:
+  // HYPERVISOR METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(Secret, LookupByUUID);
+  NLV_LOOKUP_BY_VALUE_WORKER(Secret, Define);
+
+  class LookupByUsageWorker : public LookupInstanceByValueWorker<Secret> {
+  public:
+    LookupByUsageWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &usageId, int usageType) \
+      : LookupInstanceByValueWorker<Secret>(callback, handle, usageId), usageType_(usageType) {}
+    void Execute();
+  private:
+    int usageType_;
+  };
+
+  // ACTION WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virSecretPtr, bool);
+
+  // ACCESSOR/MUTATOR WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, virSecretPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetValue, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virSecretPtr, std::string);
+
+  class SetValueWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetValueWorker(NanCallback *callback, virSecretPtr handle, const std::string &value)
+      : PrimitiveReturnWorker<bool>(callback, handle), value_(value) {} \
+    void Execute();
+  private:
+    std::string value_;
+  };
 
 };
 

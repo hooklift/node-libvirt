@@ -12,62 +12,96 @@ describe('Secret', function() {
     SegfaultHandler.registerHandler();
   });
 
-  beforeEach(function(done) {
-    test.hypervisor = new Hypervisor('test:///default');
-    test.hypervisor.connect(function(err) {
-      expect(err).to.not.exist;
-      done();
-    });
-  });
-
-  afterEach(function(done) {
-    test.hypervisor.disconnect(function(err) {
-      expect(err).to.not.exist;
-      done();
-    });
-  });
-
   describe('hypervisor methods', function() {
-    it('should be located through its uuid', function()  {
-      try {
-        var secret = test.hypervisor.lookupSecretByUUID('8dbf92e0-657f-ad16-7ba9-861574f78941');
-        expect(secret.getValue()).to.exist;
-      } catch (error) {
-        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-      }
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
     });
 
-    it('should be located through its usage', function()  {
-      try {
-        var secret = test.hypervisor.lookupSecretByUsage(test.hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME, 'usage-id');
-        expect(secret.getValue()).to.exist;
-      } catch (error) {
-        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-      }
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
     });
 
-    it('should define the secret using its xml description', function()  {
-      try {
-        var xml = fixture('secret.xml');
-        expect(test.hypervisor.defineSecret(xml)).to.be.ok;
-      } catch (error) {
-        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-      }
+    it('should be located through its uuid', function(done)  {
+      var uuid = '8dbf92e0-657f-ad16-7ba9-861574f78941';
+      test.hypervisor.lookupSecretByUUID(uuid, function(err, secret) {
+        expect(err).to.exist;
+        done();
+
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // secret.getValue(function(err, value) {
+        //   expect(err).to.not.exist;
+        //   expect(value).to.exist;
+        //   done();
+        // });
+      });
+    });
+
+    it('should be located through its usage', function(done)  {
+      var usageType = test.hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME;
+      test.hypervisor.lookupSecretByUsage(usageType, 'usage-id', function(err, secret) {
+        expect(err).to.exist;
+        done();
+
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // secret.getValue(function(err, value) {
+        //   expect(err).to.not.exist;
+        //   expect(value).to.exist;
+        //   done();
+        // });
+      });
+    });
+
+    it('should define the secret using its xml description', function(done)  {
+      var xml = fixture('secret.xml');
+      test.hypervisor.defineSecret(xml, function(err, secret) {
+        expect(err).to.exist;
+        done();
+
+        // NOTE: not supported in test driver
+        // expect(err).to.not.exist;
+        // expect(secret).to.exist;
+        // done();
+      });
     });
   });
+
+  /*
+    NOTE: none of this will be supported by the test driver, port when can test
 
   describe('methods', function() {
-    beforeEach(function() {
-      var xml = fixture('secret.xml');
-      expect(function() {
-       test.secret = test.hypervisor.defineSecret(xml);
-      }).to.throw([Error]);
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
+
+        var xml = fixture('secret.xml');
+        test.hypervisor.defineSecret(xml, function(err, secret) {
+          expect(err).to.not.exist;
+          expect(secret).to.exist;
+          test.secret = secret;
+          done();
+        });
+
+        done();
+      });
     });
 
-    afterEach(function() {
-      test.secret = undefined;
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        test.secret = undefined;
+        done();
+      });
     });
-
 
     it('should return its uuid', function()  {
       try {
@@ -128,5 +162,7 @@ describe('Secret', function() {
       }
     });
   });
+  */
+
 });
 

@@ -1,11 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#include <stdlib.h>
-#include <string.h>
-
-#include "node_libvirt.h"
-#include "hypervisor.h"
 #include "error.h"
-
+#include "hypervisor.h"
 #include "secret.h"
 
 namespace NodeLibvirt {
@@ -16,74 +11,82 @@ void Secret::Initialize()
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine", Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID", GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "getValue", GetValue);
-  NODE_SET_PROTOTYPE_METHOD(t, "setValue", SetValue);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUsageId", GetUsageId);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUsageType", GetUsageType);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml", ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
+  NODE_SET_PROTOTYPE_METHOD(t, "getUUID",       GetUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "getValue",      GetValue);
+  NODE_SET_PROTOTYPE_METHOD(t, "setValue",      SetValue);
+  NODE_SET_PROTOTYPE_METHOD(t, "getUsageId",    GetUsageId);
+  NODE_SET_PROTOTYPE_METHOD(t, "getUsageType",  GetUsageType);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
 
   NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(String::NewSymbol("Secret"));
+  constructor_template->SetClassName(NanNew("Secret"));
+}
+
+Local<Object> Secret::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  Secret *secret = new Secret(handle.ToSecret());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  secret->Wrap(object);
+  return NanEscapeScope(object);
 }
 
 NAN_METHOD(Secret::Define)
 {
   NanScope();
-
-  unsigned int flags = 0;
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as argument to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  Secret *secret = new Secret();
-  secret->secret_ = virSecretDefineXML(hypervisor->Connection(), (const char *) *xml, flags);
-  if (secret->secret_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> secret_obj = constructor_template->GetFunction()->NewInstance();
-  secret->Wrap(secret_obj);
-  NanReturnValue(secret_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Secret::Undefine)
+void Secret::DefineWorker::Execute()
 {
-  NanScope();
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virSecretDefineXML(Handle().ToConnection(), value_.c_str(), flags);
+  if (lookupHandle_.ToSecret() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
 
-  int ret = -1;
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  ret = virSecretUndefine(secret->secret_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+NLV_WORKER_METHOD_NO_ARGS(Secret, Undefine)
+void Secret::UndefineWorker::Execute()
+{
+  NLV_WORKER_ASSERT_SECRET();
+
+  int result = virSecretUndefine(Handle().ToSecret());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  if (secret->secret_ != NULL) {
-    virSecretFree(secret->secret_);
+  if (Handle().ToSecret() != NULL) {
+    Handle().Clear();
   }
 
-  NanReturnValue(NanTrue());
+  data_ = true;
 }
 
 NAN_METHOD(Secret::LookupByUsage)
 {
   NanScope();
-
-  int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
-  if (args.Length() < 2) {
-    NanThrowTypeError("You must specify two arguments to call this function");
+  if (args.Length() < 3) {
+    NanThrowTypeError("You must specify type, xml and callback");
     NanReturnUndefined();
   }
 
@@ -97,178 +100,166 @@ NAN_METHOD(Secret::LookupByUsage)
     NanReturnUndefined();
   }
 
+  if (!args[2]->IsFunction()) {
+    NanThrowTypeError("You must specify a callback as the third argument");
+    NanReturnUndefined();
+  }
+
   Local<Object> hyp_obj = args.This();
   if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  usage_type = args[0]->Int32Value();
-  String::Utf8Value usage_id(args[1]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  Secret *secret = new Secret();
-  secret->secret_ = virSecretLookupByUsage(hypervisor->Connection(), usage_type, (const char *) *usage_id);
-  if (secret->secret_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> secret_obj = constructor_template->GetFunction()->NewInstance();
-  secret->Wrap(secret_obj);
-  NanReturnValue(secret_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  int usageType = args[0]->Int32Value();
+  std::string usageId(*NanUtf8String(args[1]->ToString()));
+  NanCallback *callback = new NanCallback(args[2].As<Function>());
+  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv->handle_, usageId, usageType));
+  NanReturnUndefined();
 }
 
+void Secret::LookupByUsageWorker::Execute()
+{
+  lookupHandle_ =
+    virSecretLookupByUsage(Handle().ToConnection(), usageType_, value_.c_str());
+  if (lookupHandle_.ToSecret() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE(Secret, LookupByUUID, virSecretLookupByUUIDString)
 NAN_METHOD(Secret::LookupByUUID)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a UUID string.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid uuid and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value uuid(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  Secret *secret = new Secret();
-  secret->secret_ = virSecretLookupByUUIDString(hypervisor->Connection(), (const char *) *uuid);
-  if (secret->secret_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> secret_obj = constructor_template->GetFunction()->NewInstance();
-  secret->Wrap(secret_obj);
-  NanReturnValue(secret_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string uuid(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Secret::GetUUID)
+NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
+void Secret::GetUUIDWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_SECRET();
 
-  int ret = -1;
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  ret = virSecretGetUUIDString(secret->secret_, uuid);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+  int result = virSecretGetUUIDString(Handle().ToSecret(), uuid);
+  if (result == -1) {
+    SetVirError(virGetLastError());
     delete[] uuid;
-    NanReturnUndefined();
+    return;
   }
 
-  Local<String> uuid_str = NanNew(uuid);
+  data_ = uuid;
   delete[] uuid;
-  NanReturnValue(uuid_str);
 }
 
-NAN_METHOD(Secret::GetUsageId)
+NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageId)
+void Secret::GetUsageIdWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_SECRET();
 
-  const char *usage_id = NULL;
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  usage_id = virSecretGetUsageID(secret->secret_);
-  if (usage_id == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  const char *result = virSecretGetUsageID(Handle().ToSecret());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(usage_id));
+  data_ = result;
 }
 
-NAN_METHOD(Secret::GetUsageType)
+NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageType)
+void Secret::GetUsageTypeWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_SECRET();
 
-  int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  usage_type = virSecretGetUsageType(secret->secret_);
-  if (usage_type == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  // int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
+  int result = virSecretGetUsageType(Handle().ToSecret());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(usage_type));
+  data_ = result;
 }
 
-NAN_METHOD(Secret::GetValue)
+NLV_WORKER_METHOD_NO_ARGS(Secret, GetValue)
+void Secret::GetValueWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_SECRET();
 
   size_t size;
   unsigned int flags = 0;
-  unsigned char* value_ = NULL;
-
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  value_ = virSecretGetValue(secret->secret_, &size, flags);
-  if (value_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  unsigned char *result = virSecretGetValue(Handle().ToSecret(), &size, flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  Local<String> value = NanNew(std::string((const char *)value_, size));
-  memset(value_, 0, size);
-  free(value_);
-
-  NanReturnValue(value);
+  data_ = std::string(reinterpret_cast<char *>(result), size);
+  memset(result, 0, size);
+  free(result);
 }
 
 NAN_METHOD(Secret::SetValue)
 {
   NanScope();
-
-  const char *value = NULL;
-  unsigned int flags = 0;
-  int ret = -1;
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a valid secret value");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a value and callback");
     NanReturnUndefined();
   }
 
-  value = *NanUtf8String(args[0]->ToString());
+  std::string value(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
   Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  ret = virSecretSetValue(secret->secret_, (const unsigned char *)value, sizeof(*value), flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
-  }
-
-  NanReturnValue(NanTrue());
+  NanAsyncQueueWorker(new SetValueWorker(callback, secret->handle_, value));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Secret::ToXml)
+void Secret::SetValueWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_SECRET();
 
-  char* xml_ = NULL;
-  int flags = 0;
-  if (args.Length() == 0 || !args[0]->IsArray()) {
-    NanThrowTypeError("You must specify an array as argument to invoke this function");
-    NanReturnUndefined();
+  unsigned int flags = 0;
+  int result = virSecretSetValue(Handle().ToSecret(),
+      reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  //flags
-  Local<Array> flags_ = Local<Array>::Cast(args[0]);
-  unsigned int length = flags_->Length();
-  for (unsigned int i = 0; i < length; i++) {
-    flags |= flags_->Get(Integer::New(i))->Int32Value();
-  }
-
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  xml_ = virSecretGetXMLDesc(secret->secret_, flags);
-  if (xml_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<String> xml = NanNew(xml_);
-  free(xml_);
-  NanReturnValue(xml);
+  data_ = true;
 }
 
+NLV_WORKER_METHOD_NO_ARGS(Secret, ToXml)
+void Secret::ToXmlWorker::Execute()
+{
+  NLV_WORKER_ASSERT_SECRET();
+
+  unsigned int flags = 0;
+  char *result = virSecretGetXMLDesc(Handle().ToSecret(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+  free(result);
 }
+
+} // namespace NodeLibvirt

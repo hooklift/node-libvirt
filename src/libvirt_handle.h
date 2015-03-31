@@ -19,6 +19,7 @@ public:
   LibVirtHandle(virStoragePoolPtr storagePool);
   LibVirtHandle(virStorageVolPtr storageVolume);
   LibVirtHandle(virNodeDevicePtr nodeDevice);
+  LibVirtHandle(virSecretPtr secret);
 
   void Clear();
 
@@ -29,6 +30,7 @@ public:
   virStoragePoolPtr ToStoragePool() const;
   virStorageVolPtr ToStorageVolume() const;
   virNodeDevicePtr ToNodeDevice() const;
+  virSecretPtr ToSecret() const;
 
 private:
   shared_ptr<LibVirtHandlePrivate> d;
