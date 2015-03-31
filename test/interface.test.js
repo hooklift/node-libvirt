@@ -48,9 +48,7 @@ describe('Interface', function() {
         expect(iface).to.exist;
         iface.undefine(function(err, result) {
           expect(err).to.not.exist;
-
-          // NOTE: undefining seems not to work with test driver
-          expect(result).to.be.false;
+          expect(result).to.be.true;
           done();
         });
       });
