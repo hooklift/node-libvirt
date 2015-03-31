@@ -70,7 +70,10 @@ void Interface::StopWorker::Execute()
     return;
   }
 
-  virInterfaceFree(Handle().ToInterface());
+  if (Handle().ToInterface() != NULL) {
+    Handle().Clear();
+  }
+
   data_ = static_cast<bool>(result);
 }
 

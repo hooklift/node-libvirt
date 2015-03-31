@@ -61,4 +61,3 @@ private:
 }  // namespace NodeLibvirt
 
 #endif  // SRC_INTERFACE_H_
-
