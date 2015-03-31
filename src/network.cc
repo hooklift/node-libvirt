@@ -27,332 +27,298 @@ void Network::Initialize()
   constructor_template->SetClassName(NanNew("Network"));
 }
 
-NAN_METHOD(Network::Create)
+Local<Object> Network::NewInstance(const LibVirtHandle &handle)
 {
   NanScope();
-
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
-    NanThrowTypeError("You must specify a Hypervisor object instance");
-    NanReturnUndefined();
-  }
-
-  if (args.Length() == 1 && !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as first argument");
-    NanReturnUndefined();
-  }
-
-  String::Utf8Value xml(args[0]->ToString());
-
-  Network *network = new Network();
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  network->network_ = virNetworkCreateXML(hypervisor->Connection(), (const char *) *xml);
-  if (network->network_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> network_obj = constructor_template->GetFunction()->NewInstance();
-  network->Wrap(network_obj);
-  NanReturnValue(network_obj);
+  Network *network = new Network(handle.ToNetwork());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  network->Wrap(object);
+  return NanEscapeScope(object);
 }
 
-NAN_METHOD(Network::Start)
-{
-  NanScope();
-
-  int ret = -1;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkCreate(network->network_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
-  }
-
-  NanReturnValue(NanTrue());
-}
-
+NLV_LOOKUP_BY_VALUE_EXECUTE(Network, LookupByName, virNetworkLookupByName)
 NAN_METHOD(Network::LookupByName)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a valid Network name.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value name(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Network *network = new Network();
-  network->network_ = virNetworkLookupByName(hypervisor->Connection(), (const char *) *name);
-  if (network->network_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> network_obj = constructor_template->GetFunction()->NewInstance();
-  network->Wrap(network_obj);
-  NanReturnValue(network_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanReturnUndefined();
 }
 
+NLV_LOOKUP_BY_VALUE_EXECUTE(Network, LookupByUUID, virNetworkLookupByUUIDString)
 NAN_METHOD(Network::LookupByUUID)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a UUID string.");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network uuid and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value uuid(args[0]->ToString());
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string uuid(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanReturnUndefined();
+}
 
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Network *network = new Network();
-  network->network_ = virNetworkLookupByUUIDString(hypervisor->Connection(), (const char *) *uuid);
-  if (network->network_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
+NAN_METHOD(Network::Create)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> network_obj = constructor_template->GetFunction()->NewInstance();
-  network->Wrap(network_obj);
-  NanReturnValue(network_obj);
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
+    NanThrowTypeError("You must specify a Hypervisor instance");
+    NanReturnUndefined();
+  }
+
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
+}
+
+void Network::CreateWorker::Execute()
+{
+  lookupHandle_ =
+    virNetworkCreateXML(Handle().ToConnection(), value_.c_str());
+  if (lookupHandle_.ToInterface() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
 }
 
 NAN_METHOD(Network::Define)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as argument to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[0]->ToString());
-
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-  Network *network = new Network();
-  network->network_ = virNetworkDefineXML(hypervisor->Connection(), (const char *) *xml);
-  if (network->network_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> network_obj = constructor_template->GetFunction()->NewInstance();
-  network->Wrap(network_obj);
-  NanReturnValue(network_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Network::GetName)
+void Network::DefineWorker::Execute()
 {
-  NanScope();
-
-  const char *name = NULL;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  name = virNetworkGetName(network->network_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  lookupHandle_ =
+    virNetworkDefineXML(Handle().ToConnection(), value_.c_str());
+  if (lookupHandle_.ToInterface() == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
-
-  NanReturnValue(NanNew(name));
 }
 
-NAN_METHOD(Network::GetUUID)
+NLV_WORKER_METHOD_NO_ARGS(Network, Start)
+void Network::StartWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
+  int result = virNetworkCreate(Handle().ToNetwork());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(Network, GetName)
+void Network::GetNameWorker::Execute()
+{
+  NLV_WORKER_ASSERT_NETWORK();
+
+  const char *result = virNetworkGetName(Handle().ToNetwork());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(Network, GetUUID)
+void Network::GetUUIDWorker::Execute()
+{
+  NLV_WORKER_ASSERT_NETWORK();
+
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkGetUUIDString(network->network_, uuid);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+  int result = virNetworkGetUUIDString(Handle().ToNetwork(), uuid);
+  if (result == -1) {
+    SetVirError(virGetLastError());
     delete[] uuid;
-    NanReturnUndefined();
+    return;
   }
 
-  Local<String> uuid_str = NanNew(uuid);
+  data_ = uuid;
   delete[] uuid;
-  NanReturnValue(uuid_str);
 }
 
-NAN_METHOD(Network::GetAutostart)
+NLV_WORKER_METHOD_NO_ARGS(Network, GetAutostart)
+void Network::GetAutostartWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
-  int autostart_;
-
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkGetAutostart(network->network_, &autostart_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int autostart;
+  int result = virNetworkGetAutostart(Handle().ToNetwork(), &autostart);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(static_cast<bool>(autostart_)));
+  data_ = static_cast<bool>(autostart);
 }
 
 NAN_METHOD(Network::SetAutostart)
 {
   NanScope();
-
-  int ret = -1;
-  if (args.Length() == 0 || !args[0]->IsBoolean()) {
-    NanThrowTypeError("You must specify a boolean argument");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a bool and callback");
     NanReturnUndefined();
   }
 
-  bool autostart = args[0]->IsTrue();
+  bool autoStart = args[0]->IsTrue();
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
   Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkSetAutostart(network->network_, autostart ? 0 : 1);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
-  }
-
-  NanReturnValue(NanTrue());
+  NanAsyncQueueWorker(new SetAutostartWorker(callback, network->handle_, autoStart));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(Network::IsActive)
+void Network::SetAutostartWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkIsActive(network->network_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int result = virNetworkSetAutostart(Handle().ToNetwork(), autoStart_ ? 1 : 0);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(static_cast<bool>(ret)));
+  data_ = true;
 }
 
-NAN_METHOD(Network::IsPersistent)
+NLV_WORKER_METHOD_NO_ARGS(Network, IsActive)
+void Network::IsActiveWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkIsPersistent(network->network_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  int result = virNetworkIsActive(Handle().ToNetwork());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(static_cast<bool>(ret)));
+  data_ = static_cast<bool>(result);
 }
 
-NAN_METHOD(Network::Undefine)
+NLV_WORKER_METHOD_NO_ARGS(Network, IsPersistent)
+void Network::IsPersistentWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  if (network->network_ == NULL) {
-    NanThrowError("invalid network");
-    NanReturnUndefined();
+  int result = virNetworkIsPersistent(Handle().ToNetwork());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  ret = virNetworkUndefine(network->network_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
-  }
-
-  NanReturnValue(NanTrue());
+  data_ = static_cast<bool>(result);
 }
 
-// NOTE: Really neccesary call destroy from javascript ???
-NAN_METHOD(Network::Destroy)
+NLV_WORKER_METHOD_NO_ARGS(Network, Undefine)
+void Network::UndefineWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  int ret = -1;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  ret = virNetworkDestroy(network->network_);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  int result = virNetworkUndefine(Handle().ToNetwork());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  if (network->network_ != NULL) {
-    virNetworkFree(network->network_);
-    network->network_ = NULL;
-  }
-
-  NanReturnValue(NanTrue());
+  data_ = true;
 }
 
-NAN_METHOD(Network::ToXml)
+NLV_WORKER_METHOD_NO_ARGS(Network, Destroy)
+void Network::DestroyWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  char* xml_ = NULL;
-  int flags = 0;
-
-  if (args.Length() == 0 || !args[0]->IsArray()) {
-    NanThrowTypeError("You must specify an array as argument to invoke this function");
-    NanReturnUndefined();
+  int result = virNetworkDestroy(Handle().ToNetwork());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  //flags
-  Local<Array> flags_ = Local<Array>::Cast(args[0]);
-  unsigned int length = flags_->Length();
-  for (unsigned int i = 0; i < length; i++) {
-      flags |= flags_->Get(Integer::New(i))->Int32Value();
+  if (Handle().ToNetwork() != NULL) {
+    Handle().Clear();
   }
 
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  xml_ = virNetworkGetXMLDesc(network->network_, flags);
-  if (xml_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<String> xml = NanNew(xml_);
-  free(xml_);
-  NanReturnValue(xml);
+  data_ = true;
 }
 
-NAN_METHOD(Network::GetBridgeName)
+NLV_WORKER_METHOD_NO_ARGS(Network, ToXml)
+void Network::ToXmlWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_NETWORK();
 
-  const char *name = NULL;
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  name = virNetworkGetBridgeName(network->network_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  unsigned int flags = 0;
+  char *result = virNetworkGetXMLDesc(Handle().ToNetwork(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(name));
+  data_ = result;
+  free(result);
+}
+
+NLV_WORKER_METHOD_NO_ARGS(Network, GetBridgeName)
+void Network::GetBridgeNameWorker::Execute()
+{
+  NLV_WORKER_ASSERT_NETWORK();
+
+  const char *result = virNetworkGetBridgeName(Handle().ToNetwork());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
 }
 
 }   // namespace NodeLibvirt

@@ -28,27 +28,62 @@ describe('Network', function() {
       });
     });
 
-    it('should create and start an already defined network', function() {
+    it('should create and start an already defined network', function(done) {
       var xml = fixture('network.xml');
-      var net = test.hypervisor.defineNetwork(xml);
-      expect(net.start()).to.be.ok;
+      test.hypervisor.defineNetwork(xml, function(err, network) {
+        expect(err).to.not.exist;
+        expect(network).to.exist;
+
+        network.start(function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.true;
+          done();
+        });
+      });
     });
 
-    it('should create and start a new virtual network from its xml description', function() {
+    it('should create and start a new virtual network from its xml description', function(done) {
       var xml = fixture('network.xml');
-      var net = test.hypervisor.createNetwork(xml);
-      expect(net.getName()).to.equal('test');
+      test.hypervisor.createNetwork(xml, function(err, network) {
+        expect(err).to.not.exist;
+        expect(network).to.exist;
+
+        network.getName(function(err, name) {
+          expect(err).to.not.exist;
+          expect(name).to.exist;
+          expect(name).to.equal('test');
+          done();
+        });
+      });
     });
 
-    it('should lookup the network by name', function() {
-      var net = test.hypervisor.lookupNetworkByName('default');
-      expect(net.getName()).to.equal('default');
+    it('should lookup the network by name', function(done) {
+      test.hypervisor.lookupNetworkByName('default', function(err, network) {
+        expect(err).to.not.exist;
+        expect(network).to.exist;
+
+        network.getName(function(err, name) {
+          expect(err).to.not.exist;
+          expect(name).to.exist;
+          expect(name).to.equal('default');
+          done();
+        });
+      });
     });
 
-    it('should define a network from its xml description', function() {
+    it('should define a network from its xml description', function(done) {
       var xml = fixture('network.xml');
-      var net = test.hypervisor.defineNetwork(xml);
-      expect(net.getName()).to.equal('test');
+      test.hypervisor.defineNetwork(xml, function(err, network) {
+        expect(err).to.not.exist;
+        expect(network).to.exist;
+
+        network.getName(function(err, name) {
+          expect(err).to.not.exist;
+          expect(name).to.exist;
+          expect(name).to.equal('test');
+          done();
+        });
+      });
     });
   });
 
@@ -57,8 +92,13 @@ describe('Network', function() {
       test.hypervisor = new Hypervisor('test:///default');
       test.hypervisor.connect(function(err) {
         expect(err).to.not.exist;
-        test.network = test.hypervisor.lookupNetworkByName('default');
-        done();
+
+        test.hypervisor.lookupNetworkByName('default', function(err, network) {
+          expect(err).to.not.exist;
+          expect(network).to.exist;
+          test.network = network;
+          done();
+        });
       });
     });
 
@@ -70,37 +110,72 @@ describe('Network', function() {
       });
     });
 
-    it('should determine if the network has a persistent configuration', function() {
-      expect(test.network.isPersistent()).to.be.true;
+    it('should determine if the network has a persistent configuration', function(done) {
+      test.network.isPersistent(function(err, persistent) {
+        expect(err).to.not.exist;
+        expect(persistent).to.be.true;
+        done();
+      });
     });
 
-    it('should determine if the network is currently running', function() {
-      expect(test.network.isActive()).to.be.true;
+    it('should determine if the network is currently running', function(done) {
+      test.network.isActive(function(err, active) {
+        expect(err).to.not.exist;
+        expect(active).to.be.true;
+        done();
+      });
     });
 
-    it('should provide a xml network description', function() {
-      expect(test.network.toXml([])).to.match(/<name>default<\/name>/);
+    it('should provide a xml network description', function(done) {
+      test.network.toXml(function(err, data) {
+        expect(err).to.not.exist;
+        expect(data).to.match(/<name>default<\/name>/);
+        done();
+      });
     });
 
-    it('should return the network uuid', function() {
-      expect(test.network.getUUID()).to.be.ok;
+    it('should return the network uuid', function(done) {
+      test.network.getUUID(function(err, uuid) {
+        expect(err).to.not.exist;
+        expect(uuid).to.exist;
+        done();
+      });
     });
 
-    it('should return the network name', function() {
-      expect(test.network.getName()).to.equal('default');
+    it('should return the network name', function(done) {
+      test.network.getName(function(err, name) {
+        expect(err).to.not.exist;
+        expect(name).to.exist;
+        expect(name).to.equal('default');
+        done();
+      });
     });
 
-    it('should return the bridge interface name', function() {
-      expect(test.network.getBridgeName()).to.equal('virbr0');
+    it('should return the bridge interface name', function(done) {
+      test.network.getBridgeName(function(err, name) {
+        expect(err).to.not.exist;
+        expect(name).to.equal('virbr0');
+        done();
+      });
     });
 
-    it('should indicate if the network is configured to be automatically started when the host boots', function() {
-      expect(test.network.getAutostart()).to.be.false;
+    it('should indicate if the network is configured to be automatically started when the host boots', function(done) {
+      test.network.getAutostart(function(err, autostart) {
+        expect(err).to.not.exist;
+        expect(autostart).to.exist;
+        expect(autostart).to.be.false;
+        done();
+      });
     });
 
-    it('should configure the network to be automatically started when the host boots', function() {
-      expect(test.network.setAutostart(false)).to.be.ok;
-      /*
+    it('should configure the network to be automatically started when the host boots', function(done) {
+      test.network.setAutostart(false, function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.true;
+        done();
+      });
+
+     /*
       NOTE: doesn't work with test driver
       expect(test.network.getAutostart()).to.be.false;
 
@@ -109,20 +184,49 @@ describe('Network', function() {
       */
     });
 
-    it('should lookup the network by uuid', function() {
-      var uuid = test.network.getUUID();
-      var net = test.hypervisor.lookupNetworkByUUID(uuid);
-      expect(net.getName()).to.equal('default');
+    it('should lookup the network by uuid', function(done) {
+      test.network.getUUID(function(err, uuid) {
+        expect(err).to.not.exist;
+        expect(uuid).to.exist;
+
+        test.hypervisor.lookupNetworkByUUID(uuid, function(err, network) {
+          expect(err).to.not.exist;
+          expect(network).to.exist;
+
+          network.getName(function(err, name) {
+            expect(err).to.not.exist;
+            expect(name).to.exist;
+            expect(name).to.equal('default');
+            done();
+          });
+        });
+      });
     });
 
-    it('should undefine a network', function() {
-      var net = test.hypervisor.lookupNetworkByName('test');
-      expect(net.destroy()).to.be.ok;
-      expect(function() { net.undefine(); }).to.throw(Error);
+    it('should undefine a network', function(done) {
+      test.hypervisor.lookupNetworkByName('test', function(err, network) {
+        expect(err).to.not.exist;
+        expect(network).to.exist;
+
+        network.destroy(function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.true;
+
+          network.undefine(function(err, result) {
+            expect(err).to.not.exist;
+            expect(result).to.be.true;
+            done();
+          });
+        });
+      });
     });
 
-    it('should destroy a network', function() {
-      expect(test.network.destroy()).to.be.ok;
+    it('should destroy a network', function(done) {
+      test.network.destroy(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.true;
+        done();
+      });
     });
   });
 });
