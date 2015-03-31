@@ -24,6 +24,18 @@
     return; \
   }
 
+#define NLV_WORKER_ASSERT_STORAGEPOOL() \
+  if (Handle().ToStoragePool() == NULL) { \
+    SetErrorMessage("invalid storage pool");  \
+    return; \
+  }
+
+#define NLV_WORKER_ASSERT_STORAGEVOLUME() \
+  if (Handle().ToStorageVolume() == NULL) { \
+    SetErrorMessage("invalid storage volume");  \
+    return; \
+  }
+
 
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \

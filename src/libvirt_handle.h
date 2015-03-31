@@ -16,6 +16,8 @@ public:
   LibVirtHandle(virInterfacePtr interface);
   LibVirtHandle(virNetworkPtr network);
   LibVirtHandle(virNWFilterPtr networkFilter);
+  LibVirtHandle(virStoragePoolPtr storagePool);
+  LibVirtHandle(virStorageVolPtr storageVolume);
 
   void Clear();
 
@@ -23,6 +25,8 @@ public:
   virInterfacePtr ToInterface() const;
   virNetworkPtr ToNetwork() const;
   virNWFilterPtr ToNetworkFilter() const;
+  virStoragePoolPtr ToStoragePool() const;
+  virStorageVolPtr ToStorageVolume() const;
 
 private:
   shared_ptr<LibVirtHandlePrivate> d;

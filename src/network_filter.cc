@@ -100,7 +100,7 @@ void NetworkFilter::DefineWorker::Execute()
 {
   lookupHandle_ =
     virNWFilterDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToInterface() == NULL) {
+  if (lookupHandle_.ToNetworkFilter() == NULL) {
     SetVirError(virGetLastError());
     return;
   }

@@ -29,10 +29,12 @@ protected:
   static NAN_METHOD(Define);
   static NAN_METHOD(Create);
 
-  // METHODS
+  // ACTIONS
   static NAN_METHOD(Destroy);
   static NAN_METHOD(Start);
   static NAN_METHOD(Undefine);
+
+  // ACCESSORS/MUTATORS
   static NAN_METHOD(GetName);
   static NAN_METHOD(GetUUID);
   static NAN_METHOD(GetAutostart);
@@ -54,6 +56,7 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(Start, virNetworkPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNetworkPtr, bool);
 
+  // ACCESSORS/MUTATORS WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(GetName, virNetworkPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNetworkPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virNetworkPtr, bool);

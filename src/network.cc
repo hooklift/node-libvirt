@@ -105,7 +105,7 @@ void Network::CreateWorker::Execute()
 {
   lookupHandle_ =
     virNetworkCreateXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToInterface() == NULL) {
+  if (lookupHandle_.ToNetwork() == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -136,7 +136,7 @@ void Network::DefineWorker::Execute()
 {
   lookupHandle_ =
     virNetworkDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToInterface() == NULL) {
+  if (lookupHandle_.ToNetwork() == NULL) {
     SetVirError(virGetLastError());
     return;
   }

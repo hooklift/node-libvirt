@@ -119,7 +119,7 @@ void Interface::UndefineWorker::Execute()
     return;
   }
 
-  data_ = static_cast<bool>(result);
+  data_ = true;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE(Interface, LookupByName, virInterfaceLookupByName)

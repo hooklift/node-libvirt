@@ -65,16 +65,11 @@ public:
 protected:
   virtual void HandleOKCallback() {
     NanScope();
-
     v8::Local<v8::Array> result = NanNew<v8::Array>(data_.size());
     for (int i = 0; i < data_.size(); ++i)
       result->Set(NanNew<v8::Integer>(i), NanNew<T2>(data_[i]));
 
-    v8::Local<v8::Value> argv[] = {
-      NanNull(),
-      result
-    };
-
+    v8::Local<v8::Value> argv[] = { NanNull(), result };
     callback->Call(2, argv);
   }
 
