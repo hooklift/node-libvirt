@@ -4,8 +4,8 @@
 
 namespace NodeLibvirt {
 
-LibVirtWorker::LibVirtWorker(NanCallback *callback, virConnectPtr conn)
-  : NanAsyncWorker(callback), conn_(conn), virerror_(NULL)
+LibVirtWorker::LibVirtWorker(NanCallback *callback, const LibVirtHandle &handle)
+  : NanAsyncWorker(callback), handle_(handle), virerror_(NULL)
 {
 }
 
@@ -13,9 +13,9 @@ LibVirtWorker::~LibVirtWorker()
 {
 }
 
-virConnectPtr LibVirtWorker::Connection() const
+LibVirtHandle LibVirtWorker::Handle() const
 {
-  return conn_;
+  return handle_;
 }
 
 void LibVirtWorker::SetVirError(virErrorPtr error)
