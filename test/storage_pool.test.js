@@ -29,33 +29,44 @@ describe('Storage Pool', function() {
       });
     });
 
-    it('should create a transient pool', function() {
+    it('should create a transient pool', function(done) {
       var xml = fixture('storage_pool.xml');
-      var pool_ = test.hypervisor.createStoragePool(xml);
-      expect(pool_.getName()).to.equal('virtimages');
+      test.hypervisor.createStoragePool(xml, function(err, pool) {
+        expect(err).to.not.exist;
+
+        pool.getName(function(err, name) {
+          expect(err).to.not.exist;
+          expect(name).to.equal('virtimages');
+          done();
+        });
+      });
     });
 
-    it('should define a pool', function() {
+    it('should define a pool', function(done) {
       var xml = fixture('storage_pool.xml');
-      var pool_ = test.hypervisor.defineStoragePool(xml);
-      expect(pool_.getName()).to.equal('virtimages');
+      test.hypervisor.defineStoragePool(xml, function(err, pool) {
+        expect(err).to.not.exist;
+
+        pool.getName(function(err, name) {
+          expect(err).to.not.exist;
+          expect(name).to.equal('virtimages');
+          done();
+        });
+      });
     });
 
-    // it('should start an already defined pool', function() {
-    //   //workaround because test driver seems to start the pool when it's defined which is wrong
-    //   //according to the documentation
-    //   //see http://libvirt.org/html/libvirt-libvirt.html#virStoragePoolDefineXML
-    //   if (pool.isActive()) {
-    //     pool.stop();
-    //   }
-    //   assert.ok(pool.start());
-    //   assert.ok(pool.isActive());
-    // });
+    it('should return volume names', function(done) {
+      test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
+        expect(err).to.not.exist;
+        expect(pool).to.exist;
 
-    it('should return volumes names', function() {
-      var pool_ = test.hypervisor.lookupStoragePoolByName('default-pool');
-      var volumes = pool_.getVolumes();
-      expect(volumes).to.be.instanceOf(Array);
+        pool.getVolumes(function(err, volumes) {
+          expect(err).to.not.exist;
+          expect(volumes).to.be.instanceOf(Array);
+          done();
+        });
+      });
+
     });
   });
 
@@ -64,8 +75,11 @@ describe('Storage Pool', function() {
       test.hypervisor = new Hypervisor('test:///default');
       test.hypervisor.connect(function(err) {
         expect(err).to.not.exist;
-        test.pool = test.hypervisor.lookupStoragePoolByName('default-pool');
-        done();
+        test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
+          expect(err).to.not.exist;
+          test.pool = pool;
+          done();
+        });
       });
     });
 
@@ -78,86 +92,182 @@ describe('Storage Pool', function() {
       });
     });
 
-    it('should indicate if autostart is enabled', function() {
-      expect(test.pool.getAutostart).to.be.ok;
-    });
-
-    it('should set autostart to start the pool at boot time', function() {
-      test.pool.setAutostart(false);
-      expect(test.pool.getAutostart()).to.be.true;
-
-      // NOTE: doesn't work with test driver
-      // expect(test.pool.getAutostart()).to.be.false;
-    });
-
-    it('should return its information', function() {
-      var info = test.pool.getInfo();
-      expect(info).to.eql({
-        state: test.pool.VIR_STORAGE_POOL_RUNNING,
-        capacity: 107374182400,
-        allocation: 0,
-        available: 107374182400
+    it('should indicate if autostart is enabled', function(done) {
+      test.pool.getAutostart(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.false;
+        done();
       });
     });
 
-    it('should be located by its name', function() {
-      expect(test.pool.getName()).to.equal('default-pool');
+    it('should set autostart to start the pool at boot time', function(done) {
+      test.pool.setAutostart(false, function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.true;
+
+        test.pool.getAutostart(function(err, result) {
+          expect(err).to.not.exist;
+
+          // NOTE: seems broken on test-driver, should be: to.be.true
+          expect(result).to.be.false;
+          done();
+        });
+      });
     });
 
-    it('should be located by its uuid', function() {
-      var uuid = test.pool.getUUID();
-      var pool_ = test.hypervisor.lookupStoragePoolByUUID(uuid);
-      expect(pool_.getName()).to.equal('default-pool');
+    it('should return its information', function(done) {
+      test.pool.getInfo(function(err, info) {
+        expect(err).to.not.exist;
+        expect(info).to.eql({
+          state: test.pool.VIR_STORAGE_POOL_RUNNING,
+          capacity: 107374182400,
+          allocation: 0,
+          available: 107374182400
+        });
+
+        done();
+      });
     });
 
-    it('should return its name', function() {
-      expect(test.pool.getName()).to.equal('default-pool');
+    it('should be located by its name', function(done) {
+      test.pool.getName(function(err, name) {
+        expect(err).to.not.exist;
+        expect(name).to.equal('default-pool');
+        done();
+      });
     });
 
-    it('should return its uuid', function() {
-      var uuid = test.pool.getUUID();
-      var pool_ = test.hypervisor.lookupStoragePoolByUUID(uuid);
-      expect(pool_.getUUID()).to.equal(uuid);
+    it('should be located by its uuid', function(done) {
+      test.pool.getUUID(function(err, uuid) {
+        expect(err).to.not.exist;
+
+        test.hypervisor.lookupStoragePoolByUUID(uuid, function(err, pool) {
+          expect(err).to.not.exist;
+
+          pool.getName(function(err, name) {
+            expect(err).to.not.exist;
+            expect(name).to.equal('default-pool');
+            done();
+          });
+        });
+      });
     });
 
-    it('should return its xml representation', function() {
-      expect(test.pool.toXml([])).to.match(/<name>default-pool<\/name>/);
+    it('should return its name', function(done) {
+      test.pool.getName(function(err, name) {
+        expect(err).to.not.exist;
+        expect(name).to.equal('default-pool');
+        done();
+      });
     });
 
-    it('should show if the pool is active', function() {
-      expect(test.pool.isActive()).to.be.true;
+    it('should return its uuid', function(done) {
+      test.pool.getUUID(function(err, uuid) {
+        expect(err).to.not.exist;
+
+        test.hypervisor.lookupStoragePoolByUUID(uuid, function(err, pool) {
+          expect(err).to.not.exist;
+
+          pool.getUUID(function(err, lookupUUID) {
+            expect(err).to.not.exist;
+            expect(lookupUUID).to.equal(uuid);
+            done();
+          });
+        });
+      });
     });
 
-    it('should show if the pool is persistent', function() {
-      expect(test.pool.isPersistent()).to.be.true;
+    it('should return its xml representation', function(done) {
+      test.pool.toXml(function(err, xml) {
+        expect(err).to.not.exist;
+        expect(xml).to.match(/<name>default-pool<\/name>/);
+        done();
+      });
     });
 
-    it('should be refreshed', function() {
-      expect(test.pool.refresh()).to.be.ok;
+    it('should show if the pool is active', function(done) {
+      test.pool.isActive(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.true;
+        done();
+      });
     });
 
-    it('should stop an started pool', function() {
-      expect(test.pool.stop()).to.be.ok;
+    // it('should start an already defined pool', function(done) {
+    //   //workaround because test driver seems to start the pool when it's defined which is wrong
+    //   //according to the documentation
+    //   //see http://libvirt.org/html/libvirt-libvirt.html#virStoragePoolDefineXML
+
+    //   function actualTest() {
+    //     test.pool.start(function(err, startResult) {
+    //       expect(err).to.not.exist;
+    //       expect(startResult).to.be.true;
+
+    //       test.pool.isActive(function(err, isActive) {
+    //         expect(err).to.not.exist;
+    //         expect(isActive).to.be.true;
+    //         done();
+    //       });
+    //     });
+    //   }
+
+    //   test.pool.isActive(function(err, isActive) {
+    //     expect(err).to.not.exist;
+    //     if (isActive) {
+    //       actualTest();
+    //     } else {
+    //       test.pool.stop(function(err, stopResult) {
+    //         expect(err).to.not.exist;
+    //         expect(stopResult).to.be.true;
+    //         actualTest();
+    //       });
+    //     }
+    //   });
+    // });
+
+    it('should show if the pool is persistent', function(done) {
+      test.pool.isPersistent(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.true;
+        done();
+      });
     });
 
-    it('should erase a pool', function() {
-      expect(test.pool.erase()).to.be.ok;
+    it('should be refreshed', function(done) {
+      test.pool.refresh(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.ok;
+        done();
+      });
     });
 
-    it('should be undefined', function() {
-      expect(test.pool.undefine()).to.be.ok;
-      expect(function() {
-        test.hypervisor.lookupStoragePoolByName('default-pool');
-      }).to.throw([Error]);
+    it('should stop an started pool', function(done) {
+      test.pool.stop(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.ok;
+        done();
+      });
+    });
 
-      // NOTE: the above is strange and broken!
+    it('should erase a pool', function(done) {
+      test.pool.erase([], function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.ok;
+        done();
+      });
+    });
 
-      // try { assert.ok(pool.undefine()); } catch (err) {}
-      // try {
-      //   hypervisor.lookupStoragePoolByName('default-pool');
-      // } catch (error) {
-      //   assert.eql(error.message, 'Storage pool not found');
-      // }
+    it('should be undefined', function(done) {
+      test.pool.undefine(function(err, result) {
+        expect(err).to.not.exist;
+        expect(result).to.be.ok;
+
+        test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
+          expect(err).to.exist;
+          expect(pool).to.not.exist;
+          done();
+        });
+      });
     });
   });
 });
