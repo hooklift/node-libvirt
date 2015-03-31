@@ -16,6 +16,7 @@
         'src/storage_pool.cc',
         'src/storage_volume.cc',
         # 'src/domain.cc',
+        'src/libvirt_handle.cc'
       ],
       'include_dirs' : [
         "<!(node -e \"require('nan')\")"
@@ -28,6 +29,7 @@
             ]
           },
           'cflags': [
+            '-std=c++11',
             '<!@(pkg-config --cflags libvirt)'
           ],
         }]
