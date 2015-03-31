@@ -14,7 +14,6 @@ Persistent<FunctionTemplate> StorageVolume::constructor_template;
 void StorageVolume::Initialize()
 {
   NanScope();
-
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -27,262 +26,256 @@ void StorageVolume::Initialize()
   NODE_SET_PROTOTYPE_METHOD(t, "wipe",    Wipe);
 
   NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(String::NewSymbol("StorageVolume"));
+  constructor_template->SetClassName(NanNew("StorageVolume"));
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
   NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_FILE);
   NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_BLOCK);
 }
 
+Local<Object> StorageVolume::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  StorageVolume *storageVolume = new StorageVolume(handle.ToStorageVolume());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  storageVolume->Wrap(object);
+  return NanEscapeScope(object);
+}
+
 NAN_METHOD(StorageVolume::Create)
 {
   NanScope();
-
-  unsigned int flags = 0;
-  int argsl = args.Length();
-  if (argsl == 0) {
-    NanThrowTypeError("You must specify at least one argument");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
     NanReturnUndefined();
   }
 
-  if (!args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as first argument");
+  if (!NanHasInstance(StoragePool::constructor_template, args.This())) {
+    NanThrowTypeError("You must specify a StoragePool instance");
     NanReturnUndefined();
   }
 
-  Local<Object> pool_obj = args.This();
-  if (!NanHasInstance(StoragePool::constructor_template, pool_obj)) {
-    NanThrowTypeError("You must specify a Hypervisor object instance");
-    NanReturnUndefined();
-  }
-
-  String::Utf8Value xml(args[0]->ToString());
-  StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-  StorageVolume *volume = new StorageVolume();
-  volume->volume_ = virStorageVolCreateXML(pool->Pool(), (const char *) *xml, flags);
-  if (volume->volume_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> volume_obj = constructor_template->GetFunction()->NewInstance();
-  volume->Wrap(volume_obj);
-  NanReturnValue(volume_obj);
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new CreateWorker(callback, sp->handle_, xmlData));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(StorageVolume::Delete)
+void StorageVolume::CreateWorker::Execute()
 {
-  NanScope();
-
   unsigned int flags = 0;
-  int ret = -1;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  ret = virStorageVolDelete(volume->volume_, flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  lookupHandle_ =
+    virStorageVolCreateXML(Handle().ToStoragePool(), value_.c_str(), flags);
+  if (lookupHandle_.ToStoragePool() == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
-
-  if (volume->volume_ != NULL) {
-    virStorageVolFree(volume->volume_);
-  }
-
-  NanReturnValue(NanTrue());
 }
 
-NAN_METHOD(StorageVolume::Wipe)
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)
+void StorageVolume::DeleteWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
 
   unsigned int flags = 0;
-  int ret = -1;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  ret = virStorageVolWipe(volume->volume_, flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+  int result = virStorageVolDelete(Handle().ToStorageVolume(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanTrue());
+  if (Handle().ToStorageVolume() != NULL) {
+    Handle().Clear();
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Wipe)
+void StorageVolume::WipeWorker::Execute()
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  unsigned int flags = 0;
+  int result = virStorageVolWipe(Handle().ToStorageVolume(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
 }
 
 NAN_METHOD(StorageVolume::GetInfo)
 {
   NanScope();
-
-  virStorageVolInfo info;
-  int ret = -1;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  ret = virStorageVolGetInfo(volume->volume_, &info);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+  if (args.Length() != 1) {
+    NanThrowTypeError("You must specify a callback");
     NanReturnUndefined();
   }
 
-  Local<Object> object = NanNew<Object>();
-  object->Set(NanNew("type"), NanNew<Integer>(info.type)); //virStoragePoolState
-  object->Set(NanNew("capacity"), NanNew<Number>(info.capacity)); //bytes
-  object->Set(NanNew("allocation"), NanNew<Number>(info.allocation)); //bytes
-  NanReturnValue(object);
+  NanCallback *callback = new NanCallback(args[0].As<Function>());
+  StorageVolume *storageVolume = ObjectWrap::Unwrap<StorageVolume>(args.This());
+  NanAsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
+  NanReturnUndefined();
 }
 
-NAN_METHOD(StorageVolume::GetKey)
+void StorageVolume::GetInfoWorker::Execute()
+{
+  int result = virStorageVolGetInfo(Handle().ToStorageVolume(), &info_);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+void StorageVolume::GetInfoWorker::HandleOKCallback()
 {
   NanScope();
+  Local<Object> result = NanNew<Object>();
+  result->Set(NanNew("type"), NanNew<Integer>(info_.type));
+  result->Set(NanNew("capacity"), NanNew<Number>(info_.capacity));
+  result->Set(NanNew("allocation"), NanNew<Number>(info_.allocation));
 
-  const char *key = NULL;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  key = virStorageVolGetKey(volume->volume_);
-  if (key == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  callback->Call(2, argv);
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetKey)
+void StorageVolume::GetKeyWorker::Execute()
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  const char *result = virStorageVolGetKey(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(key));
+  data_ = result;
 }
 
-NAN_METHOD(StorageVolume::GetName)
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetName)
+void StorageVolume::GetNameWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
 
-  const char *name = NULL;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  name = virStorageVolGetName(volume->volume_);
-  if (name == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  const char *result = virStorageVolGetName(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(name));
+  data_ = result;
 }
 
-NAN_METHOD(StorageVolume::GetPath)
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetPath)
+void StorageVolume::GetPathWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
 
-  const char *path = NULL;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  path = virStorageVolGetPath(volume->volume_);
-  if (path == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  const char *result = virStorageVolGetPath(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  NanReturnValue(NanNew(path));
+  data_ = result;
 }
 
-NAN_METHOD(StorageVolume::ToXml)
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, ToXml)
+void StorageVolume::ToXmlWorker::Execute()
 {
-  NanScope();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
 
-  char* xml_ = NULL;
   unsigned int flags = 0;
-  StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  xml_ = virStorageVolGetXMLDesc(volume->volume_, flags);
-  if (xml_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
+  char *result = virStorageVolGetXMLDesc(Handle().ToStorageVolume(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
   }
 
-  Local<String> xml = NanNew(xml_);
-  free(xml_);
-  NanReturnValue(xml);
+  data_ = result;
+  free(result);
 }
 
+NLV_SP_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByName, virStorageVolLookupByName)
 NAN_METHOD(StorageVolume::LookupByName)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> pool_obj = args.This();
-  if (!NanHasInstance(StoragePool::constructor_template, pool_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(StoragePool::constructor_template, object)) {
     NanThrowTypeError("You must specify a StoragePool instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value name(args[0]->ToString());
-  StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-  StorageVolume *volume = new StorageVolume();
-  volume->volume_ = virStorageVolLookupByName(pool->Pool(), (const char *) *name);
-  if (volume->volume_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> volume_obj = constructor_template->GetFunction()->NewInstance();
-  volume->Wrap(volume_obj);
-  NanReturnValue(volume_obj);
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, sp->handle_, name));
+  NanReturnUndefined();
 }
 
+NLV_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByKey, virStorageVolLookupByKey)
 NAN_METHOD(StorageVolume::LookupByKey)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value key(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  StorageVolume *volume = new StorageVolume();
-  volume->volume_ = virStorageVolLookupByKey(hypervisor->Connection(), (const char *) *key);
-  if (volume->volume_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> volume_obj = constructor_template->GetFunction()->NewInstance();
-  volume->Wrap(volume_obj);
-  NanReturnValue(volume_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string key(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByKeyWorker(callback, hv->handle_, key));
+  NanReturnUndefined();
 }
 
+NLV_LOOKUP_BY_VALUE_EXECUTE(StorageVolume, LookupByPath, virStorageVolLookupByPath)
 NAN_METHOD(StorageVolume::LookupByPath)
 {
   NanScope();
-
-  if (args.Length() == 0 || !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string to call this function");
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
     NanReturnUndefined();
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
     NanThrowTypeError("You must specify a Hypervisor instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value path(args[0]->ToString());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-  StorageVolume *volume = new StorageVolume();
-  volume->volume_ = virStorageVolLookupByPath(hypervisor->Connection(), (const char *) *path);
-  if (volume->volume_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
-
-  Local<Object> volume_obj = constructor_template->GetFunction()->NewInstance();
-  volume->Wrap(volume_obj);
-  NanReturnValue(volume_obj);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string path(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByPathWorker(callback, hv->handle_, path));
+  NanReturnUndefined();
 }
 
 NAN_METHOD(StorageVolume::Clone)
 {
   NanScope();
-
-  unsigned int flags = 0;
-  if (args.Length() < 2) {
-    NanThrowTypeError("You must specify two arguments to call this function");
+  if (args.Length() < 3) {
+    NanThrowTypeError("You must specify three arguments to call this function");
     NanReturnUndefined();
   }
 
@@ -296,27 +289,80 @@ NAN_METHOD(StorageVolume::Clone)
     NanReturnUndefined();
   }
 
-  Local<Object> pool_obj = args.This();
-  if (!NanHasInstance(StoragePool::constructor_template, pool_obj)) {
+  if (!args[2]->IsFunction()) {
+    NanThrowTypeError("You must specify a callback as the third argument");
+    NanReturnUndefined();
+  }
+
+  Local<Object> object = args.This();
+  if (!NanHasInstance(StoragePool::constructor_template, object)) {
     NanThrowTypeError("You must specify a StoragePool instance");
     NanReturnUndefined();
   }
 
-  String::Utf8Value xml(args[1]->ToString());
-  StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-  StorageVolume *source_volume = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
-  StorageVolume *clone_volume = new StorageVolume();
-  clone_volume->volume_ =
-    virStorageVolCreateXMLFrom(pool->Pool(), (const char *) *xml, source_volume->volume_, flags);
-  if (clone_volume->volume_ == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    NanReturnUndefined();
-  }
+  std::string xml(*NanUtf8String(args[1]->ToString()));
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
+  StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
 
-  Local<Object> clone_vol_obj = constructor_template->GetFunction()->NewInstance();
-  clone_volume->Wrap(clone_vol_obj);
-  NanReturnValue(clone_vol_obj);
+  NanCallback *callback = new NanCallback(args[2].As<Function>());
+  NanAsyncQueueWorker(new CloneWorker(callback, sp->handle_, xml, sv->handle_));
+  NanReturnUndefined();
 }
+
+void StorageVolume::CloneWorker::Execute()
+{
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virStorageVolCreateXMLFrom(Handle().ToStoragePool(), value_.c_str(), cloneHandle_, flags);
+  if (lookupHandle_.ToStorageVolume() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+// NAN_METHOD(StorageVolume::Clone)
+// {
+//   NanScope();
+
+//   unsigned int flags = 0;
+//   if (args.Length() < 2) {
+//     NanThrowTypeError("You must specify two arguments to call this function");
+//     NanReturnUndefined();
+//   }
+
+//   if (!NanHasInstance(StorageVolume::constructor_template, args[0])) {
+//     NanThrowTypeError("You must specify a StorageVolume instance as first argument");
+//     NanReturnUndefined();
+//   }
+
+//   if (!args[1]->IsString()) {
+//     NanThrowTypeError("You must specify a string as second argument");
+//     NanReturnUndefined();
+//   }
+
+//   Local<Object> pool_obj = args.This();
+//   if (!NanHasInstance(StoragePool::constructor_template, pool_obj)) {
+//     NanThrowTypeError("You must specify a StoragePool instance");
+//     NanReturnUndefined();
+//   }
+
+//   String::Utf8Value xml(args[1]->ToString());
+//   StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
+//   StorageVolume *source_volume = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
+
+//   virStorageVolPtr handle =
+//     virStorageVolCreateXMLFrom(pool->Pool(), (const char *) *xml, source_volume->handle_, flags);
+//   if (handle == NULL) {
+//     ThrowException(Error::New(virGetLastError()));
+//     NanReturnUndefined();
+//   }
+
+//   StorageVolume *clone_volume = new StorageVolume(handle);
+
+//   Local<Object> clone_vol_obj = constructor_template->GetFunction()->NewInstance();
+//   clone_volume->Wrap(clone_vol_obj);
+//   NanReturnValue(clone_vol_obj);
+// }
 
 } //namespace NodeLibvirt
 

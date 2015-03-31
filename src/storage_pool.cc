@@ -35,7 +35,7 @@ void StoragePool::Initialize()
   NODE_SET_PROTOTYPE_METHOD(t, "refresh",             Refresh);
   NODE_SET_PROTOTYPE_METHOD(t, "createVolume",        StorageVolume::Create);
   NODE_SET_PROTOTYPE_METHOD(t, "cloneVolume",         StorageVolume::Clone);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupVolumeByName",  StorageVolume::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByName",  StorageVolume::LookupByName);
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("StoragePool"));

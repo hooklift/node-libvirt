@@ -100,4 +100,14 @@ NAN_METHOD(Class::Method) {  \
     } \
   }
 
+#define NLV_SP_LOOKUP_BY_VALUE_EXECUTE(Class, Method, Accessor) \
+  void Class::Method##Worker::Execute() { \
+    lookupHandle_ = Accessor(Handle().ToStoragePool(), value_.c_str());  \
+    if (lookupHandle_.NLV_CAT(To, Class)() == NULL) { \
+      SetVirError(virGetLastError()); \
+      return; \
+    } \
+  }
+
+
 #endif  // WORKER_MACROS_H
