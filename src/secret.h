@@ -55,14 +55,14 @@ private:
   };
 
   // ACTION WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virSecretPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, virSecretPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetValue, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetValue, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
 
   class SetValueWorker : public PrimitiveReturnWorker<bool> {
   public:

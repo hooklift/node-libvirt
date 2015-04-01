@@ -59,11 +59,11 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, Create);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Build, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Start, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Stop, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Refresh, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Build, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Stop, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Refresh, bool);
 
   class EraseWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -75,12 +75,14 @@ private:
   };
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStoragePoolInfo);
+  NLV_LIST_RETURN_WORKER(GetVolumes, std::string, v8::String);
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -90,25 +92,6 @@ private:
   private:
     bool autoStart_;
   };
-
-  class GetInfoWorker : public LibVirtWorker {
-  public:
-    GetInfoWorker(NanCallback *callback, const LibVirtHandle &handle)
-      : LibVirtWorker(callback, handle) {}
-    void Execute();
-  protected:
-    void HandleOKCallback();
-  private:
-    virStoragePoolInfo info_;
-  };
-
-  class GetVolumesWorker : public ListReturnWorker<std::string, v8::String> {
-  public:
-    GetVolumesWorker(NanCallback *callback, const LibVirtHandle &handle)
-      : ListReturnWorker(callback, handle) {}
-    void Execute();
-  };
-
 
 };
 

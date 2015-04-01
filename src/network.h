@@ -53,18 +53,18 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(Network, Create);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Start, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNetworkPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNetworkPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, virNetworkPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:

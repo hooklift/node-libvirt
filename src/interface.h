@@ -48,13 +48,13 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(Interface, Define);
 
   // WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Start, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Stop, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virInterfacePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetMacAddress, virInterfacePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Stop, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMacAddress, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
 
 
 };

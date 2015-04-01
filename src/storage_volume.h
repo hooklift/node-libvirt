@@ -64,14 +64,14 @@ private:
   };
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Wipe, virStorageVolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Delete, virStorageVolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Wipe, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Delete, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetKey, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetPath, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetKey, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetPath, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
 
   class GetInfoWorker : public LibVirtWorker {
   public:

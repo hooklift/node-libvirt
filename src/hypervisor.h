@@ -123,41 +123,41 @@ private:
   };
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetCapabilities, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetHostname, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetSysInfo, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetType, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetConnectionUri, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetVersion, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetLibVirtVersion, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionEncrypted, virConnectPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionSecure, virConnectPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionAlive, virConnectPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpusWorker, virConnectPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetCapabilities, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetHostname, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetSysInfo, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetType, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetConnectionUri, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetVersion, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetLibVirtVersion, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionEncrypted, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionSecure, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsConnectionAlive, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpusWorker, int);
 
-  NLV_LIST_RETURN_WORKER(ListDefinedDomains, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedNetworks, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedStoragePools, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedInterfaces, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListActiveDomains, virConnectPtr, int, v8::Integer);
-  NLV_LIST_RETURN_WORKER(ListActiveInterfaces, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListNetworkFilters, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListActiveNetworks, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListSecrets, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListActiveStoragePools, virConnectPtr, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListDefinedDomains, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListDefinedNetworks, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListDefinedStoragePools, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListDefinedInterfaces, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListActiveDomains, int, v8::Integer);
+  NLV_LIST_RETURN_WORKER(ListActiveInterfaces, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListNetworkFilters, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListActiveNetworks, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListSecrets, std::string, v8::String);
+  NLV_LIST_RETURN_WORKER(ListActiveStoragePools, std::string, v8::String);
 
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedDomains, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedInterfaces, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedNetworks, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedStoragePools, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveDomains, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveInterfaces, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveNetworks, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveStoragePools, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfNetworkFilters, virConnectPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfSecrets, virConnectPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedDomains, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedInterfaces, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedNetworks, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedStoragePools, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveDomains, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveInterfaces, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveNetworks, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfActiveStoragePools, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfNetworkFilters, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfSecrets, int);
 
-  NLV_PRIMITIVE_RETURN_WORKER(GetNodeFreeMemory, virConnectPtr, double);
+  NLV_PRIMITIVE_RETURN_WORKER(GetNodeFreeMemory, double);
 
   class GetNodeCellsFreeMemoryWorker : public ListReturnWorker<double, v8::Number> {
   public:

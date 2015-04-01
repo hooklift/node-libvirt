@@ -46,16 +46,16 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, Create);
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Detach, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reattach, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reset, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Detach, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reattach, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, bool);
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNodeDevicePtr, std::string);
-  NLV_LIST_RETURN_WORKER(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_LIST_RETURN_WORKER(GetCapabilities, std::string, v8::String);
 
 };
 

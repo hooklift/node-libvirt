@@ -109,18 +109,18 @@
 
 
 // WORKER DEFINITIONS
-#define NLV_PRIMITIVE_RETURN_WORKER(Method, HandleType, Type)  \
+#define NLV_PRIMITIVE_RETURN_WORKER(Method, Type)  \
   class Method##Worker : public PrimitiveReturnWorker<Type> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle) \
+    Method##Worker(NanCallback *callback, const LibVirtHandle &handle) \
       : PrimitiveReturnWorker<Type>(callback, handle) {} \
     void Execute(); \
   };
 
-#define NLV_LIST_RETURN_WORKER(Method, HandleType, CType, V8Type)  \
+#define NLV_LIST_RETURN_WORKER(Method, CType, V8Type)  \
   class Method##Worker : public ListReturnWorker<CType, V8Type> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle) \
+    Method##Worker(NanCallback *callback, const LibVirtHandle &handle) \
       : ListReturnWorker<CType, V8Type>(callback, handle) {} \
     void Execute(); \
   };
@@ -131,6 +131,18 @@
     Method##Worker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value) \
       : LookupInstanceByValueWorker<Class>(callback, handle, value) {} \
     void Execute(); \
+  };
+
+#define NLV_OBJECT_RETURN_WORKER(Method, ObjectType) \
+  class Method##Worker : public LibVirtWorker { \
+  public: \
+    Method##Worker(NanCallback *callback, const LibVirtHandle &handle)  \
+      : LibVirtWorker(callback, handle) {}  \
+    void Execute(); \
+  protected:  \
+    void HandleOKCallback();  \
+  private:  \
+    ObjectType info_;  \
   };
 
 // EXECUTE HELPERS
