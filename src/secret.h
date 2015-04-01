@@ -66,7 +66,7 @@ private:
 
   class SetValueWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SetValueWorker(NanCallback *callback, virSecretPtr handle, const std::string &value)
+    SetValueWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value)
       : PrimitiveReturnWorker<bool>(callback, handle), value_(value) {} \
     void Execute();
   private:

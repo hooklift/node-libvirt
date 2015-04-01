@@ -68,7 +68,7 @@ private:
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, virNetworkPtr handle, bool autoStart)
+    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
       : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {} \
     void Execute();
   private:

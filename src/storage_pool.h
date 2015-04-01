@@ -67,7 +67,7 @@ private:
 
   class EraseWorker : public PrimitiveReturnWorker<bool> {
   public:
-    EraseWorker(NanCallback *callback, virStoragePoolPtr handle, unsigned int flags)
+    EraseWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned int flags)
       : PrimitiveReturnWorker<bool>(callback, handle), flags_(flags) {}
     void Execute();
   private:
@@ -84,7 +84,7 @@ private:
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, virStoragePoolPtr handle, bool autoStart)
+    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
       : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {}
     void Execute();
   private:
@@ -93,7 +93,7 @@ private:
 
   class GetInfoWorker : public LibVirtWorker {
   public:
-    GetInfoWorker(NanCallback *callback, virStoragePoolPtr handle)
+    GetInfoWorker(NanCallback *callback, const LibVirtHandle &handle)
       : LibVirtWorker(callback, handle) {}
     void Execute();
   protected:
@@ -104,7 +104,7 @@ private:
 
   class GetVolumesWorker : public ListReturnWorker<std::string, v8::String> {
   public:
-    GetVolumesWorker(NanCallback *callback, virStoragePoolPtr handle)
+    GetVolumesWorker(NanCallback *callback, const LibVirtHandle &handle)
       : ListReturnWorker(callback, handle) {}
     void Execute();
   };

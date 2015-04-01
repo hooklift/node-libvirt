@@ -48,6 +48,12 @@
     return; \
   }
 
+#define NLV_WORKER_ASSERT_DOMAIN() \
+  if (Handle().ToDomain() == NULL) { \
+    SetErrorMessage("invalid domain");  \
+    return; \
+  }
+
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \
   NAN_METHOD(Class::Method) {  \
@@ -129,9 +135,11 @@
 
 // EXECUTE HELPERS
 #define NLV_WORKER_EXECUTE(Class, Method) void Class::Method##Worker::Execute()
+#define NLV_WORKER_OKCALLBACK(Class, Method) void Class::Method##Worker::HandleOKCallback()
+
 #define NLV_INT_RETURN_EXECUTE_IMPL(Class, Method, Accessor)  \
   NLV_WORKER_EXECUTE(Class, Method) {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
+    NLV_WORKER_ASSERT_CONNECTION(); \
     int result = Accessor(Handle().ToConnection());  \
     if (result == -1) { \
       SetVirError(virGetLastError()); \
@@ -142,7 +150,7 @@
 
 #define NLV_BOOL_RETURN_EXECUTE_IMPL(Class, Method, Accessor)  \
   NLV_WORKER_EXECUTE(Class, Method) {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
+    NLV_WORKER_ASSERT_CONNECTION(); \
     int result = Accessor(Handle().ToConnection());  \
     if (result == -1) { \
       SetVirError(virGetLastError()); \

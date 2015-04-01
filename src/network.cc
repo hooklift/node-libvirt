@@ -4,8 +4,8 @@
 #include "network.h"
 
 namespace NodeLibvirt {
-Persistent<FunctionTemplate> Network::constructor_template;
 
+Persistent<FunctionTemplate> Network::constructor_template;
 void Network::Initialize()
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();

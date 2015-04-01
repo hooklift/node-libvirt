@@ -138,7 +138,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
   }
 }
 
-void StorageVolume::GetInfoWorker::HandleOKCallback()
+NLV_WORKER_OKCALLBACK(StorageVolume, GetInfo)
 {
   NanScope();
   Local<Object> result = NanNew<Object>();

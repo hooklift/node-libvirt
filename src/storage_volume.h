@@ -75,7 +75,7 @@ private:
 
   class GetInfoWorker : public LibVirtWorker {
   public:
-    GetInfoWorker(NanCallback *callback, virStorageVolPtr handle)
+    GetInfoWorker(NanCallback *callback, const LibVirtHandle &handle)
       : LibVirtWorker(callback, handle) {}
     void Execute();
   protected:
