@@ -1,59 +1,18 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 
-// #include "event_impl.h"
-// #include "domain.h"
-// #include "node_device.h"
-// #include "network_filter.h"
-// #include "error.h"
+#include "worker_macros.h"
 
+#include "domain.h"
+#include "node_device.h"
 #include "secret.h"
 #include "storage_pool.h"
 #include "storage_volume.h"
 #include "network.h"
+#include "network_filter.h"
 #include "interface.h"
 #include "hypervisor.h"
 
-#define HYPERVISOR_NOARGS_WORKER_METHOD(name) \
-NAN_METHOD(Hypervisor::name) {  \
-  NanScope(); \
-  if (args.Length() == 1 && !args[0]->IsFunction()) { \
-    NanThrowTypeError("You must specify a function as first argument"); \
-    NanReturnUndefined(); \
-  } \
-  NanCallback *callback = new NanCallback(args[0].As<Function>());  \
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This()); \
-  NanAsyncQueueWorker(new name##Worker(callback, hypervisor));  \
-  NanReturnUndefined(); \
-}
-
-#define HYPERVISOR_ASSERT_CONNECTION() \
-  if (Connection() == NULL) { \
-    SetErrorMessage("invalid connection");  \
-    return; \
-  }
-
 namespace NodeLibvirt {
-
-// static Persistent<String> domain_event_callback_symbol;
-// static Persistent<String> domain_event_type_symbol;
-// static Persistent<String> domain_event_symbol;
-// static Persistent<String> domain_event_detail_symbol;
-// static Persistent<String> domain_event_hypervisor_symbol;
-// static Persistent<String> domain_event_rtc_utcoffset_symbol;
-// static Persistent<String> domain_event_action_symbol;
-// static Persistent<String> domain_event_ioerror_srcpath_symbol;
-// static Persistent<String> domain_event_ioerror_devalias_symbol;
-// static Persistent<String> domain_event_ioerror_reason_symbol;
-// static Persistent<String> domain_event_graphics_family_sym;
-// static Persistent<String> domain_event_graphics_node_sym;
-// static Persistent<String> domain_event_graphics_service_sym;
-// static Persistent<String> domain_event_graphics_subjname_sym;
-// static Persistent<String> domain_event_graphics_subjtype_sym;
-// static Persistent<String> domain_event_graphics_local_sym;
-// static Persistent<String> domain_event_graphics_remote_sym;
-// static Persistent<String> domain_event_graphics_subject_sym;
-// static Persistent<String> domain_event_graphics_phase_sym;
-// static Persistent<String> domain_event_graphics_authscheme_sym;
 
 Persistent<Function> Hypervisor::constructor;
 Persistent<FunctionTemplate> Hypervisor::constructor_template;
@@ -107,11 +66,11 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveStoragePools", GetNumberOfActiveStoragePools);
 
   // NODE
-  NODE_SET_PROTOTYPE_METHOD(t, "listNodeDevices", ListNodeDevices);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel", GetNodeSecurityModel);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo", GetNodeInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory", GetNodeFreeMemory);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeCellsFreeMemory", GetNodeCellsFreeMemory);
+  NODE_SET_PROTOTYPE_METHOD(t, "listNodeDevices",             ListNodeDevices);
+  NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel",        GetNodeSecurityModel);
+  NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo",                 GetNodeInfo);
+  NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory",           GetNodeFreeMemory);
+  NODE_SET_PROTOTYPE_METHOD(t, "getNodeCellsFreeMemory",      GetNodeCellsFreeMemory);
 
   // INTERFACE
   NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByName",       Interface::LookupByName);
@@ -125,9 +84,9 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork",               Network::Define);
 
   // NETWORK FILTER
-  // NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter",         NetworkFilter::Define);
-  // NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName",   NetworkFilter::LookupByName);
-  // NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID",   NetworkFilter::LookupByUUID);
+  NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter",         NetworkFilter::Define);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName",   NetworkFilter::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID",   NetworkFilter::LookupByUUID);
 
   // STORAGE POOL
   NODE_SET_PROTOTYPE_METHOD(t, "createStoragePool",           StoragePool::Create);
@@ -145,24 +104,17 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUsage",         Secret::LookupByUsage);
   NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID",          Secret::LookupByUUID);
 
-
-/*
   // NODE
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNodeDeviceByName", NodeDevice::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "createNodeDevice", NodeDevice::Create);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupNodeDeviceByName",      NodeDevice::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "createNodeDevice",            NodeDevice::Create);
 
   // DOMAIN
-  NODE_SET_PROTOTYPE_METHOD(t, "registerDomainEvent", RegisterDomainEvent);
-  NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent", UnregisterDomainEvent);
-
-  NODE_SET_PROTOTYPE_METHOD(t, "createDomain", Domain::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineDomain", Domain::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "restoreDomain", Domain::Restore);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainById", Domain::LookupById);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName", Domain::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID", Domain::LookupByUUID);
-
-
+  NODE_SET_PROTOTYPE_METHOD(t, "createDomain",                Domain::Create);
+  NODE_SET_PROTOTYPE_METHOD(t, "defineDomain",                Domain::Define);
+  NODE_SET_PROTOTYPE_METHOD(t, "restoreDomain",               Domain::Restore);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainById",            Domain::LookupById);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName",          Domain::LookupByName);
+  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",          Domain::LookupByUUID);
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
@@ -200,39 +152,11 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_ID_LAST);
 #endif
 
-
-  domain_event_callback_symbol         = NODE_PSYMBOL("callback");
-  domain_event_type_symbol             = NODE_PSYMBOL("evtype");
-  domain_event_detail_symbol           = NODE_PSYMBOL("detail");
-  domain_event_symbol                  = NODE_PSYMBOL("domain");
-  domain_event_hypervisor_symbol       = NODE_PSYMBOL("hypervisor");
-  domain_event_rtc_utcoffset_symbol    = NODE_PSYMBOL("utc_offset");
-  domain_event_action_symbol           = NODE_PSYMBOL("action");
-  domain_event_ioerror_srcpath_symbol  = NODE_PSYMBOL("src_path");
-  domain_event_ioerror_devalias_symbol = NODE_PSYMBOL("dev_alias");
-  domain_event_ioerror_reason_symbol   = NODE_PSYMBOL("reason");
-
-  domain_event_graphics_family_sym  = NODE_PSYMBOL("family");
-  domain_event_graphics_node_sym    = NODE_PSYMBOL("node");
-  domain_event_graphics_service_sym = NODE_PSYMBOL("service");
-  domain_event_graphics_subjname_sym      = NODE_PSYMBOL("name");
-  domain_event_graphics_subjtype_sym      = NODE_PSYMBOL("type");
-
-  domain_event_graphics_local_sym         = NODE_PSYMBOL("local");
-  domain_event_graphics_remote_sym        = NODE_PSYMBOL("remote");
-  domain_event_graphics_subject_sym       = NODE_PSYMBOL("subject");
-  domain_event_graphics_phase_sym         = NODE_PSYMBOL("phase");
-  domain_event_graphics_authscheme_sym    = NODE_PSYMBOL("auth_scheme");
-
-  t->SetClassName(String::NewSymbol("Hypervisor"));
-  target->Set(String::NewSymbol("Hypervisor"), t->GetFunction());
-*/
-
+  t->SetClassName(NanNew("Hypervisor"));
   NanAssignPersistent(constructor_template, t);
   NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("Hypervisor"), t->GetFunction());
 }
-
 
 Hypervisor::Hypervisor(string uri, string username, string password, bool readonly)
   : ObjectWrap(),
@@ -249,7 +173,7 @@ Hypervisor::~Hypervisor()
 
 virConnectPtr Hypervisor::Connection() const
 {
-  return conn_;
+  return handle_;
 }
 
 NAN_METHOD(Hypervisor::New)
@@ -333,8 +257,21 @@ int Hypervisor::ConnectWorker::auth_callback(virConnectCredentialPtr cred,
   return 0;
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(Connect)
-void Hypervisor::ConnectWorker::Execute()
+NAN_METHOD(Hypervisor::Connect)
+{
+  NanScope();
+  if (args.Length() == 1 && !args[0]->IsFunction()) {
+    NanThrowTypeError("You must specify a function as first argument");
+    NanReturnUndefined();
+  }
+
+  NanCallback *callback = new NanCallback(args[0].As<Function>());
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  NanAsyncQueueWorker(new ConnectWorker(callback, hv));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Hypervisor, Connect)
 {
   static int supported_cred_types[] = {
     VIR_CRED_AUTHNAME,
@@ -347,28 +284,26 @@ void Hypervisor::ConnectWorker::Execute()
   auth.cb = ConnectWorker::auth_callback;
   auth.cbdata = this;
 
-  hypervisor_->conn_ = virConnectOpenAuth((const char*) hypervisor_->uri_.c_str(), &auth,
-                                          hypervisor_->readOnly_ ? VIR_CONNECT_RO : 0);
-  if (hypervisor_->conn_ == NULL)
+  hypervisor_->handle_ =
+    virConnectOpenAuth((const char*) hypervisor_->uri_.c_str(), &auth,
+                       hypervisor_->readOnly_ ? VIR_CONNECT_RO : 0);
+  if (hypervisor_->handle_ == NULL)
     SetVirError(virGetLastError());
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(Disconnect)
-void Hypervisor::DisconnectWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, Disconnect)
+NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  if (hypervisor_->conn_ != NULL) {
-    if (virConnectClose(hypervisor_->conn_) == -1)
-      SetVirError(virGetLastError());
+  NLV_WORKER_ASSERT_CONNECTION();
+  if (Handle().ToConnection() != NULL) {
+    Handle().Clear();
   }
-
-  hypervisor_->conn_ = NULL;
 }
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
-    char *result = Accessor(Connection()); \
+    NLV_WORKER_ASSERT_CONNECTION(); \
+    char *result = Accessor(Handle().ToConnection()); \
     if (result == NULL) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -379,8 +314,8 @@ void Hypervisor::DisconnectWorker::Execute()
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE_NO_FREE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
-    const char *result = Accessor(Connection()); \
+    NLV_WORKER_ASSERT_CONNECTION(); \
+    const char *result = Accessor(Handle().ToConnection()); \
     if (result == NULL) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -389,17 +324,17 @@ void Hypervisor::DisconnectWorker::Execute()
   }
 
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetCapabilities)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetCapabilities)
 HYPERVISOR_STRING_RETURN_EXECUTE(GetCapabilities, virConnectGetCapabilities)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetHostname)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetHostname)
 HYPERVISOR_STRING_RETURN_EXECUTE(GetHostname, virConnectGetHostname)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetSysInfo)
-void Hypervisor::GetSysInfoWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetSysInfo)
+NLV_WORKER_EXECUTE(Hypervisor, GetSysInfo)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  char *result = virConnectGetSysinfo(Connection(), 0);
+  NLV_WORKER_ASSERT_CONNECTION();
+  char *result = virConnectGetSysinfo(Handle().ToConnection(), 0);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -409,19 +344,19 @@ void Hypervisor::GetSysInfoWorker::Execute()
   free(result);
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetType)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetType)
 HYPERVISOR_STRING_RETURN_EXECUTE_NO_FREE(GetType, virConnectGetType)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetConnectionUri)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetConnectionUri)
 HYPERVISOR_STRING_RETURN_EXECUTE(GetConnectionUri, virConnectGetURI)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetVersion)
-void Hypervisor::GetVersionWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetVersion)
+NLV_WORKER_EXECUTE(Hypervisor, GetVersion)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION();
 
   unsigned long version;
-  int result = virConnectGetVersion(Connection(), &version);
+  int result = virConnectGetVersion(Handle().ToConnection(), &version);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -439,13 +374,13 @@ void Hypervisor::GetVersionWorker::Execute()
   data_ = version;
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetLibVirtVersion)
-void Hypervisor::GetLibVirtVersionWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetLibVirtVersion)
+NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION();
 
   unsigned long version;
-  int result = virConnectGetLibVersion(Connection(), &version);
+  int result = virConnectGetLibVersion(Handle().ToConnection(), &version);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -461,21 +396,10 @@ void Hypervisor::GetLibVirtVersionWorker::Execute()
   data_ = version;
 }
 
-#define HYPERVISOR_BOOL_RETURN_EXECUTE(MethodName, Accessor)  \
-  void Hypervisor::MethodName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
-    int result = Accessor(Connection());  \
-    if (result == -1) { \
-      SetVirError(virGetLastError()); \
-      return; \
-    } \
-    data_ = static_cast<bool>(result);  \
-  }
-
 #define HYPERVISOR_INT_RETURN_EXECUTE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION(); \
-    int result = Accessor(Connection());  \
+    NLV_WORKER_ASSERT_CONNECTION(); \
+    int result = Accessor(Handle().ToConnection());  \
     if (result == -1) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -483,14 +407,14 @@ void Hypervisor::GetLibVirtVersionWorker::Execute()
     data_ = result;  \
   }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(IsConnectionEncrypted)
-HYPERVISOR_BOOL_RETURN_EXECUTE(IsConnectionEncrypted, virConnectIsEncrypted)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionEncrypted)
+NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionEncrypted, virConnectIsEncrypted)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(IsConnectionSecure)
-HYPERVISOR_BOOL_RETURN_EXECUTE(IsConnectionSecure, virConnectIsSecure)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionSecure)
+NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionSecure, virConnectIsSecure)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(IsConnectionAlive)
-HYPERVISOR_BOOL_RETURN_EXECUTE(IsConnectionAlive, virConnectIsAlive)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionAlive)
+NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionAlive, virConnectIsAlive)
 
 NAN_METHOD(Hypervisor::GetMaxVcpus)
 {
@@ -514,14 +438,14 @@ NAN_METHOD(Hypervisor::GetMaxVcpus)
   std::string type(*NanAsciiString(args[0]));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetMaxVcpusWorker(callback, hypervisor, type));
+  NanAsyncQueueWorker(new GetMaxVcpusWorker(callback, hypervisor->handle_, type));
   NanReturnUndefined();
 }
 
-void Hypervisor::GetMaxVcpusWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, GetMaxVcpus)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  int result = virConnectGetMaxVcpus(Connection(), type_.c_str());
+  NLV_WORKER_ASSERT_CONNECTION();
+  int result = virConnectGetMaxVcpus(Handle().ToConnection(), type_.c_str());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -559,15 +483,15 @@ NAN_METHOD(Hypervisor::SetKeepAlive)
   unsigned int count = args[1]->IntegerValue();
   NanCallback *callback = new NanCallback(args[2].As<Function>());
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new SetKeepAliveWorker(callback, hypervisor, interval, count));
+  NanAsyncQueueWorker(new SetKeepAliveWorker(callback, hypervisor->handle_, interval, count));
   NanReturnUndefined();
 }
 
-void Hypervisor::SetKeepAliveWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, SetKeepAlive)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION();
 
-  int result = virConnectSetKeepAlive(Connection(), interval_, count_);
+  int result = virConnectSetKeepAlive(Handle().ToConnection(), interval_, count_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -598,14 +522,14 @@ NAN_METHOD(Hypervisor::GetBaselineCPU)
 
   NanCallback *callback = new NanCallback(args[1].As<Function>());
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetBaselineCPUWorker(callback, hypervisor, cpus, count, flags));
+  NanAsyncQueueWorker(new GetBaselineCPUWorker(callback, hypervisor->handle_, cpus, count, flags));
   NanReturnUndefined();
 }
 
-void Hypervisor::GetBaselineCPUWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, GetBaselineCPU)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  const char *result = virConnectBaselineCPU(Connection(), (const char**)cpus_, count_, flags_);
+  NLV_WORKER_ASSERT_CONNECTION();
+  const char *result = virConnectBaselineCPU(Handle().ToConnection(), (const char**)cpus_, count_, flags_);
   for (int i = 0; i < count_; ++i) {
     free(cpus_[i]);
   }
@@ -634,14 +558,14 @@ NAN_METHOD(Hypervisor::CompareCPU)
   std::string cpu(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new CompareCPUWorker(callback, hypervisor, cpu, flags));
+  NanAsyncQueueWorker(new CompareCPUWorker(callback, hypervisor->handle_, cpu, flags));
   NanReturnUndefined();
 }
 
-void Hypervisor::CompareCPUWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  int result = virConnectCompareCPU(Connection(), (const char *)cpu_.c_str(), flags_);
+  NLV_WORKER_ASSERT_CONNECTION();
+  int result = virConnectCompareCPU(Handle().ToConnection(), (const char *)cpu_.c_str(), flags_);
   if (result == VIR_CPU_COMPARE_ERROR) {
     SetVirError(virGetLastError());
     return;
@@ -652,8 +576,8 @@ void Hypervisor::CompareCPUWorker::Execute()
 
 #define HYPERVISOR_STRING_LIST_RETURN_EXECUTE(WorkerName, CountMethod, ListMethod)  \
   void Hypervisor::WorkerName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION()  \
-    int count = CountMethod(Connection());  \
+    NLV_WORKER_ASSERT_CONNECTION()  \
+    int count = CountMethod(Handle().ToConnection());  \
     if (count == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -663,7 +587,7 @@ void Hypervisor::CompareCPUWorker::Execute()
       SetErrorMessage("could not allocate memory"); \
       return; \
     } \
-    int nameCount = ListMethod(Connection(), names, count); \
+    int nameCount = ListMethod(Handle().ToConnection(), names, count); \
     if (nameCount == -1) {  \
       SetVirError(virGetLastError()); \
       delete [] names; \
@@ -678,8 +602,8 @@ void Hypervisor::CompareCPUWorker::Execute()
 
 #define HYPERVISOR_INT_LIST_RETURN_EXECUTE(WorkerName, CountMethod, ListMethod)  \
   void Hypervisor::WorkerName##Worker::Execute() {  \
-    HYPERVISOR_ASSERT_CONNECTION()  \
-    int count = CountMethod(Connection());  \
+    NLV_WORKER_ASSERT_CONNECTION()  \
+    int count = CountMethod(Handle().ToConnection());  \
     if (count == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -690,7 +614,7 @@ void Hypervisor::CompareCPUWorker::Execute()
       delete [] elements; \
       return; \
     } \
-    int elementCount = ListMethod(Connection(), elements, count); \
+    int elementCount = ListMethod(Handle().ToConnection(), elements, count); \
     if (elementCount == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -702,75 +626,74 @@ void Hypervisor::CompareCPUWorker::Execute()
   }
 
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedDomains)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListDefinedDomains)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedDomains,
   virConnectNumOfDefinedDomains, virConnectListDefinedDomains)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedNetworks)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListDefinedNetworks)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedNetworks,
   virConnectNumOfDefinedNetworks, virConnectListDefinedNetworks)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedStoragePools)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListDefinedStoragePools)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedStoragePools,
   virConnectNumOfDefinedStoragePools, virConnectListDefinedStoragePools)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListDefinedInterfaces)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListDefinedInterfaces)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedInterfaces,
   virConnectNumOfDefinedInterfaces, virConnectListDefinedInterfaces)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveDomains)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListActiveDomains)
 HYPERVISOR_INT_LIST_RETURN_EXECUTE(ListActiveDomains,
   virConnectNumOfDomains, virConnectListDomains)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveInterfaces)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListActiveInterfaces)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveInterfaces,
   virConnectNumOfInterfaces, virConnectListInterfaces)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListNetworkFilters)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListNetworkFilters)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListNetworkFilters,
   virConnectNumOfNWFilters, virConnectListNWFilters)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveNetworks)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListActiveNetworks)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveNetworks,
   virConnectNumOfNetworks, virConnectListNetworks)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListSecrets)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListSecrets)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListSecrets,
   virConnectNumOfSecrets, virConnectListSecrets)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(ListActiveStoragePools)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListActiveStoragePools)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListActiveStoragePools,
   virConnectNumOfStoragePools, virConnectListStoragePools)
 
-
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfDefinedDomains)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfDefinedDomains)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfDefinedDomains, virConnectNumOfDefinedDomains)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfDefinedInterfaces)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfDefinedInterfaces)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfDefinedInterfaces, virConnectNumOfDefinedInterfaces)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfDefinedNetworks)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfDefinedNetworks)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfDefinedNetworks, virConnectNumOfDefinedNetworks)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfDefinedStoragePools)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfDefinedStoragePools)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfDefinedStoragePools, virConnectNumOfDefinedStoragePools)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfActiveDomains)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfActiveDomains)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfActiveDomains, virConnectNumOfDomains)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfActiveInterfaces)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfActiveInterfaces)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfActiveInterfaces, virConnectNumOfInterfaces)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfActiveNetworks)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfActiveNetworks)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfActiveNetworks, virConnectNumOfNetworks)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfActiveStoragePools)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfActiveStoragePools)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfActiveStoragePools, virConnectNumOfStoragePools)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfNetworkFilters)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfNetworkFilters)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfNetworkFilters, virConnectNumOfNWFilters)
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNumberOfSecrets)
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNumberOfSecrets)
 HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfSecrets, virConnectNumOfSecrets)
 
 NAN_METHOD(Hypervisor::ListNodeDevices)
@@ -793,16 +716,16 @@ NAN_METHOD(Hypervisor::ListNodeDevices)
   }
 
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new ListNodeDevicesWorker(callback, hypervisor, capability));
+  NanAsyncQueueWorker(new ListNodeDevicesWorker(callback, hypervisor->handle_, capability));
   NanReturnUndefined();
 }
 
-void Hypervisor::ListNodeDevicesWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION();
   unsigned int flags = 0;
   int num_devices =
-    virNodeNumOfDevices(Connection(), (const char *) capability_.c_str(), flags);
+    virNodeNumOfDevices(Handle().ToConnection(), (const char *) capability_.c_str(), flags);
 
   if (num_devices == -1) {
     SetVirError(virGetLastError());
@@ -816,7 +739,7 @@ void Hypervisor::ListNodeDevicesWorker::Execute()
   }
 
   num_devices =
-    virNodeListDevices(Connection(), (const char *)capability_.c_str(), names, num_devices, flags);
+    virNodeListDevices(Handle().ToConnection(), (const char *)capability_.c_str(), names, num_devices, flags);
   if (num_devices == -1) {
     free(names);
     SetVirError(virGetLastError());
@@ -831,18 +754,18 @@ void Hypervisor::ListNodeDevicesWorker::Execute()
   delete [] names;
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNodeSecurityModel)
-void Hypervisor::GetNodeSecurityModelWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeSecurityModel)
+NLV_WORKER_EXECUTE(Hypervisor, GetNodeSecurityModel)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  int result = virNodeGetSecurityModel(Connection(), &securityModel_);
+  NLV_WORKER_ASSERT_CONNECTION();
+  int result = virNodeGetSecurityModel(Handle().ToConnection(), &securityModel_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 }
 
-void Hypervisor::GetNodeSecurityModelWorker::HandleOKCallback()
+NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeSecurityModel)
 {
   NanScope();
 
@@ -858,18 +781,18 @@ void Hypervisor::GetNodeSecurityModelWorker::HandleOKCallback()
   callback->Call(2, argv);
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNodeInfo)
-void Hypervisor::GetNodeInfoWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeInfo)
+NLV_WORKER_EXECUTE(Hypervisor, GetNodeInfo)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  int result = virNodeGetInfo(Connection(), &info_);
+  NLV_WORKER_ASSERT_CONNECTION();
+  int result = virNodeGetInfo(Handle().ToConnection(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 }
 
-void Hypervisor::GetNodeInfoWorker::HandleOKCallback()
+NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeInfo)
 {
   NanScope();
 
@@ -887,11 +810,11 @@ void Hypervisor::GetNodeInfoWorker::HandleOKCallback()
   callback->Call(2, argv);
 }
 
-HYPERVISOR_NOARGS_WORKER_METHOD(GetNodeFreeMemory)
-void Hypervisor::GetNodeFreeMemoryWorker::Execute()
+NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeFreeMemory)
+NLV_WORKER_EXECUTE(Hypervisor, GetNodeFreeMemory)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
-  unsigned long long result = virNodeGetFreeMemory(Connection());
+  NLV_WORKER_ASSERT_CONNECTION();
+  unsigned long long result = virNodeGetFreeMemory(Handle().ToConnection());
   if (result == 0) {
     SetVirError(virGetLastError());
     return;
@@ -917,13 +840,13 @@ NAN_METHOD(Hypervisor::GetNodeCellsFreeMemory)
 
   NanCallback *callback = new NanCallback(args[2].As<Function>());
   Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetNodeCellsFreeMemoryWorker(callback, hypervisor, startCell, maxCells));
+  NanAsyncQueueWorker(new GetNodeCellsFreeMemoryWorker(callback, hypervisor->handle_, startCell, maxCells));
   NanReturnUndefined();
 }
 
-void Hypervisor::GetNodeCellsFreeMemoryWorker::Execute()
+NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)
 {
-  HYPERVISOR_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION();
 
   unsigned long long *results = NULL;
   results = (unsigned long long*) malloc(maxCells_ * sizeof(*results));
@@ -933,7 +856,7 @@ void Hypervisor::GetNodeCellsFreeMemoryWorker::Execute()
   }
 
   int cells =
-    virNodeGetCellsFreeMemory(Connection(), results, startCell_, maxCells_);
+    virNodeGetCellsFreeMemory(Handle().ToConnection(), results, startCell_, maxCells_);
   if (cells == -1) {
     free(results);
     SetVirError(virGetLastError());
@@ -947,646 +870,4 @@ void Hypervisor::GetNodeCellsFreeMemoryWorker::Execute()
   free(results);
 }
 
-
-
-/*
-Handle<Value> Hypervisor::GetNodeInfo(const Arguments& args) {
-    HandleScope scope;
-    virNodeInfo info_;
-    int ret = -1;
-
-    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-    ret = virNodeGetInfo(hypervisor->conn_, &info_);
-
-    if(ret == -1) {
-        ThrowException(Error::New(virGetLastError()));
-        return Null();
-    }
-
-    Local<Object> info = Object::New();
-    info->Set(node_info_model_symbol, String::New(info_.model));
-    info->Set(node_info_memory_symbol, Number::New(info_.memory));
-    info->Set(node_info_cpus_symbol, Integer::New(info_.cpus));
-    info->Set(node_info_mhz_symbol, Integer::New(info_.mhz));
-    info->Set(node_info_nodes_symbol, Integer::New(info_.nodes));
-    info->Set(node_info_sockets_symbol, Integer::New(info_.sockets));
-    info->Set(node_info_cores_symbol, Integer::New(info_.cores));
-    info->Set(node_info_threads_symbol, Integer::New(info_.threads));
-
-    return scope.Close(info);
-}
-*/
-
-
-/*
-  Handle<Value> Hypervisor::GetNodeSecurityModel(const Arguments& args) {
-      HandleScope scope;
-      virSecurityModel secmodel;
-      int ret = -1;
-
-      Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-      ret = virNodeGetSecurityModel(hypervisor->conn_, &secmodel);
-
-      if(ret == -1) {
-          ThrowException(Error::New(virGetLastError()));
-          return Null();
-      }
-
-      Local<Object> object = Object::New();
-      object->Set(security_model_symbol, String::New(secmodel.model));
-      object->Set(security_model_doi_symbol, String::New(secmodel.doi));
-
-      return scope.Close(object);
-  }
-*/
-
-
-
-
-
-
-
-/*
-
-  Handle<Value> Hypervisor::SetKeepAlive(const Arguments& args) {
-      HandleScope scope;
-      int ret = -1;
-
-      if (args.Length() != 2) {
-          return ThrowException(Exception::TypeError(
-          String::New("You must specify two integer arguments interval and count")));
-      }
-
-      if (!args[0]->IsNumber()) {
-          return ThrowException(Exception::TypeError(
-          String::New("Interval must be a number")));
-      }
-
-      if (!args[1]->IsNumber()) {
-          return ThrowException(Exception::TypeError(
-          String::New("Count must be a number")));
-      }
-
-      Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-      ret = virConnectSetKeepAlive(hypervisor->conn_, args[0]->Int32Value(), args[1]->Int32Value());
-
-      if (ret == -1) {
-          return ThrowException(Error::New(virGetLastError()));
-      }
-
-      if (ret == 1) {
-          return ThrowException(Exception::TypeError(
-          String::New("Remote party doesn't support keepalive messages")));
-      }
-
-      return scope.Close(Undefined());
-  }
-
-
-
-  Handle<Value> Hypervisor::GetActiveDomains(const Arguments& args) {
-      HandleScope scope;
-      int *ids = NULL;
-      int numOfDomains = 0;
-
-      Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-      numOfDomains = virConnectNumOfDomains(hypervisor->conn_);
-
-      if(numOfDomains == -1) {
-          ThrowException(Error::New(virGetLastError()));
-          return Null();
-      }
-
-      ids = new int[numOfDomains];
-      if(ids == NULL) {
-          LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
-          return Null();
-      }
-
-      int ret = virConnectListDomains(hypervisor->conn_, ids, numOfDomains);
-
-      if(ret == -1) {
-          ThrowException(Error::New(virGetLastError()));
-          delete [] ids;
-          return Null();
-      }
-
-      Local<Array> v8Array = Array::New(numOfDomains);
-      for(int i = 0; i < numOfDomains; i++) {
-          v8Array->Set(Integer::New(i), Integer::New(ids[i]));
-          //free(ids[i]);
-      }
-      delete [] ids;
-      return scope.Close(v8Array);
-  }
-
-*/
-
 } //namespace NodeLibvirt
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-  Handle<Value> Hypervisor::RegisterDomainEvent(const Arguments& args) {
-      HandleScope scope;
-
-      if(args.Length() == 0 || !args[0]->IsObject()) {
-          return ThrowException(Exception::TypeError(
-          String::New("You must specify a object as argument")));
-      }
-
-      Local<Object> arg_obj = args[0]->ToObject();
-
-      if( !arg_obj->Has(domain_event_type_symbol) ||
-          !arg_obj->Get(domain_event_type_symbol)->IsInt32()) {
-          return ThrowException(Exception::TypeError(
-          String::New("You must specify an valid event type")));
-      }
-
-      if( !arg_obj->Has(domain_event_callback_symbol) ||
-          !arg_obj->Get(domain_event_callback_symbol)->IsFunction()) {
-          return ThrowException(Exception::TypeError(
-          String::New("You must specify a valid callback function")));
-      }
-
-      Domain *domain = NULL;
-
-      if(arg_obj->Has(domain_event_symbol)) {
-          Local<Object> domain_obj = arg_obj->Get(domain_event_symbol)->ToObject();
-          if(!Domain::HasInstance(domain_obj)) {
-              return ThrowException(Exception::TypeError(
-              String::New("You must specify a Domain object instance")));
-          }
-
-          domain = ObjectWrap::Unwrap<Domain>(domain_obj);
-      }
-
-      virConnectDomainEventGenericCallback callback = NULL;
-      int evtype = arg_obj->Get(domain_event_type_symbol)->Int32Value();
-
-      switch (evtype) {
-          case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_lifecycle_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_REBOOT:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_rtcchange_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_WATCHDOG:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_watchdog_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_IO_ERROR:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_reason_callback);
-              break;
-          case VIR_DOMAIN_EVENT_ID_GRAPHICS:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_graphics_callback);
-              break;
-          default:
-              callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
-              break;
-      }
-
-      Local<Value> jscallback = arg_obj->Get(domain_event_callback_symbol);
-
-      Persistent<Object> opaque = Persistent<Object>::New(Object::New());
-      opaque->Set(domain_event_hypervisor_symbol, args.This());
-      opaque->Set(domain_event_callback_symbol, jscallback);
-
-      Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-      int ret = virConnectDomainEventRegisterAny( hypervisor->conn_,
-                                                  domain != NULL ? domain->domain() : NULL,
-                                                  evtype, callback,
-                                                  *opaque, domain_event_free);
-      if(ret == -1) {
-          ThrowException(Error::New(virGetLastError()));
-          return Null();
-      }
-
-      return scope.Close(Integer::New(ret));
-  }
-
-  Handle<Value> Hypervisor::UnregisterDomainEvent(const Arguments& args) {
-      HandleScope scope;
-      int ret = -1;
-      int callback_id = 0;
-
-      if(args.Length() == 0 || !args[0]->IsInt32()) {
-          return ThrowException(Exception::TypeError(
-          String::New("You must specify a integer as argument to call this function")));
-      }
-
-      callback_id = args[0]->Int32Value();
-
-      Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-
-      ret = virConnectDomainEventDeregisterAny(hypervisor->conn_, callback_id);
-
-      if(ret == -1) {
-          ThrowException(Error::New(virGetLastError()));
-          return False();
-      }
-
-      return True();
-  }
-
-  int Hypervisor::domain_event_lifecycle_callback(virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  int event,
-                                                  int detail,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_type_symbol, Integer::New(event));
-      data->Set(domain_event_detail_symbol, Integer::New(detail));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_generic_callback(  virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-
-      virDomainRef(dom);
-
-      Local<Value> argv[2];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 2, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_rtcchange_callback(virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  long long utcoffset,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_rtc_utcoffset_symbol, Number::New(utcoffset));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_watchdog_callback( virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  int action,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_action_symbol, Integer::New(action));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_io_error_callback( virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  const char *src_path,
-                                                  const char *dev_alias,
-                                                  int action,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_ioerror_srcpath_symbol, String::New(src_path));
-      data->Set(domain_event_ioerror_devalias_symbol, String::New(dev_alias));
-      data->Set(domain_event_action_symbol, Integer::New(action));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_io_error_reason_callback(  virConnectPtr conn, //unused
-                                                          virDomainPtr dom,
-                                                          const char *src_path,
-                                                          const char *dev_alias,
-                                                          int action,
-                                                          const char *reason,
-                                                          void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_ioerror_srcpath_symbol, String::New(src_path));
-      data->Set(domain_event_ioerror_devalias_symbol, String::New(dev_alias));
-      data->Set(domain_event_ioerror_reason_symbol, String::New(reason));
-      data->Set(domain_event_action_symbol, Integer::New(action));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-
-      return 0;
-  }
-
-  int Hypervisor::domain_event_graphics_callback( virConnectPtr conn, //unused
-                                                  virDomainPtr dom,
-                                                  int phase,
-                                                  virDomainEventGraphicsAddressPtr local,
-                                                  virDomainEventGraphicsAddressPtr remote,
-                                                  const char *auth_scheme,
-                                                  virDomainEventGraphicsSubjectPtr subject,
-                                                  void *opaque) {
-      HandleScope scope;
-      //FIXME - Ugly code. DRY, maybe with Domain::New(dom) and domain->handle_
-      Domain *domain = new Domain();
-      domain->domain_ = dom;
-      Local<Object> domain_obj = domain->constructor_template->GetFunction()->NewInstance();
-      domain->Wrap(domain_obj);
-
-      // The virDomainPtr object handle passed into the callback upon delivery
-      // of an event is only valid for the duration of execution of the callback
-      // If the callback wishes to keep the domain object after the callback,
-      // it shall take a reference to it, by calling virDomainRef
-      virDomainRef(dom);
-
-      Local<Value> argv[3];
-
-      Persistent<Object> obj = static_cast<Object*>(opaque);
-      Local<Object> hyp = obj->Get(domain_event_hypervisor_symbol)->ToObject();
-
-      Local<Value> callback_ = obj->Get(domain_event_callback_symbol);
-      Local<Function> callback = Local<Function>::Cast(callback_);
-
-
-      // {
-      //   local: {family: ipv4, node: 127.0.0.1, service: 80},
-      //   remote: {family: ipv6, node: ::1, service: 80},
-      //   subject: [{type: password, name: foo}, {type: password, name: fooo}],
-      //   phase: 0 //VIR_DOMAIN_EVENT_GRAPHICS_CONNECT
-      //   auth_scheme: foooscheme
-      // }
-
-      Local<String> lfamily;
-      switch(local->family) {
-          case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-              lfamily = String::New("ipv4");
-              break;
-          case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-              lfamily = String::New("ipv6");
-              break;
-
-      };
-
-      Local<String> rfamily;
-      switch(remote->family) {
-          case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-              rfamily = String::New("ipv4");
-              break;
-          case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-              rfamily = String::New("ipv6");
-              break;
-
-      };
-
-      Local<Object> local_ = Object::New();
-      local_->Set(domain_event_graphics_family_sym, lfamily);
-      local_->Set(domain_event_graphics_node_sym, String::New(local->node));
-      local_->Set(domain_event_graphics_service_sym, String::New(local->service));
-
-      Local<Object> remote_ = Object::New();
-      remote_->Set(domain_event_graphics_family_sym, rfamily);
-      remote_->Set(domain_event_graphics_node_sym, String::New(remote->node));
-      remote_->Set(domain_event_graphics_service_sym, String::New(remote->service));
-
-      int nidentity = subject->nidentity;
-      Local<Array> subject_ = Array::New(nidentity);
-
-      for(int i = 0; i < nidentity; i++) {
-          Local<Object> identity = Object::New();
-          identity->Set(domain_event_graphics_subjtype_sym, String::New(subject->identities[i].type));
-          identity->Set(domain_event_graphics_subjname_sym, String::New(subject->identities[i].name));
-
-          subject_->Set(Integer::New(i), identity);
-      }
-
-      Local<Object> data = Object::New();
-      data->Set(domain_event_graphics_local_sym, local_);
-      data->Set(domain_event_graphics_remote_sym, remote_);
-      data->Set(domain_event_graphics_subject_sym, subject_);
-      data->Set(domain_event_graphics_phase_sym, Integer::New(phase));
-      data->Set(domain_event_graphics_authscheme_sym, String::New(auth_scheme));
-
-      argv[0] = hyp;
-      argv[1] = domain_obj; //FIXME change with domain->handle_
-      argv[2] = data;
-
-      TryCatch try_catch;
-
-      callback->Call(hyp, 3, argv);
-
-      if(try_catch.HasCaught()) {
-          FatalException(try_catch);
-      }
-      return 0;
-  }
-
-  void Hypervisor::domain_event_free(void *opaque) {
-
-  }
-*/
