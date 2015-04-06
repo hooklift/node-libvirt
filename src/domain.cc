@@ -1440,6 +1440,8 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
 NAN_METHOD(Domain::Migrate)
 {
+  NLV_WARN_UNFINISHED(Domain::Migrate);
+
   NanScope();
   unsigned long flags = 0;
   unsigned long bandwidth = 0;
@@ -1529,6 +1531,8 @@ NAN_METHOD(Domain::Migrate)
 
 NAN_METHOD(Domain::SetMigrationMaxDowntime)
 {
+  NLV_WARN_UNFINISHED(Domain::SetMigrationMaxDowntime);
+
   NanScope();
   long long downtime = 0;
   unsigned int flags = 0;
@@ -1557,7 +1561,9 @@ NAN_METHOD(Domain::SetMigrationMaxDowntime)
 
 NAN_METHOD(Domain::PinVcpu)
 {
-  HandleScope scope;
+  NLV_WARN_UNFINISHED(Domain::PinVcpu);
+
+  NanScope();
   virNodeInfo nodeinfo;
   unsigned char *cpumap = NULL;
   int cpumaplen;
@@ -1636,6 +1642,8 @@ NAN_METHOD(Domain::PinVcpu)
 
 NAN_METHOD(Domain::MemoryPeek)
 {
+  NLV_WARN_UNFINISHED(Domain::MemoryPeek);
+
   NanScope();
 
   unsigned long long start = 0;
@@ -1696,6 +1704,8 @@ NAN_METHOD(Domain::MemoryPeek)
 
 NAN_METHOD(Domain::BlockPeek)
 {
+  NLV_WARN_UNFINISHED(Domain::BlockPeek);
+
   NanScope();
 
   unsigned long long start = 0;
@@ -1751,6 +1761,8 @@ NAN_METHOD(Domain::BlockPeek)
 
 NAN_METHOD(Domain::HasCurrentSnapshot)
 {
+  NLV_WARN_UNFINISHED(Domain::HasCurrentSnapshot);
+
   NanScope();
   unsigned int flags = 0;
   int ret = -1;
@@ -1768,7 +1780,9 @@ NAN_METHOD(Domain::HasCurrentSnapshot)
 
 NAN_METHOD(Domain::RevertToSnapshot)
 {
-  HandleScope scope;
+  NLV_WARN_UNFINISHED(Domain::RevertToSnapshot);
+
+  NanScope();
   virDomainSnapshotPtr snapshot = NULL;
   unsigned int flags = 0;
   int ret = -1;
@@ -1800,8 +1814,9 @@ NAN_METHOD(Domain::RevertToSnapshot)
 
 NAN_METHOD(Domain::TakeSnapshot)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::TakeSnapshot);
 
+  NanScope();
   virDomainSnapshotPtr snapshot = NULL;
   unsigned int flags = 0;
 
@@ -1825,8 +1840,9 @@ NAN_METHOD(Domain::TakeSnapshot)
 
 NAN_METHOD(Domain::GetCurrentSnapshot)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::GetCurrentSnapshot);
 
+  NanScope();
   unsigned int flags = 0;
   virDomainSnapshotPtr snapshot = NULL;
   char* xml_ = NULL;
@@ -1856,8 +1872,9 @@ NAN_METHOD(Domain::GetCurrentSnapshot)
 
 NAN_METHOD(Domain::DeleteSnapshot)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::DeleteSnapshot);
 
+  NanScope();
   unsigned int flags = 0;
   virDomainSnapshotPtr snapshot = NULL;
 
@@ -1888,8 +1905,9 @@ NAN_METHOD(Domain::DeleteSnapshot)
 
 NAN_METHOD(Domain::LookupSnapshotByName)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::lookupSnapshotByName);
 
+  NanScope();
   char* xml_ = NULL;
   unsigned int flags = 0;
   virDomainSnapshotPtr snapshot = NULL;
@@ -1926,8 +1944,9 @@ NAN_METHOD(Domain::LookupSnapshotByName)
 
 NAN_METHOD(Domain::GetSnapshots)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::GetSnapshots);
 
+  NanScope();
   char **snapshots_ = NULL;
   unsigned int flags = 0;
   int num_snapshots = 0;
@@ -1969,15 +1988,11 @@ NAN_METHOD(Domain::GetSnapshots)
   NanReturnValue(snapshots);
 }
 
-
-
-
-
-
 NAN_METHOD(Domain::RegisterEvent)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::RegisterEvent);
 
+  NanScope();
   if (args.Length() == 0 || !args[0]->IsObject()) {
     NanThrowTypeError("You must specify a object as argument");
     NanReturnUndefined();
@@ -2058,8 +2073,9 @@ NAN_METHOD(Domain::RegisterEvent)
 
 NAN_METHOD(Domain::UnregisterEvent)
 {
-  NanScope();
+  NLV_WARN_UNFINISHED(Domain::UnregisterEvent);
 
+  NanScope();
   int ret = -1;
   int callback_id = 0;
   if (args.Length() == 0 || !args[0]->IsInt32()) {

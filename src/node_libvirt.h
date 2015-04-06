@@ -12,9 +12,12 @@ using namespace node;
 #include "libvirt_handle.h"
 
 #define NODE_LIBVIRT_VERSION "v0.1.0"
-#define LIBVIRT_THROW_EXCEPTION(err)                                        \
-        v8::Local<v8::Value> exception = v8::Exception::Error(              \
-        v8::String::New(err));                                              \
-        ThrowException(exception);
+#define LIBVIRT_THROW_EXCEPTION(err)  \
+  v8::Local<v8::Value> exception = v8::Exception::Error(  \
+  v8::String::New(err));  \
+  ThrowException(exception);
+
+#define NLV_WARN_UNFINISHED(Method)   \
+  fprintf(stderr, "WARNING: " #Method " is still synchronous and needs to be ported\n");
 
 #endif  // SRC_NODE_LIBVIRT_H_

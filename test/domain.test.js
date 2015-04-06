@@ -565,6 +565,16 @@ describe('Domain', function() {
       });
     });
 
+    it('should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration', function() {
+      //test driver doesn't support this function
+      //Milliseconds
+      try {
+        test.domain.setMigrationMaxDowntime(100000);
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
   });
 });
 
@@ -641,16 +651,6 @@ describe('Domain', function() {
     //bandwidth in Mbps
     try {
       domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags });
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration', function() {
-    //test driver doesn't support this function
-    //Milliseconds
-    try {
-      domain.setMigrationMaxDowntime(100000);
     } catch (error) {
       expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
     }
