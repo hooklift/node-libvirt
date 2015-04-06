@@ -366,23 +366,30 @@ describe('Hypervisor', function() {
 
   });
 
-  /*
-  // 'should register function callbacks for domain events': function(beforeExit, assert) {
-  //     var domain = hypervisor.lookupDomainByName('test');
+  // it('should register function callbacks for domain events', function(done) {
+  //   test.hypervisor.lookupDomainByName('test', function(err, hypervisor) {
+  //     expect(err).to.not.exist;
+  //     expect(hypervisor).to.be.ok;
 
-  //     var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-  //                  domain: domain,
-  //                  callback: function(hyp, dom, data) {
-  //                     assert.eql(dom.getName(), 'test');
-  //                     assert.eql(data.evtype, hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE);
-  //                     assert.eql(data.detail, dom.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
-  //                  }
-  //                 };
+  //     var args = {
+  //       evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+  //       domain: domain,
+  //       callback: function(hyp, dom, data) {
+  //         expect(data.evtype).to.equal(hyp.VIR_DOMAIN_EVENT_ID_LIFECYCLE);
+  //         expect(data.detail).to.equal(dom.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
 
-  //     callback_id = hypervisor.registerDomainEvent(args);
+  //         dom.getName(function(err, name) {
+  //           expect(name).to.equal('test');
+  //           done();
+  //         });
+  //       }
+  //     };
+
+  //     callback_id = test.hypervisor.registerDomainEvent(args);
   //     domain.shutdown();
   //     assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
-  // },
+  //   });
+  // });
 
   // 'should unregister callbacks listening for domain events': function(beforeExit, assert) {
   //     var args = { evtype: hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
@@ -392,6 +399,6 @@ describe('Hypervisor', function() {
   //     callback_id = hypervisor.registerDomainEvent(args);
   //     assert.eql(hypervisor.unregisterDomainEvent(callback_id), true);
   // },
-  */
+
 
 });

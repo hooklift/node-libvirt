@@ -72,17 +72,7 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetPath, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-
-  class GetInfoWorker : public LibVirtWorker {
-  public:
-    GetInfoWorker(NanCallback *callback, const LibVirtHandle &handle)
-      : LibVirtWorker(callback, handle) {}
-    void Execute();
-  protected:
-    void HandleOKCallback();
-  private:
-    virStorageVolInfo info_;
-  };
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolInfo);
 
 };
 

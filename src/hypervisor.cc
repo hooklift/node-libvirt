@@ -116,6 +116,9 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName",          Domain::LookupByName);
   NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",          Domain::LookupByUUID);
 
+  NODE_SET_PROTOTYPE_METHOD(t, "registerDomainEvent",         Domain::RegisterEvent);
+  NODE_SET_PROTOTYPE_METHOD(t, "unregisterDomainEvent",       Domain::UnregisterEvent);
+
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
   //Constants initialization

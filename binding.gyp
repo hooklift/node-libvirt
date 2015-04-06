@@ -15,7 +15,7 @@
         'src/secret.cc',
         'src/storage_pool.cc',
         'src/storage_volume.cc',
-        # 'src/domain.cc',
+        'src/domain.cc',
         'src/libvirt_handle.cc'
       ],
       'include_dirs' : [

@@ -14,6 +14,7 @@ struct LibVirtHandlePrivate
     data.storageVolume = 0;
     data.nodeDevice = 0;
     data.secret = 0;
+    data.domain = 0;
   }
 
   ~LibVirtHandlePrivate() {
@@ -50,6 +51,10 @@ struct LibVirtHandlePrivate
     if (data.secret)
       virSecretFree(data.secret);
     data.secret = 0;
+
+    if (data.domain)
+      virDomainFree(data.domain);
+    data.domain = 0;
   }
 
   union Data {
@@ -61,6 +66,7 @@ struct LibVirtHandlePrivate
     virStorageVolPtr storageVolume;
     virNodeDevicePtr nodeDevice;
     virSecretPtr secret;
+    virDomainPtr domain;
   } data;
 };
 
@@ -117,6 +123,12 @@ LibVirtHandle::LibVirtHandle(virSecretPtr secret)
   d->data.secret = secret;
 }
 
+LibVirtHandle::LibVirtHandle(virDomainPtr domain)
+  : d(new LibVirtHandlePrivate)
+{
+  d->data.domain = domain;
+}
+
 void LibVirtHandle::Clear()
 {
   d->Clear();
@@ -160,6 +172,11 @@ virNodeDevicePtr LibVirtHandle::ToNodeDevice() const
 virSecretPtr LibVirtHandle::ToSecret() const
 {
   return d->data.secret;
+}
+
+virDomainPtr LibVirtHandle::ToDomain() const
+{
+  return d->data.domain;
 }
 
 } // namespace NodeLibvirt

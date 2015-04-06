@@ -145,6 +145,14 @@
     ObjectType info_;  \
   };
 
+#define NLV_TYPED_PARAMETER_RETURN_WORKER(Method, ParameterType)  \
+  class Method##Worker : public TypedParameterReturnWorker<ParameterType> { \
+  public: \
+    Method##Worker(NanCallback *callback, const LibVirtHandle &handle)  \
+      : TypedParameterReturnWorker<ParameterType>(callback, handle) {} \
+    void Execute(); \
+  };
+
 // EXECUTE HELPERS
 #define NLV_WORKER_EXECUTE(Class, Method) void Class::Method##Worker::Execute()
 #define NLV_WORKER_OKCALLBACK(Class, Method) void Class::Method##Worker::HandleOKCallback()

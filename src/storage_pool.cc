@@ -313,20 +313,7 @@ NLV_WORKER_EXECUTE(StoragePool, SetAutostart)
   data_ = true;
 }
 
-NAN_METHOD(StoragePool::GetInfo)
-{
-  NanScope();
-  if (args.Length() != 1) {
-    NanThrowTypeError("You must specify a callback");
-    NanReturnUndefined();
-  }
-
-  NanCallback *callback = new NanCallback(args[0].As<Function>());
-  StoragePool *storagePool = ObjectWrap::Unwrap<StoragePool>(args.This());
-  NanAsyncQueueWorker(new GetInfoWorker(callback, storagePool->handle_));
-  NanReturnUndefined();
-}
-
+NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetInfo)
 NLV_WORKER_EXECUTE(StoragePool, GetInfo)
 {
   int result = virStoragePoolGetInfo(Handle().ToStoragePool(), &info_);

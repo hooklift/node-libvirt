@@ -2,6 +2,7 @@
 
 #include <nan.h>
 
+#include "domain.h"
 #include "hypervisor.h"
 #include "error.h"
 #include "node_device.h"
@@ -21,7 +22,7 @@ void InitAll(Handle<Object> exports)
   virInitialize();
   Hypervisor::Initialize(exports);
   Error::Initialize();
-  // Domain::Initialize();
+  Domain::Initialize();
   NodeDevice::Initialize();
   Interface::Initialize();
   Network::Initialize();
