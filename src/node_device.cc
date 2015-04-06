@@ -1,259 +1,236 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#include <stdlib.h>
+
+#include "error.h"
+#include "hypervisor.h"
 #include "node_device.h"
 
+using namespace v8;
+
 namespace NodeLibvirt {
-    Persistent<FunctionTemplate> NodeDevice::constructor_template;
 
-    void NodeDevice::Initialize() {
-        Local<FunctionTemplate> t = FunctionTemplate::New();
-
-//        t->Inherit(EventEmitter::constructor_template);
-        t->InstanceTemplate()->SetInternalFieldCount(1);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "destroy",
-                                      NodeDevice::Destroy);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "detach",
-                                      NodeDevice::Detach);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "reattach",
-                                      NodeDevice::Reattach);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "reset",
-                                      NodeDevice::Destroy);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "getName",
-                                      NodeDevice::GetName);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "getParentName",
-                                      NodeDevice::GetParentName);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "toXml",
-                                      NodeDevice::ToXml);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",
-                                      NodeDevice::GetCapabilities);
-
-        constructor_template = Persistent<FunctionTemplate>::New(t);
-        constructor_template->SetClassName(String::NewSymbol("NodeDevice"));
-
-//        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
-        //Constants initialization
-    }
-
-    Handle<Value> NodeDevice::LookupByName(const Arguments& args) {
-        HandleScope scope;
-
-        if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string to call this function")));
-        }
-
-        Local<Object> hyp_obj = args.This();
-
-        if(!Hypervisor::HasInstance(hyp_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor instance")));
-        }
-
-        String::Utf8Value name(args[0]->ToString());
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-        NodeDevice *device = new NodeDevice();
-        device->device_ = virNodeDeviceLookupByName(hypervisor->connection(), (const char *) *name);
-
-        if(device->device_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> device_obj = device->constructor_template->GetFunction()->NewInstance();
-
-        device->Wrap(device_obj);
-
-        return scope.Close(device_obj);
-    }
-
-    Handle<Value> NodeDevice::Create(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-
-        if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string to call this function")));
-        }
-
-        Local<Object> hyp_obj = args.This();
-
-        if(!Hypervisor::HasInstance(hyp_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor instance")));
-        }
-
-        String::Utf8Value xml(args[0]->ToString());
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-        NodeDevice *device = new NodeDevice();
-        device->device_ = virNodeDeviceCreateXML(hypervisor->connection(), (const char *) *xml, flags);
-
-        if(device->device_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> device_obj = device->constructor_template->GetFunction()->NewInstance();
-
-        device->Wrap(device_obj);
-
-        return scope.Close(device_obj);
-    }
-
-    //Really neccesary call destroy from javascript ???
-    Handle<Value> NodeDevice::Destroy(const Arguments& args) {
-        HandleScope scope;
-        int ret = -1;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-
-        ret = virNodeDeviceDestroy(device->device_);
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        return True();
-    }
-
-    Handle<Value> NodeDevice::Detach(const Arguments& args) {
-        HandleScope scope;
-        int ret = -1;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-        ret = virNodeDeviceDettach(device->device_);
-
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        return True();
-    }
-
-    Handle<Value> NodeDevice::Reattach(const Arguments& args) {
-        HandleScope scope;
-        int ret = -1;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-        ret = virNodeDeviceReAttach(device->device_);
-
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        return True();
-    }
-
-    Handle<Value> NodeDevice::Reset(const Arguments& args) {
-        HandleScope scope;
-        int ret = -1;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-
-        ret = virNodeDeviceReset(device->device_);
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        return True();
-    }
-
-    Handle<Value> NodeDevice::GetName(const Arguments& args) {
-        HandleScope scope;
-        const char *name = NULL;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-        name = virNodeDeviceGetName(device->device_);
-
-        if(name == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(name));
-    }
-
-    Handle<Value> NodeDevice::GetParentName(const Arguments& args) {
-        HandleScope scope;
-        const char *name = NULL;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-        name = virNodeDeviceGetParent(device->device_);
-
-        if(name == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(name));
-    }
-
-    Handle<Value> NodeDevice::ToXml(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-        const char *xml = NULL;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-        xml = virNodeDeviceGetXMLDesc(device->device_, flags);
-
-        if(xml == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(xml));
-    }
-
-    Handle<Value> NodeDevice::GetCapabilities(const Arguments& args) {
-        HandleScope scope;
-        char **names_ = NULL;
-        int numcaps = -1;
-
-        NodeDevice *device = ObjectWrap::Unwrap<NodeDevice>(args.This());
-
-        numcaps = virNodeDeviceNumOfCaps(device->device_);
-        if(numcaps == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        names_ = (char**) malloc(sizeof(*names_) * numcaps);
-        if(names_ == NULL) {
-            LIBVIRT_THROW_EXCEPTION("Unable to allocate memory");
-            return Null();
-        }
-
-        numcaps = virNodeDeviceListCaps(device->device_, names_, numcaps);
-        if(numcaps == -1) {
-            free(names_);
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Array> names = Array::New(numcaps);
-
-        for(int i = 0; i < numcaps; i++) {
-            names->Set(Integer::New(i), String::New(names_[i]));
-            free(names_[i]);
-        }
-        free(names_);
-
-        return scope.Close(names);
-    }
+Persistent<FunctionTemplate> NodeDevice::constructor_template;
+void NodeDevice::Initialize()
+{
+  Local<FunctionTemplate> t = FunctionTemplate::New();
+  t->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NODE_SET_PROTOTYPE_METHOD(t, "destroy",           Destroy);
+  NODE_SET_PROTOTYPE_METHOD(t, "detach",            Detach);
+  NODE_SET_PROTOTYPE_METHOD(t, "reattach",          Reattach);
+  NODE_SET_PROTOTYPE_METHOD(t, "reset",             Destroy);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName",           GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getParentName",     GetParentName);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",             ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",   GetCapabilities);
+
+  NanAssignPersistent(constructor_template, t);
+  constructor_template->SetClassName(NanNew("NodeDevice"));
+}
+
+Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  NodeDevice *nodeDevice = new NodeDevice(handle.ToNodeDevice());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  nodeDevice->Wrap(object);
+  return NanEscapeScope(object);
+}
+
+NodeDevice::~NodeDevice()
+{
+  if (handle_ != NULL)
+    virNodeDeviceFree(handle_);
+  handle_ = 0;
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
+NAN_METHOD(NodeDevice::LookupByName)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid network name and callback.");
+    NanReturnUndefined();
+  }
+
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
+    NanThrowTypeError("You must specify a Hypervisor instance");
+    NanReturnUndefined();
+  }
+
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanReturnUndefined();
+}
+
+NAN_METHOD(NodeDevice::Create)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
+    NanReturnUndefined();
+  }
+
+  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
+    NanThrowTypeError("You must specify a Hypervisor instance");
+    NanReturnUndefined();
+  }
+
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(NodeDevice, Create)
+{
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virNodeDeviceCreateXML(Handle().ToConnection(), value_.c_str(), flags);
+  if (lookupHandle_.ToNodeDevice() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+//Really neccesary call destroy from javascript ???
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
+NLV_WORKER_EXECUTE(NodeDevice, Destroy)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  int result = virNodeDeviceDestroy(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  if (Handle().ToNodeDevice() != NULL) {
+    Handle().Clear();
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
+NLV_WORKER_EXECUTE(NodeDevice, Detach)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  int result = virNodeDeviceDettach(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
+NLV_WORKER_EXECUTE(NodeDevice, Reattach)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  int result = virNodeDeviceReAttach(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
+NLV_WORKER_EXECUTE(NodeDevice, Reset)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  int result = virNodeDeviceReset(Handle().ToNodeDevice());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
+NLV_WORKER_EXECUTE(NodeDevice, GetName)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  const char *result = virNodeDeviceGetName(Handle().ToNodeDevice());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
+NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  const char *result = virNodeDeviceGetParent(Handle().ToNodeDevice());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
+NLV_WORKER_EXECUTE(NodeDevice, ToXml)
+{
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
+  unsigned int flags = 0;
+  char *result = virNodeDeviceGetXMLDesc(Handle().ToNodeDevice(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+  free(result);
+}
+
+NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
+NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
+{
+  NanScope();
+  int num_caps = virNodeDeviceNumOfCaps(Handle().ToNodeDevice());
+  if (num_caps == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  char **names = (char**) malloc(sizeof(*names) * num_caps);
+  if (names == NULL) {
+    SetErrorMessage("Unable to allocate memory");
+    return;
+  }
+
+  num_caps = virNodeDeviceListCaps(Handle().ToNodeDevice(), names, num_caps);
+  if (num_caps == -1) {
+    free(names);
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  for (int i = 0; i < num_caps; ++i) {
+    data_.push_back(names[i]);
+    free(names[i]);
+  }
+
+  free(names);
+}
 
 } //namespace NodeLibvirt
-

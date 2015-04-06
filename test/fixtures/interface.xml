@@ -1,4 +1,4 @@
-<interface type='ethernet' name='eth0'>
+<interface type='ethernet' name='eth2'>
   <start mode='onboot'/>
   <mac address='ff:bb:cc:dd:ee:ff'/>
   <mtu size='1492'/>

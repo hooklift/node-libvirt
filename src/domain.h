@@ -3,97 +3,332 @@
 #define SRC_DOMAIN_H_
 
 #include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+
+#include "worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-    class Domain : public ObjectWrap {
-        friend class Hypervisor;
+class Domain : public ObjectWrap
+{
+public:
+  static void Initialize();
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~Domain();
 
-        public:
-            static void Initialize();
-            static inline bool HasInstance(v8::Handle<v8::Value> value) {
-                if (!value->IsObject()) {
-                    return false;
-                }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
-            }
-            virtual ~Domain() {
-                if (domain_ != NULL) {
-                    virDomainFree(domain_);
-                }
-            }
-            virDomainPtr domain() const;
-        protected:
-            static Handle<Value> Create(const Arguments& args);
-            static Handle<Value> LookupById(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetId(const Arguments& args);
-            static Handle<Value> GetInfo(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> GetAutostart(const Arguments& args);
-            static Handle<Value> SetAutostart(const Arguments& args);
-            static Handle<Value> GetOsType(const Arguments& args);
-            static Handle<Value> GetMaxMemory(const Arguments& args);
-            static Handle<Value> SetMaxMemory(const Arguments& args);
-            static Handle<Value> SetMemory(const Arguments& args);
-            static Handle<Value> GetMaxVcpus(const Arguments& args);
-            static Handle<Value> IsActive(const Arguments& args);
-            static Handle<Value> IsPersistent(const Arguments& args);
-            static Handle<Value> IsUpdated(const Arguments& args);
-            static Handle<Value> Reboot(const Arguments& args);
-            static Handle<Value> Reset(const Arguments& args);
-            static Handle<Value> Save(const Arguments& args);
-            static Handle<Value> Restore(const Arguments& args);
-            static Handle<Value> Suspend(const Arguments& args);
-            static Handle<Value> Resume(const Arguments& args);
-            static Handle<Value> Shutdown(const Arguments& args);
-            static Handle<Value> Start(const Arguments& args);
-            static Handle<Value> Destroy(const Arguments& args);
-            static Handle<Value> SendKey(const Arguments& args);
-            static Handle<Value> GetVcpus(const Arguments& args);
-            static Handle<Value> SetVcpus(const Arguments& args);
-            static Handle<Value> Migrate(const Arguments& args);
-            static Handle<Value> SetMigrationMaxDowntime(const Arguments& args);
-            static Handle<Value> PinVcpu(const Arguments& args);
-            static Handle<Value> AttachDevice(const Arguments& args);
-            static Handle<Value> DetachDevice(const Arguments& args);
-            static Handle<Value> UpdateDevice(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> GetJobInfo(const Arguments& args);
-            static Handle<Value> AbortCurrentJob(const Arguments& args);
-            static Handle<Value> GetSchedType(const Arguments& args);
-            static Handle<Value> GetSchedParams(const Arguments& args);
-            static Handle<Value> SetSchedParams(const Arguments& args);
-            static Handle<Value> GetSecurityLabel(const Arguments& args);
-            static Handle<Value> SaveManagedImage(const Arguments& args);
-            static Handle<Value> RemoveManagedImage(const Arguments& args);
-            static Handle<Value> HasManagedImage(const Arguments& args);
-            static Handle<Value> MemoryPeek(const Arguments& args);
-            static Handle<Value> GetMemoryStats(const Arguments& args);
-            static Handle<Value> BlockPeek(const Arguments& args);
-            static Handle<Value> GetBlockStats(const Arguments& args);
-            static Handle<Value> GetBlockInfo(const Arguments& args);
-            static Handle<Value> CoreDump(const Arguments& args);
-            static Handle<Value> GetInterfaceStats(const Arguments& args);
-            static Handle<Value> HasCurrentSnapshot(const Arguments& args);
-            static Handle<Value> RevertToSnapshot(const Arguments& args);
-            static Handle<Value> TakeSnapshot(const Arguments& args);
-            static Handle<Value> GetCurrentSnapshot(const Arguments& args);
-            static Handle<Value> DeleteSnapshot(const Arguments& args);
-            static Handle<Value> LookupSnapshotByName(const Arguments& args);
-            static Handle<Value> GetSnapshots(const Arguments& args);
+private:
+  explicit Domain(virDomainPtr handle) : handle_(handle) {}
+  static Persistent<FunctionTemplate> constructor_template;
+  virDomainPtr handle_;
 
-        private:
-            virDomainPtr domain_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+  friend class Hypervisor;
+
+private:
+  // HYPERVISOR METHODS
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(LookupById);
+  static NAN_METHOD(Create);
+  static NAN_METHOD(Define);
+  static NAN_METHOD(Restore);
+
+  // ACTIONS
+  static NAN_METHOD(Destroy);
+  static NAN_METHOD(Start);
+  static NAN_METHOD(Reboot);
+  static NAN_METHOD(Reset);
+  static NAN_METHOD(Suspend);
+  static NAN_METHOD(Resume);
+  static NAN_METHOD(Shutdown);
+  static NAN_METHOD(Save);
+  static NAN_METHOD(ManagedSave);
+  static NAN_METHOD(ManagedSaveRemove);
+  static NAN_METHOD(GetJobInfo);
+  static NAN_METHOD(AbortCurrentJob);
+  static NAN_METHOD(CoreDump);
+  static NAN_METHOD(AttachDevice);
+  static NAN_METHOD(DetachDevice);
+  static NAN_METHOD(UpdateDevice);
+  static NAN_METHOD(SendKeys);
+
+  // UNFINISHED SYNC ACTIONS
+  static NAN_METHOD(Migrate);
+  static NAN_METHOD(PinVcpu);
+  static NAN_METHOD(MemoryPeek);
+  static NAN_METHOD(BlockPeek);
+  static NAN_METHOD(HasCurrentSnapshot);
+  static NAN_METHOD(RevertToSnapshot);
+  static NAN_METHOD(TakeSnapshot);
+  static NAN_METHOD(DeleteSnapshot);
+  static NAN_METHOD(LookupSnapshotByName);
+  static NAN_METHOD(RegisterEvent);
+  static NAN_METHOD(UnregisterEvent);
+
+  // ACCESSORS/MUTATORS
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetInfo);
+  static NAN_METHOD(GetId);
+  static NAN_METHOD(GetOSType);
+  static NAN_METHOD(GetUUID);
+  static NAN_METHOD(GetAutostart);
+  static NAN_METHOD(SetAutostart);
+  static NAN_METHOD(GetMaxMemory);
+  static NAN_METHOD(SetMaxMemory);
+  static NAN_METHOD(SetMemory);
+  static NAN_METHOD(GetMaxVcpus);
+  static NAN_METHOD(IsActive);
+  static NAN_METHOD(IsPersistent);
+  static NAN_METHOD(IsUpdated);
+  static NAN_METHOD(HasManagedSaveImage);
+  static NAN_METHOD(GetBlockInfo);
+  static NAN_METHOD(GetBlockStats);
+  static NAN_METHOD(GetSchedulerType);
+  static NAN_METHOD(GetSchedulerParameters);
+  static NAN_METHOD(GetSecurityLabel);
+  static NAN_METHOD(GetInterfaceStats);
+  static NAN_METHOD(GetMemoryStats);
+  static NAN_METHOD(GetVcpus);
+  static NAN_METHOD(SetVcpus);
+  static NAN_METHOD(ToXml);
+
+  // UNFINISHED SYNC ACCESSORS/MUTATORS
+  static NAN_METHOD(SetSchedulerParameters);
+  static NAN_METHOD(GetCurrentSnapshot);
+  static NAN_METHOD(GetSnapshots);
+  static NAN_METHOD(SetMigrationMaxDowntime);
+
+private:
+  // HYPERVISOR METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(Domain, LookupByName);
+  NLV_LOOKUP_BY_VALUE_WORKER(Domain, LookupByUUID);
+  NLV_LOOKUP_BY_VALUE_WORKER(Domain, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER(Domain, Define);
+
+  class LookupByIdWorker : public LookupInstanceByValueWorker<Domain> {
+  public:
+    LookupByIdWorker(NanCallback *callback, const LibVirtHandle &handle, int id)
+      : LookupInstanceByValueWorker<Domain>(callback, handle, std::string()), id_(id) {}
+    void Execute();
+  private:
+    int id_;
+  };
+
+  class RestoreWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    RestoreWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path)
+      : PrimitiveReturnWorker<bool>(callback, handle), path_(path) {}
+    void Execute();
+  private:
+    std::string path_;
+  };
+
+  class CoreDumpWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    CoreDumpWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path)
+      : PrimitiveReturnWorker<bool>(callback, handle), path_(path) {}
+    void Execute();
+  private:
+    std::string path_;
+  };
+
+
+  // ACTION METHOD WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reboot, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Suspend, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Resume, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Shutdown, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, bool);
+
+  class SaveWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SaveWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path)
+      : PrimitiveReturnWorker<bool>(callback, handle), path_(path) {}
+    void Execute();
+  private:
+    std::string path_;
+  };
+
+  class AttachDeviceWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    AttachDeviceWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &xml, unsigned long flags)
+      : PrimitiveReturnWorker<bool>(callback, handle), xml_(xml), flags_(flags) {}
+    void Execute();
+  private:
+    std::string xml_;
+    unsigned long flags_;
+  };
+
+  class DetachDeviceWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    DetachDeviceWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &xml, unsigned long flags)
+      : PrimitiveReturnWorker<bool>(callback, handle), xml_(xml), flags_(flags) {}
+    void Execute();
+  private:
+    std::string xml_;
+    unsigned long flags_;
+  };
+
+  class UpdateDeviceWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    UpdateDeviceWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &xml, unsigned long flags)
+      : PrimitiveReturnWorker<bool>(callback, handle), xml_(xml), flags_(flags) {}
+    void Execute();
+  private:
+    std::string xml_;
+    unsigned long flags_;
+  };
+
+  // ACCESSOR/MUTATOR METHOD WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virDomainInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetId, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetOSType, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMaxMemory, double);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpus, int);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsUpdated, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(HasManagedSaveImage, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetSchedulerType, std::string);
+  NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virSchedParameter);
+  NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virSecurityLabel);
+  NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainJobInfo);
+
+  class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
+      : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {}
+    void Execute();
+  private:
+    bool autoStart_;
+  };
+
+  class SetMaxMemoryWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetMaxMemoryWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned long maxMemory)
+      : PrimitiveReturnWorker<bool>(callback, handle), maxMemory_(maxMemory) {}
+    void Execute();
+  private:
+    unsigned long maxMemory_;
+  };
+
+  class SetMemoryWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetMemoryWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned long memory)
+      : PrimitiveReturnWorker<bool>(callback, handle), memory_(memory) {}
+    void Execute();
+  private:
+    unsigned long memory_;
+  };
+
+  class GetBlockInfoWorker : public LibVirtWorker {
+  public:
+    GetBlockInfoWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path)
+      : LibVirtWorker(callback, handle), path_(path) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::string path_;
+    virDomainBlockInfo info_;
+  };
+
+  class GetBlockStatsWorker : public LibVirtWorker {
+  public:
+    GetBlockStatsWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path)
+      : LibVirtWorker(callback, handle), path_(path) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::string path_;
+    virDomainBlockStatsStruct stats_;
+  };
+
+  class GetInterfaceStatsWorker : public LibVirtWorker {
+  public:
+    GetInterfaceStatsWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &interface)
+      : LibVirtWorker(callback, handle), interface_(interface) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::string interface_;
+    virDomainInterfaceStatsStruct stats_;
+  };
+
+  class GetMemoryStatsWorker : public LibVirtWorker
+  {
+  public:
+    explicit GetMemoryStatsWorker(NanCallback *callback, const LibVirtHandle &handle)
+      : LibVirtWorker(callback, handle) {}
+    void Execute();
+  protected:
+    virtual void HandleOKCallback();
+  private:
+    std::vector<virDomainMemoryStatStruct> stats_;
+  };
+
+  class GetVcpusWorker : public LibVirtWorker
+  {
+  public:
+    explicit GetVcpusWorker(NanCallback *callback, const LibVirtHandle &handle)
+      : LibVirtWorker(callback, handle) {}
+    void Execute();
+  protected:
+    virtual void HandleOKCallback();
+  private:
+    virNodeInfo nodeInfo_;
+    std::vector<virVcpuInfo> info_;
+    std::vector<unsigned char> map_;
+  };
+
+  class SetVcpusWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetVcpusWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned int count)
+      : PrimitiveReturnWorker<bool>(callback, handle), count_(count) {}
+    void Execute();
+  private:
+    unsigned int count_;
+  };
+
+  class SendKeysWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SendKeysWorker(NanCallback *callback, const LibVirtHandle &handle, const std::vector<unsigned int> &keys)
+      : PrimitiveReturnWorker<bool>(callback, handle), keys_(keys) {}
+    void Execute();
+  private:
+    std::vector<unsigned int> keys_;
+  };
+
+
+private:
+  static void domain_event_free(void *opaque);
+  static int domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr domain,
+                                             int event, int detail, void *opaque);
+  static int domain_event_generic_callback(virConnectPtr conn, virDomainPtr domain, void *opaque);
+  static int domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr domain, long long utcoffset, void *opaque);
+  static int domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr domain, int action, void *opaque);
+  static int domain_event_io_error_callback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
+                                            const char *dev_alias, int action, void *opaque);
+  static int domain_event_io_error_reason_callback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
+                                                   const char *dev_alias, int action, const char *reason, void *opaque);
+  static int domain_event_graphics_callback(virConnectPtr conn, virDomainPtr domain, int phase,
+                                            virDomainEventGraphicsAddressPtr local,
+                                            virDomainEventGraphicsAddressPtr remote,
+                                            const char *authScheme,
+                                            virDomainEventGraphicsSubjectPtr subject,
+                                            void *opaque);
+
+};
 
 }  //namespace NodeLibvirt
 

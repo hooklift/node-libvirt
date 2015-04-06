@@ -1,370 +1,329 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include <stdlib.h>
+
+#include "node_libvirt.h"
+#include "hypervisor.h"
+#include "error.h"
+
+#include "storage_pool.h"
 #include "storage_volume.h"
 
 namespace NodeLibvirt {
-    Persistent<FunctionTemplate> StorageVolume::constructor_template;
-
-    //storage volume info
-    static Persistent<String> info_type_symbol;
-    static Persistent<String> info_capacity_symbol;
-    static Persistent<String> info_allocation_symbol;
-
-    void StorageVolume::Initialize() {
-        HandleScope scope;
-
-        Local<FunctionTemplate> t = FunctionTemplate::New();
-
-//        t->Inherit(EventEmitter::constructor_template);
-        t->InstanceTemplate()->SetInternalFieldCount(1);
-
-        NODE_SET_PROTOTYPE_METHOD(t, "getInfo",
-                                      StorageVolume::GetInfo);
-        NODE_SET_PROTOTYPE_METHOD(t, "getKey",
-                                      StorageVolume::GetKey);
-        NODE_SET_PROTOTYPE_METHOD(t, "getName",
-                                      StorageVolume::GetName);
-        NODE_SET_PROTOTYPE_METHOD(t, "getPath",
-                                      StorageVolume::GetPath);
-        NODE_SET_PROTOTYPE_METHOD(t, "toXml",
-                                      StorageVolume::ToXml);
-        NODE_SET_PROTOTYPE_METHOD(t, "remove",
-                                      StorageVolume::Delete);
-        NODE_SET_PROTOTYPE_METHOD(t, "wipe",
-                                      StorageVolume::Wipe);
 
-        constructor_template = Persistent<FunctionTemplate>::New(t);
-        constructor_template->SetClassName(String::NewSymbol("StorageVolume"));
-
-        Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
-
-        //Constants initialization
-        //virStorageVolType
-        NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_FILE);
-        NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_BLOCK);
-
-        info_type_symbol         = NODE_PSYMBOL("type");
-        info_capacity_symbol     = NODE_PSYMBOL("capacity");
-        info_allocation_symbol   = NODE_PSYMBOL("allocation");
-    }
-
-    Handle<Value> StorageVolume::Create(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-
-        int argsl = args.Length();
-
-        if(argsl == 0) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify at least one argument")));
-        }
-
-        if(!args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string as first argument")));
-        }
-
-        Local<Object> pool_obj = args.This();
-
-        if(!StoragePool::HasInstance(pool_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor object instance")));
-        }
-        String::Utf8Value xml(args[0]->ToString());
-
-        StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-
-        StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolCreateXML(pool->pool(), (const char *) *xml, flags);
-
-        if(volume->volume_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> volume_obj = volume->constructor_template->GetFunction()->NewInstance();
-        volume->Wrap(volume_obj);
-
-        return scope.Close(volume_obj);
-    }
-
-    Handle<Value> StorageVolume::Delete(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-        int ret = -1;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        ret = virStorageVolDelete(volume->volume_, flags);
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        if(volume->volume_ != NULL) {
-            virStorageVolFree(volume->volume_);
-        }
-
-        return True();
-    }
-
-    Handle<Value> StorageVolume::Wipe(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-        int ret = -1;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        ret = virStorageVolWipe(volume->volume_, flags);
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return False();
-        }
-
-        return True();
-    }
-
-
-    Handle<Value> StorageVolume::GetInfo(const Arguments& args) {
-        HandleScope scope;
-        virStorageVolInfo info;
-        int ret = -1;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        ret = virStorageVolGetInfo(volume->volume_, &info);
-
-        if(ret == -1) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-        Local<Object> object = Object::New();
-
-        object->Set(info_type_symbol, Integer::New(info.type)); //virStoragePoolState
-        object->Set(info_capacity_symbol, Number::New(info.capacity)); //bytes
-        object->Set(info_allocation_symbol, Number::New(info.allocation)); //bytes
-
-        return scope.Close(object);
-    }
-
-    Handle<Value> StorageVolume::GetKey(const Arguments& args) {
-        HandleScope scope;
-        const char *key = NULL;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        key = virStorageVolGetKey(volume->volume_);
-
-        if(key == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(key));
-    }
-
-    Handle<Value> StorageVolume::GetName(const Arguments& args) {
-        HandleScope scope;
-        const char *name = NULL;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        name = virStorageVolGetName(volume->volume_);
-
-        if(name == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(name));
-    }
-
-    Handle<Value> StorageVolume::GetPath(const Arguments& args) {
-        HandleScope scope;
-        const char *path = NULL;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-
-        path = virStorageVolGetPath(volume->volume_);
-
-        if(path == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        return scope.Close(String::New(path));
-    }
-
-    Handle<Value> StorageVolume::ToXml(const Arguments& args) {
-        HandleScope scope;
-        char* xml_ = NULL;
-        unsigned int flags = 0;
-
-        StorageVolume *volume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-        xml_ = virStorageVolGetXMLDesc(volume->volume_, flags);
-
-        if(xml_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<String> xml = String::New(xml_);
-
-        free(xml_);
-
-        return scope.Close(xml);
-    }
-
-    Handle<Value> StorageVolume::LookupByName(const Arguments& args) {
-        HandleScope scope;
-
-        if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string to call this function")));
-        }
-
-        Local<Object> pool_obj = args.This();
-
-        if(!StoragePool::HasInstance(pool_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a StoragePool instance")));
-        }
-
-        String::Utf8Value name(args[0]->ToString());
-
-        StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-
-        StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByName(pool->pool(), (const char *) *name);
-
-        if(volume->volume_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> volume_obj = volume->constructor_template->GetFunction()->NewInstance();
-
-        volume->Wrap(volume_obj);
-
-        return scope.Close(volume_obj);
-    }
-
-    Handle<Value> StorageVolume::LookupByKey(const Arguments& args) {
-        HandleScope scope;
-
-        if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string to call this function")));
-        }
-
-        Local<Object> hyp_obj = args.This();
-
-        if(!Hypervisor::HasInstance(hyp_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor instance")));
-        }
-
-        String::Utf8Value key(args[0]->ToString());
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-        StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByKey(hypervisor->connection(), (const char *) *key);
-
-        if(volume->volume_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> volume_obj = volume->constructor_template->GetFunction()->NewInstance();
-
-        volume->Wrap(volume_obj);
-
-        return scope.Close(volume_obj);
-    }
-
-    Handle<Value> StorageVolume::LookupByPath(const Arguments& args) {
-        HandleScope scope;
-
-        if(args.Length() == 0 || !args[0]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string to call this function")));
-        }
-
-        Local<Object> hyp_obj = args.This();
-
-        if(!Hypervisor::HasInstance(hyp_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a Hypervisor instance")));
-        }
-
-        String::Utf8Value path(args[0]->ToString());
-
-        Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-        StorageVolume *volume = new StorageVolume();
-        volume->volume_ = virStorageVolLookupByPath(hypervisor->connection(), (const char *) *path);
-
-        if(volume->volume_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> volume_obj = volume->constructor_template->GetFunction()->NewInstance();
-
-        volume->Wrap(volume_obj);
-
-        return scope.Close(volume_obj);
-    }
-
-    Handle<Value> StorageVolume::Clone(const Arguments& args) {
-        HandleScope scope;
-        unsigned int flags = 0;
-
-        if(args.Length() < 2) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify two arguments to call this function")));
-        }
-
-        if(!StorageVolume::HasInstance(args[0])) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a StorageVolume instance as first argument")));
-        }
-
-        if(!args[1]->IsString()) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a string as second argument")));
-        }
-
-        Local<Object> pool_obj = args.This();
-
-        if(!StoragePool::HasInstance(pool_obj)) {
-            return ThrowException(Exception::TypeError(
-            String::New("You must specify a StoragePool instance")));
-        }
-
-        String::Utf8Value xml(args[1]->ToString());
-
-        StoragePool *pool = ObjectWrap::Unwrap<StoragePool>(pool_obj);
-        StorageVolume *source_volume = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
-
-        StorageVolume *clone_volume = new StorageVolume();
-        clone_volume->volume_ = virStorageVolCreateXMLFrom(pool->pool(),
-                                                          (const char *) *xml,
-                                                          source_volume->volume_,
-                                                          flags);
-
-        if(clone_volume->volume_ == NULL) {
-            ThrowException(Error::New(virGetLastError()));
-            return Null();
-        }
-
-        Local<Object> clone_vol_obj = clone_volume->constructor_template->GetFunction()->NewInstance();
-
-        clone_volume->Wrap(clone_vol_obj);
-
-        return scope.Close(clone_vol_obj);
-    }
+Persistent<FunctionTemplate> StorageVolume::constructor_template;
+void StorageVolume::Initialize()
+{
+  NanScope();
+  Local<FunctionTemplate> t = FunctionTemplate::New();
+  t->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NODE_SET_PROTOTYPE_METHOD(t, "getInfo", GetInfo);
+  NODE_SET_PROTOTYPE_METHOD(t, "getKey",  GetKey);
+  NODE_SET_PROTOTYPE_METHOD(t, "getName", GetName);
+  NODE_SET_PROTOTYPE_METHOD(t, "getPath", GetPath);
+  NODE_SET_PROTOTYPE_METHOD(t, "toXml",   ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "remove",  Delete);
+  NODE_SET_PROTOTYPE_METHOD(t, "wipe",    Wipe);
+
+  NanAssignPersistent(constructor_template, t);
+  constructor_template->SetClassName(NanNew("StorageVolume"));
+
+  Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_FILE);
+  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_BLOCK);
+}
+
+Local<Object> StorageVolume::NewInstance(const LibVirtHandle &handle)
+{
+  NanScope();
+  StorageVolume *storageVolume = new StorageVolume(handle.ToStorageVolume());
+  Local<Object> object = constructor_template->GetFunction()->NewInstance();
+  storageVolume->Wrap(object);
+  return NanEscapeScope(object);
+}
+
+StorageVolume::~StorageVolume()
+{
+  if (handle_ != NULL)
+    virStorageVolFree(handle_);
+  handle_ = 0;
+}
+
+NAN_METHOD(StorageVolume::Create)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a string and callback");
+    NanReturnUndefined();
+  }
+
+  if (!NanHasInstance(StoragePool::constructor_template, args.This())) {
+    NanThrowTypeError("You must specify a StoragePool instance");
+    NanReturnUndefined();
+  }
+
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(args.This());
+  std::string xmlData(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new CreateWorker(callback, sp->handle_, xmlData));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(StorageVolume, Create)
+{
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virStorageVolCreateXML(Handle().ToStoragePool(), value_.c_str(), flags);
+  if (lookupHandle_.ToStoragePool() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)
+NLV_WORKER_EXECUTE(StorageVolume, Delete)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  unsigned int flags = 0;
+  int result = virStorageVolDelete(Handle().ToStorageVolume(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  if (Handle().ToStorageVolume() != NULL) {
+    Handle().Clear();
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Wipe)
+NLV_WORKER_EXECUTE(StorageVolume, Wipe)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  unsigned int flags = 0;
+  int result = virStorageVolWipe(Handle().ToStorageVolume(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NAN_METHOD(StorageVolume::GetInfo)
+{
+  NanScope();
+  if (args.Length() != 1) {
+    NanThrowTypeError("You must specify a callback");
+    NanReturnUndefined();
+  }
+
+  NanCallback *callback = new NanCallback(args[0].As<Function>());
+  StorageVolume *storageVolume = ObjectWrap::Unwrap<StorageVolume>(args.This());
+  NanAsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
+{
+  int result = virStorageVolGetInfo(Handle().ToStorageVolume(), &info_);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+NLV_WORKER_OKCALLBACK(StorageVolume, GetInfo)
+{
+  NanScope();
+  Local<Object> result = NanNew<Object>();
+  result->Set(NanNew("type"), NanNew<Integer>(info_.type));
+  result->Set(NanNew("capacity"), NanNew<Number>(info_.capacity));
+  result->Set(NanNew("allocation"), NanNew<Number>(info_.allocation));
+
+  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  callback->Call(2, argv);
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetKey)
+NLV_WORKER_EXECUTE(StorageVolume, GetKey)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  const char *result = virStorageVolGetKey(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetName)
+NLV_WORKER_EXECUTE(StorageVolume, GetName)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  const char *result = virStorageVolGetName(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetPath)
+NLV_WORKER_EXECUTE(StorageVolume, GetPath)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  const char *result = virStorageVolGetPath(Handle().ToStorageVolume());
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(StorageVolume, ToXml)
+NLV_WORKER_EXECUTE(StorageVolume, ToXml)
+{
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
+
+  unsigned int flags = 0;
+  char *result = virStorageVolGetXMLDesc(Handle().ToStorageVolume(), flags);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+  free(result);
+}
+
+NLV_SP_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByName, virStorageVolLookupByName)
+NAN_METHOD(StorageVolume::LookupByName)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
+    NanReturnUndefined();
+  }
+
+  Local<Object> object = args.This();
+  if (!NanHasInstance(StoragePool::constructor_template, object)) {
+    NanThrowTypeError("You must specify a StoragePool instance");
+    NanReturnUndefined();
+  }
+
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
+  std::string name(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, sp->handle_, name));
+  NanReturnUndefined();
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByKey, virStorageVolLookupByKey)
+NAN_METHOD(StorageVolume::LookupByKey)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
+    NanReturnUndefined();
+  }
+
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
+    NanThrowTypeError("You must specify a Hypervisor instance");
+    NanReturnUndefined();
+  }
+
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string key(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByKeyWorker(callback, hv->handle_, key));
+  NanReturnUndefined();
+}
+
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByPath, virStorageVolLookupByPath)
+NAN_METHOD(StorageVolume::LookupByPath)
+{
+  NanScope();
+  if (args.Length() < 2 ||
+      (!args[0]->IsString() && !args[1]->IsFunction())) {
+    NanThrowTypeError("You must specify a valid name and callback.");
+    NanReturnUndefined();
+  }
+
+  Local<Object> object = args.This();
+  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
+    NanThrowTypeError("You must specify a Hypervisor instance");
+    NanReturnUndefined();
+  }
+
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  std::string path(*NanUtf8String(args[0]->ToString()));
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  NanAsyncQueueWorker(new LookupByPathWorker(callback, hv->handle_, path));
+  NanReturnUndefined();
+}
+
+NAN_METHOD(StorageVolume::Clone)
+{
+  NanScope();
+  if (args.Length() < 3) {
+    NanThrowTypeError("You must specify three arguments to call this function");
+    NanReturnUndefined();
+  }
+
+  if (!NanHasInstance(StorageVolume::constructor_template, args[0])) {
+    NanThrowTypeError("You must specify a StorageVolume instance as first argument");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsString()) {
+    NanThrowTypeError("You must specify a string as second argument");
+    NanReturnUndefined();
+  }
+
+  if (!args[2]->IsFunction()) {
+    NanThrowTypeError("You must specify a callback as the third argument");
+    NanReturnUndefined();
+  }
+
+  Local<Object> object = args.This();
+  if (!NanHasInstance(StoragePool::constructor_template, object)) {
+    NanThrowTypeError("You must specify a StoragePool instance");
+    NanReturnUndefined();
+  }
+
+  std::string xml(*NanUtf8String(args[1]->ToString()));
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
+  StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
+
+  NanCallback *callback = new NanCallback(args[2].As<Function>());
+  NanAsyncQueueWorker(new CloneWorker(callback, sp->handle_, xml, sv->handle_));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(StorageVolume, Clone)
+{
+  unsigned int flags = 0;
+  lookupHandle_ =
+    virStorageVolCreateXMLFrom(Handle().ToStoragePool(), value_.c_str(), cloneHandle_, flags);
+  if (lookupHandle_.ToStorageVolume() == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
 
 } //namespace NodeLibvirt
-

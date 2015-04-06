@@ -2,31 +2,52 @@
 #ifndef SRC_NETWORK_FILTER_H_
 #define SRC_NETWORK_FILTER_H_
 
-#include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+#include <nan.h>
+
+#include "worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-    class NetworkFilter : public ObjectWrap {
-        friend class Hypervisor;
+class NetworkFilter : public ObjectWrap
+{
+public:
+  static void Initialize();
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~NetworkFilter();
 
-        public:
-            static void Initialize();
+private:
+  explicit NetworkFilter(virNWFilterPtr handle) : handle_(handle) {}
+  static Persistent<FunctionTemplate> constructor_template;
+  virNWFilterPtr handle_;
 
-        protected:
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
+  friend class Hypervisor;
 
-        private:
-            virNWFilterPtr filter_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+protected:
+  // HYPERVISOR METHODS
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(Define);
+
+  // METHODS
+  static NAN_METHOD(Undefine);
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetUUID);
+  static NAN_METHOD(ToXml);
+
+private:
+  // HYPERVISOR WORKER METHODS
+  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByName);
+  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByUUID);
+  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, Define);
+
+  // WORKER METHODS
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+
+};
 
 }  //namespace NodeLibvirt
 
