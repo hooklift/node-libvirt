@@ -2,6 +2,7 @@
 
 #include <nan.h>
 
+#include "event_impl.h"
 #include "domain.h"
 #include "hypervisor.h"
 #include "error.h"
@@ -30,6 +31,7 @@ void InitAll(Handle<Object> exports)
   Secret::Initialize();
   StoragePool::Initialize();
   StorageVolume::Initialize();
+  EventImpl::Initialize(exports);
 
   exports->Set(NanNew("version"), NanNew(NODE_LIBVIRT_VERSION));
   exports->Set(NanNew("libvirt_version"), NanNew(LIBVIR_VERSION_NUMBER));
