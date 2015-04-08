@@ -1273,7 +1273,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
 
     int maxCpus = VIR_NODEINFO_MAXCPUS(nodeInfo_);
     Local<Array> affinity = NanNew<Array>(maxCpus);
-    for (unsigned int j = 0; j < map_.size(); ++j) {
+    for (unsigned int j = 0; j < maxCpus; ++j) {
       Local<Object> realCpu = NanNew<Object>();
       realCpu->Set(NanNew("cpu"), NanNew(j));
       realCpu->Set(NanNew("usable"), NanNew<Boolean>(VIR_CPU_USABLE(map_, map_.size(), i, j)));
@@ -1353,6 +1353,160 @@ NLV_WORKER_EXECUTE(Domain, SendKeys)
   data_ = true;
 }
 
+NAN_METHOD(Domain::Migrate)
+{
+  HandleScope scope;
+  unsigned long flags = 0;
+  unsigned long bandwidth = 0;
+
+  if(args.Length() < 2 ||
+      (!args[0]->IsObject() && !args[1]->IsFunction())) {
+    NanThrowTypeError("you must specify an object and a callback");
+    NanReturnUndefined();
+  }
+
+  Local<Object> args_ = args[0]->ToObject();
+
+  if(!args_->Has(NanNew("dest_uri"))) {
+    NanThrowTypeError("You must have set property dest_uri in the object");
+    NanReturnUndefined();
+  }
+
+  std::string dest_uri(*NanUtf8String(args_->Get(NanNew("dest_uri"))));
+  std::string dest_name(*NanUtf8String(args_->Get(NanNew("dest_name"))));
+
+  if(args_->Has(NanNew("flags"))) {
+    Local<Array> flags_ = args_->Get(NanNew("flags")).As<Array>();
+    unsigned int length = flags_->Length();
+    for (unsigned int i = 0; i < length; i++)
+      flags |= flags_->Get(Integer::New(i))->Int32Value();
+  }
+
+  if(args_->Has(NanNew("bandwidth"))) {
+    bandwidth = args_->Get(NanNew("bandwidth"))->Int32Value();
+  }
+
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  MigrateWorker *worker;
+
+  if(args_->Has(NanNew("dest_hypervisor"))) {
+    Local<Object> hyp_obj = args_->Get(NanNew("dest_hypervisor"))->ToObject();
+    if(!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
+      NanThrowTypeError("You must specify a Hypervisor object instance");
+      NanReturnUndefined();
+    }
+
+    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+    worker = new MigrateWorker(callback, domain->handle_, hypervisor->handle_);
+  } else {
+    worker = new MigrateWorker(callback, domain->handle_, dest_uri);
+  }
+
+  worker->setBandwidth(bandwidth);
+  worker->setFlags(flags);
+  worker->setDestname(dest_name);
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Domain, Migrate)
+{
+  NLV_WORKER_ASSERT_DOMAIN();
+
+  if(conn_) {
+    migrated_ = virDomainMigrate(Handle().ToDomain(), conn_, flags_, destname_.c_str(), uri_.c_str(), bandwidth_);
+    if(migrated_ == NULL) {
+      NLV_SET_LV_ERROR();
+    }
+  } else {
+    int ret = -1;
+    ret = virDomainMigrateToURI(Handle().ToDomain(), uri_.c_str(), flags_, destname_.c_str(), bandwidth_);
+    if(ret == -1) {
+      NLV_SET_LV_ERROR();
+    }
+  }
+}
+
+NLV_WORKER_OKCALLBACK(Domain, Migrate)
+{
+  NanScope();
+
+  if (migrated_ != NULL) {
+    Local<Object> domain_obj = NewInstance(migrated_);
+    Local<Value> argv[] = { NanNull(), domain_obj };
+    callback->Call(2, argv);
+  } else {
+    callback->Call(0, NULL);
+  }
+}
+
+NAN_METHOD(Domain::PinVcpu) {
+  NanScope();
+
+  if(args.Length() < 3 ||
+      (!args[0]->IsInt32() && !args[1]->IsArray() && !args[2]->IsFunction())) {
+    NanThrowTypeError("you must specify an integer, an array and a callback");
+    NanReturnUndefined();
+  }
+
+  std::vector<bool> usables;
+  std::vector<int> vcpus;
+
+  Local<Array> cpus = args[1].As<Array>();
+
+  for(int i = 0; i < cpus->Length(); i++) {
+    if(!cpus->Get(NanNew<Integer>(i))->IsObject()) {
+      NanThrowTypeError("The second argument must be an array of objects");
+      NanReturnUndefined();
+    }
+
+    Local<Object> cpu = cpus->Get(NanNew<Integer>(i))->ToObject();
+
+    usables.push_back(cpu->Get(NanNew("usable"))->IsTrue());
+    vcpus.push_back(cpu->Get(NanNew("cpu"))->Int32Value());
+  }
+
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  NanCallback *callback = new NanCallback(args[2].As<Function>());
+  NanAsyncQueueWorker(new PinVcpuWorker(callback, domain->handle_, args[0]->Int32Value(), usables, vcpus));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Domain, PinVcpu)
+{
+  virNodeInfo nodeinfo;
+  int maxcpus;
+  int cpumaplen;
+
+  if(virNodeGetInfo(virDomainGetConnect(Handle().ToDomain()), &nodeinfo) == -1) {
+    NLV_SET_LV_ERROR();
+    return;
+  }
+
+  maxcpus = VIR_NODEINFO_MAXCPUS(nodeinfo);
+  cpumaplen = VIR_CPU_MAPLEN(maxcpus);
+
+  std::vector<unsigned char> cpumap(cpumaplen);
+
+  for(int i = 0; i < vcpus_.size(); i++) {
+    if(i > maxcpus)
+      break;
+
+    if(usables_[i])
+      VIR_USE_CPU(cpumap.data(), vcpus_[i]);
+    else
+      VIR_UNUSE_CPU(cpumap.data(), vcpus_[i]);
+  }
+
+  if(virDomainPinVcpu(Handle().ToDomain(), vcpu_, cpumap.data(), cpumaplen) == -1) {
+    NLV_SET_LV_ERROR();
+    return;
+  }
+
+  data_ = true;
+}
 
 /////////////////////////////////////////////////////
 // UNFINISHED - STILL SYNCHRONOUS
@@ -1438,96 +1592,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   return NanTrue();
 }
 
-NAN_METHOD(Domain::Migrate)
-{
-  NLV_WARN_UNFINISHED(Domain::Migrate);
 
-  NanScope();
-  unsigned long flags = 0;
-  unsigned long bandwidth = 0;
-  int ret = -1;
-
-  if (args.Length() == 0) {
-    NanThrowTypeError("You must specify arguments to invoke this function");
-    NanReturnUndefined();
-  }
-
-  if (!args[0]->IsObject()) {
-    NanThrowTypeError("You must specify an object as first argument");
-    NanReturnUndefined();
-  }
-
-  Local<Object> args_ = args[0]->ToObject();
-  if (!args_->Has(NanNew("dest_uri"))) {
-    NanThrowTypeError("You must have set property dest_uri in the object");
-    NanReturnUndefined();
-  }
-
-  //dest_uri
-  std::string dest_uri(*NanUtf8String(args_->Get(NanNew("dest_uri"))));
-
-  //dest_name
-  //if(args_->Has(migration_name_symbol)) {
-      std::string dest_name(*NanUtf8String(args_->Get(NanNew("dest_name"))));
-      //dest_name = ToCString(dest_name_);
-  //}
-
-  //flags
-  if (args_->Has(NanNew("flags"))) {
-    Local<Array> flags_ = args_->Get(NanNew("flags")).As<Array>();
-    unsigned int length = flags_->Length();
-    for (unsigned int i = 0; i < length; i++) {
-      flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
-    }
-  }
-
-  //bandwidth (Mbps)
-  if (args_->Has(NanNew("bandwidth"))) {
-    bandwidth = args_->Get(NanNew("bandwidth"))->Int32Value();
-  }
-
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  if (args_->Has(NanNew("dest_hypervisor"))) {
-    Local<Object> hyp_obj = args_->Get(NanNew("dest_hypervisor"))->ToObject();
-
-    if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
-      NanThrowTypeError("You must specify a Hypervisor object instance");
-      NanReturnUndefined();
-    }
-
-    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
-
-    virDomainPtr handle = virDomainMigrate(domain->handle_,
-                                           hypervisor->handle_,
-                                           flags,
-                                           dest_name.c_str(),
-                                           dest_uri.c_str(),
-                                           bandwidth);
-
-    if (handle == NULL) {
-      ThrowException(Error::New(virGetLastError()));
-      return NanFalse();
-    }
-
-    Domain *migrated_domain = new Domain(handle);
-    migrated_domain->Wrap(args.This());
-
-    NanReturnValue(migrated_domain->constructor_template->GetFunction()->NewInstance());
-  } else {
-    ret = virDomainMigrateToURI(domain->handle_,
-                                dest_uri.c_str(),
-                                flags,
-                                dest_name.c_str(),
-                                bandwidth);
-  }
-
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    return NanFalse();
-  }
-
-  return NanTrue();
-}
 
 NAN_METHOD(Domain::SetMigrationMaxDowntime)
 {
@@ -1551,87 +1616,6 @@ NAN_METHOD(Domain::SetMigrationMaxDowntime)
   downtime = args[0]->Int32Value();
   Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
   ret = virDomainMigrateSetMaxDowntime(domain->handle_, downtime, flags);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    return NanFalse();
-  }
-
-  return NanTrue();
-}
-
-NAN_METHOD(Domain::PinVcpu)
-{
-  NLV_WARN_UNFINISHED(Domain::PinVcpu);
-
-  NanScope();
-  virNodeInfo nodeinfo;
-  unsigned char *cpumap = NULL;
-  int cpumaplen;
-  int vcpu;
-  int ret = -1;
-
-  if (args.Length() < 2) {
-    NanThrowTypeError("You must specify two arguments");
-    NanReturnUndefined();
-  }
-
-  if (!args[0]->IsInt32()) {
-    NanThrowTypeError("The first argument must be an integer");
-    NanReturnUndefined();
-  }
-
-  if (!args[1]->IsArray()) {
-    NanThrowTypeError("The second argument must be an array of objects");
-    NanReturnUndefined();
-  }
-
-  vcpu = args[0]->Int32Value();
-
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-
-  ret = virNodeGetInfo(virDomainGetConnect(domain->handle_), &nodeinfo);
-  if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
-    return NanFalse();
-  }
-
-  int maxcpus = VIR_NODEINFO_MAXCPUS(nodeinfo);
-
-  cpumaplen = VIR_CPU_MAPLEN(maxcpus);
-  cpumap = (unsigned char*)malloc(cpumaplen);
-  if (cpumap == NULL) {
-    LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
-    return False();
-  }
-  memset(cpumap, 0, cpumaplen);
-
-  Local<Array> cpus = Local<Array>::Cast(args[1]);
-  int ncpus = cpus->Length();
-
-  for (int i = 0; i < ncpus; i++) {
-    if (i > maxcpus) {
-      break;
-    }
-
-    if (!cpus->Get(NanNew<Integer>(i))->IsObject()) {
-      free(cpumap);
-      NanThrowTypeError("The second argument must be an array of objects");
-      NanReturnUndefined();
-    }
-
-    Local<Object> cpu = cpus->Get(NanNew<Integer>(i))->ToObject();
-    bool usable = cpu->Get(NanNew("usable"))->IsTrue();
-
-    if (usable) {
-      VIR_USE_CPU(cpumap, cpu->Get(NanNew("cpu"))->Int32Value());
-    } else {
-      VIR_UNUSE_CPU(cpumap, cpu->Get(NanNew("cpu"))->Int32Value());
-    }
-  }
-
-  ret = virDomainPinVcpu(domain->handle_, vcpu, cpumap, cpumaplen);
-  free(cpumap);
-
   if (ret == -1) {
     ThrowException(Error::New(virGetLastError()));
     return NanFalse();
@@ -2397,4 +2381,3 @@ void Domain::domain_event_free(void* /* opaque */)
 
 
 } //namespace NodeLibvirt
-

@@ -50,10 +50,10 @@ private:
   static NAN_METHOD(DetachDevice);
   static NAN_METHOD(UpdateDevice);
   static NAN_METHOD(SendKeys);
-
-  // UNFINISHED SYNC ACTIONS
   static NAN_METHOD(Migrate);
   static NAN_METHOD(PinVcpu);
+
+  // UNFINISHED SYNC ACTIONS
   static NAN_METHOD(MemoryPeek);
   static NAN_METHOD(BlockPeek);
   static NAN_METHOD(HasCurrentSnapshot);
@@ -309,6 +309,37 @@ private:
     std::vector<unsigned int> keys_;
   };
 
+  class MigrateWorker : public LibVirtWorker {
+  public:
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &uri)
+      : LibVirtWorker(callback, handle), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, virConnectPtr conn)
+      : LibVirtWorker(callback, handle), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    void Execute();
+    void setFlags(const unsigned long flags) { flags_ = flags; }
+    void setBandwidth(const unsigned long bandwidth) { bandwidth_ = bandwidth; }
+    void setDestname(const std::string &destname) { destname_ = destname; }
+  protected:
+    virtual void HandleOKCallback();
+  private:
+    std::string uri_;
+    virConnectPtr conn_;
+    virDomainPtr migrated_;
+    std::string destname_;
+    unsigned long flags_;
+    unsigned long bandwidth_;
+  };
+
+  class PinVcpuWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    PinVcpuWorker(NanCallback *callback, const LibVirtHandle &handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
+      : PrimitiveReturnWorker<bool>(callback, handle), vcpu_(vcpu), usables_(usables), vcpus_(vcpus) {}
+    void Execute();
+  private:
+    int vcpu_;
+    std::vector<bool> usables_;
+    std::vector<int> vcpus_;
+  };
 
 private:
   static void domain_event_free(void *opaque);
@@ -333,4 +364,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_DOMAIN_H
-

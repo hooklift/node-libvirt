@@ -239,6 +239,46 @@ describe('Domain', function() {
       });
     });
 
+    it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
+      var hypervisor2 = new libvirt.Hypervisor('test:///default');
+      var flags = [
+        test.domain.VIR_MIGRATE_LIVE,
+        test.domain.VIR_MIGRATE_PEER2PEER,
+        test.domain.VIR_MIGRATE_PAUSED,
+        test.domain.VIR_MIGRATE_PERSIST_DEST
+      ];
+
+      hypervisor2.connect(function(err) {
+        expect(err).to.not.exist;
+        test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
+          expect(err).to.exist;
+          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+          // NOTE: not supported by test driver
+          // expect(err).to.not.exist;
+          // expect(domain).to.exist;
+
+          done();
+        });
+      });
+    });
+
+    it('should allow to change real CPUs, which can be allocated to a virtual CPU', function(done) {
+      test.domain.getVcpus(function(err, res) {
+        expect(err).to.not.exist;
+
+        var affinity = res[0].affinity;
+        affinity[0].usable = false;
+        affinity[1].usable = false;
+
+        test.domain.pinVcpu(res[0].number, affinity, function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.true;
+          done();
+        });
+      });
+    });
+
   });
 
   describe('accessors/mutators', function() {
