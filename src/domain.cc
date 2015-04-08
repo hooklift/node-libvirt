@@ -1355,7 +1355,7 @@ NLV_WORKER_EXECUTE(Domain, SendKeys)
 
 NAN_METHOD(Domain::Migrate)
 {
-  HandleScope scope;
+  NanScope();
   unsigned long flags = 0;
   unsigned long bandwidth = 0;
 
@@ -1418,13 +1418,15 @@ NLV_WORKER_EXECUTE(Domain, Migrate)
   if(conn_) {
     migrated_ = virDomainMigrate(Handle().ToDomain(), conn_, flags_, destname_.c_str(), uri_.c_str(), bandwidth_);
     if(migrated_ == NULL) {
-      NLV_SET_LV_ERROR();
+      SetVirError(virGetLastError());
+      return;
     }
   } else {
     int ret = -1;
     ret = virDomainMigrateToURI(Handle().ToDomain(), uri_.c_str(), flags_, destname_.c_str(), bandwidth_);
     if(ret == -1) {
-      NLV_SET_LV_ERROR();
+      SetVirError(virGetLastError());
+      return;
     }
   }
 }
@@ -1434,7 +1436,7 @@ NLV_WORKER_OKCALLBACK(Domain, Migrate)
   NanScope();
 
   if (migrated_ != NULL) {
-    Local<Object> domain_obj = NewInstance(migrated_);
+    Local<Object> domain_obj = Domain::NewInstance(migrated_);
     Local<Value> argv[] = { NanNull(), domain_obj };
     callback->Call(2, argv);
   } else {
@@ -1481,7 +1483,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
   int cpumaplen;
 
   if(virNodeGetInfo(virDomainGetConnect(Handle().ToDomain()), &nodeinfo) == -1) {
-    NLV_SET_LV_ERROR();
+    SetVirError(virGetLastError());
     return;
   }
 
@@ -1501,7 +1503,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
   }
 
   if(virDomainPinVcpu(Handle().ToDomain(), vcpu_, cpumap.data(), cpumaplen) == -1) {
-    NLV_SET_LV_ERROR();
+    SetVirError(virGetLastError());
     return;
   }
 

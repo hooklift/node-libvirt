@@ -4,7 +4,6 @@
 // UTIL
 #define NLV_CATNX(A, B) A ## B
 #define NLV_CAT(A, B) NLV_CATNX(A, B)
-#define NLV_SET_LV_ERROR() SetVirError(virGetLastError());
 
 // ASSERTIONS
 #define NLV_WORKER_ASSERT_CONNECTION() \
