@@ -56,7 +56,6 @@ private:
   static NAN_METHOD(PinVcpu);
   static NAN_METHOD(MemoryPeek);
   static NAN_METHOD(BlockPeek);
-  static NAN_METHOD(HasCurrentSnapshot);
   static NAN_METHOD(RevertToSnapshot);
   static NAN_METHOD(TakeSnapshot);
   static NAN_METHOD(DeleteSnapshot);
@@ -90,6 +89,7 @@ private:
   static NAN_METHOD(ToXml);
   static NAN_METHOD(GetCurrentSnapshot);
   static NAN_METHOD(SetMigrationMaxDowntime);
+  static NAN_METHOD(HasCurrentSnapshot);
   static NAN_METHOD(GetSnapshots);
 
   // UNFINISHED SYNC ACCESSORS/MUTATORS
@@ -160,7 +160,6 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, bool);
 
   class SaveWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -328,6 +327,7 @@ private:
   NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virSecurityLabel);
   NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainJobInfo);
   NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, bool);
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:

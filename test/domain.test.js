@@ -336,14 +336,6 @@ describe('Domain', function() {
       });
     });
 
-    it('should show if the domain has a current snapshot', function(done) {
-      test.domain.hasCurrentSnapshot(function(err, res) {
-        expect(err).to.not.exist;
-        expect(res).to.be.false;
-        done();
-      });
-    });
-
     it('should take, lookup, revert and delete a domain snapshot', function(done) {
       var xml = fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {
@@ -723,6 +715,14 @@ describe('Domain', function() {
       });
     });
 
+    it('should show if the domain has a current snapshot', function(done) {
+      test.domain.hasCurrentSnapshot(function(err, res) {
+        expect(err).to.not.exist;
+        expect(res).to.be.false;
+        done();
+      });
+    });
+    
     it('should return information about the current domain snapshot', function(done) {
       var xml = fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {
@@ -735,7 +735,11 @@ describe('Domain', function() {
           test.domain.getCurrentSnapshot(function(err, snapshot) {
             expect(err).to.not.exist;
             expect(snapshot).to.match(/<name>test-snapshot<\/name>/);
-            done();
+
+            test.domain.deleteSnapshot('test-snapshot', function(err) {
+              expect(err).to.not.exist;
+              done();
+            });
           });
         });
       });
@@ -765,7 +769,11 @@ describe('Domain', function() {
           expect(snapshots).to.be.instanceOf(Array);
           expect(snapshots[0]).to.exist;
           expect(snapshots[0]).to.match(/<name>test-snapshot<\/name>/);
-          done();
+
+          test.domain.deleteSnapshot('test-snapshot', function(err) {
+            expect(err).to.not.exist;
+            done();
+          });
         });
       });
     });
