@@ -52,8 +52,6 @@ private:
   static NAN_METHOD(SendKeys);
   static NAN_METHOD(Migrate);
   static NAN_METHOD(PinVcpu);
-
-  // UNFINISHED SYNC ACTIONS
   static NAN_METHOD(MemoryPeek);
   static NAN_METHOD(BlockPeek);
   static NAN_METHOD(HasCurrentSnapshot);
@@ -90,12 +88,12 @@ private:
   static NAN_METHOD(GetVcpus);
   static NAN_METHOD(SetVcpus);
   static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetCurrentSnapshot);
+  static NAN_METHOD(SetMigrationMaxDowntime);
+  static NAN_METHOD(GetSnapshots);
 
   // UNFINISHED SYNC ACCESSORS/MUTATORS
   static NAN_METHOD(SetSchedulerParameters);
-  static NAN_METHOD(GetCurrentSnapshot);
-  static NAN_METHOD(GetSnapshots);
-  static NAN_METHOD(SetMigrationMaxDowntime);
 
 private:
   // HYPERVISOR METHOD WORKERS
@@ -143,6 +141,7 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, bool);
 
   class SaveWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -183,6 +182,134 @@ private:
     unsigned long flags_;
   };
 
+
+  class SendKeysWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SendKeysWorker(NanCallback *callback, const LibVirtHandle &handle, const std::vector<unsigned int> &keys)
+      : PrimitiveReturnWorker<bool>(callback, handle), keys_(keys) {}
+    void Execute();
+  private:
+    std::vector<unsigned int> keys_;
+  };
+
+  class MigrateWorker : public LibVirtWorker {
+  public:
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &uri)
+      : LibVirtWorker(callback, handle), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, virConnectPtr conn)
+      : LibVirtWorker(callback, handle), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    void Execute();
+    void setFlags(const unsigned long flags) { flags_ = flags; }
+    void setBandwidth(const unsigned long bandwidth) { bandwidth_ = bandwidth; }
+    void setDestname(const std::string &destname) { destname_ = destname; }
+  protected:
+    virtual void HandleOKCallback();
+  private:
+    std::string uri_;
+    virConnectPtr conn_;
+    virDomainPtr migrated_;
+    std::string destname_;
+    unsigned long flags_;
+    unsigned long bandwidth_;
+  };
+
+  class PinVcpuWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    PinVcpuWorker(NanCallback *callback, const LibVirtHandle &handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
+      : PrimitiveReturnWorker<bool>(callback, handle), vcpu_(vcpu), usables_(usables), vcpus_(vcpus) {}
+    void Execute();
+  private:
+    int vcpu_;
+    std::vector<bool> usables_;
+    std::vector<int> vcpus_;
+  };
+
+  class MemoryPeekWorker : public LibVirtWorker {
+  public:
+    MemoryPeekWorker(NanCallback *callback, virDomainPtr domainptr, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, domainptr), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    unsigned long long start_;
+    size_t size_;
+    unsigned int flags_;
+    std::vector<char> buffer_;
+  };
+
+  class BlockPeekWorker : public LibVirtWorker {
+  public:
+    BlockPeekWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, domainptr), path_(path), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::string path_;
+    unsigned long long start_;
+    size_t size_;
+    unsigned int flags_;
+    std::vector<char> buffer_;
+  };
+
+  class RevertToSnapshotWorker : public LibVirtWorker {
+  public:
+    RevertToSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
+      : LibVirtWorker(callback, domainptr), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
+  class TakeSnapshotWorker : public LibVirtWorker {
+  public:
+    TakeSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &xml, unsigned int flags)
+      : LibVirtWorker(callback, domainptr), xml_(xml), flags_(flags) {}
+    void Execute();
+  private:
+    std::string xml_;
+    unsigned int flags_;
+  };
+
+  class DeleteSnapshotWorker : public LibVirtWorker {
+  public:
+    DeleteSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
+      : LibVirtWorker(callback, domainptr), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
+  class LookupSnapshotByNameWorker : public PrimitiveReturnWorker<std::string> {
+  public:
+    LookupSnapshotByNameWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
+      : PrimitiveReturnWorker(callback, domainptr), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
+  class RegisterEventWorker : public PrimitiveReturnWorker<int> {
+  public:
+    RegisterEventWorker(NanCallback *callback, virConnectPtr connectptr, virDomainPtr domain, int evtype, void *opaque)
+      : PrimitiveReturnWorker(callback, connectptr), domain_(domain), evtype_(evtype), opaque_(opaque) {}
+    void Execute();
+  private:
+    virDomainPtr domain_;
+    int evtype_;
+    void *opaque_;
+  };
+
+  class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    UnregisterEventWorker(NanCallback *callback, virConnectPtr connectptr, int callbackid)
+      : PrimitiveReturnWorker(callback, connectptr), callbackid_(callbackid) {}
+    void Execute();
+  private:
+    int callbackid_;
+  };
+
   // ACCESSOR/MUTATOR METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
   NLV_OBJECT_RETURN_WORKER(GetInfo, virDomainInfo);
@@ -201,6 +328,7 @@ private:
   NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virSchedParameter);
   NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virSecurityLabel);
   NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainJobInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, std::string);
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -300,45 +428,25 @@ private:
     unsigned int count_;
   };
 
-  class SendKeysWorker : public PrimitiveReturnWorker<bool> {
+  class SetMigrationMaxDowntimeWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SendKeysWorker(NanCallback *callback, const LibVirtHandle &handle, const std::vector<unsigned int> &keys)
-      : PrimitiveReturnWorker<bool>(callback, handle), keys_(keys) {}
+    SetMigrationMaxDowntimeWorker(NanCallback *callback, virDomainPtr domainptr, long long downtime, unsigned int flags)
+      : PrimitiveReturnWorker(callback, domainptr), downtime_(downtime), flags_(flags) {}
     void Execute();
   private:
-    std::vector<unsigned int> keys_;
+    long long downtime_;
+    unsigned int flags_;
   };
 
-  class MigrateWorker : public LibVirtWorker {
+  class GetSnapshotsWorker : public LibVirtWorker {
   public:
-    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &uri)
-      : LibVirtWorker(callback, handle), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
-    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, virConnectPtr conn)
-      : LibVirtWorker(callback, handle), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    GetSnapshotsWorker(NanCallback *callback, virDomainPtr domainptr)
+      : LibVirtWorker(callback, domainptr) {}
     void Execute();
-    void setFlags(const unsigned long flags) { flags_ = flags; }
-    void setBandwidth(const unsigned long bandwidth) { bandwidth_ = bandwidth; }
-    void setDestname(const std::string &destname) { destname_ = destname; }
   protected:
-    virtual void HandleOKCallback();
+    void HandleOKCallback();
   private:
-    std::string uri_;
-    virConnectPtr conn_;
-    virDomainPtr migrated_;
-    std::string destname_;
-    unsigned long flags_;
-    unsigned long bandwidth_;
-  };
-
-  class PinVcpuWorker : public PrimitiveReturnWorker<bool> {
-  public:
-    PinVcpuWorker(NanCallback *callback, const LibVirtHandle &handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
-      : PrimitiveReturnWorker<bool>(callback, handle), vcpu_(vcpu), usables_(usables), vcpus_(vcpus) {}
-    void Execute();
-  private:
-    int vcpu_;
-    std::vector<bool> usables_;
-    std::vector<int> vcpus_;
+    std::vector<std::string> xmls_;
   };
 
 private:
