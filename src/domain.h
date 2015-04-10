@@ -226,8 +226,8 @@ private:
 
   class MemoryPeekWorker : public LibVirtWorker {
   public:
-    MemoryPeekWorker(NanCallback *callback, virDomainPtr domainptr, unsigned long long start, size_t size, unsigned int flags)
-      : LibVirtWorker(callback, domainptr), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    MemoryPeekWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, handle), start_(start), size_(size), flags_(flags), buffer_(size) {}
     void Execute();
   protected:
     void HandleOKCallback();
@@ -240,8 +240,8 @@ private:
 
   class BlockPeekWorker : public LibVirtWorker {
   public:
-    BlockPeekWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
-      : LibVirtWorker(callback, domainptr), path_(path), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    BlockPeekWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, handle), path_(path), start_(start), size_(size), flags_(flags), buffer_(size) {}
     void Execute();
   protected:
     void HandleOKCallback();
@@ -255,8 +255,8 @@ private:
 
   class RevertToSnapshotWorker : public LibVirtWorker {
   public:
-    RevertToSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
-      : LibVirtWorker(callback, domainptr), name_(name) {}
+    RevertToSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : LibVirtWorker(callback, handle), name_(name) {}
     void Execute();
   private:
     std::string name_;
@@ -264,8 +264,8 @@ private:
 
   class TakeSnapshotWorker : public LibVirtWorker {
   public:
-    TakeSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &xml, unsigned int flags)
-      : LibVirtWorker(callback, domainptr), xml_(xml), flags_(flags) {}
+    TakeSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &xml, unsigned int flags)
+      : LibVirtWorker(callback, handle), xml_(xml), flags_(flags) {}
     void Execute();
   private:
     std::string xml_;
@@ -274,8 +274,8 @@ private:
 
   class DeleteSnapshotWorker : public LibVirtWorker {
   public:
-    DeleteSnapshotWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
-      : LibVirtWorker(callback, domainptr), name_(name) {}
+    DeleteSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : LibVirtWorker(callback, handle), name_(name) {}
     void Execute();
   private:
     std::string name_;
@@ -283,8 +283,8 @@ private:
 
   class LookupSnapshotByNameWorker : public PrimitiveReturnWorker<std::string> {
   public:
-    LookupSnapshotByNameWorker(NanCallback *callback, virDomainPtr domainptr, const std::string &name)
-      : PrimitiveReturnWorker(callback, domainptr), name_(name) {}
+    LookupSnapshotByNameWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : PrimitiveReturnWorker(callback, handle), name_(name) {}
     void Execute();
   private:
     std::string name_;
@@ -292,8 +292,8 @@ private:
 
   class RegisterEventWorker : public PrimitiveReturnWorker<int> {
   public:
-    RegisterEventWorker(NanCallback *callback, virConnectPtr connectptr, virDomainPtr domain, int evtype, void *opaque)
-      : PrimitiveReturnWorker(callback, connectptr), domain_(domain), evtype_(evtype), opaque_(opaque) {}
+    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, virDomainPtr domain, int evtype, void *opaque)
+      : PrimitiveReturnWorker(callback, handle), domain_(domain), evtype_(evtype), opaque_(opaque) {}
     void Execute();
   private:
     virDomainPtr domain_;
@@ -303,8 +303,8 @@ private:
 
   class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
   public:
-    UnregisterEventWorker(NanCallback *callback, virConnectPtr connectptr, int callbackid)
-      : PrimitiveReturnWorker(callback, connectptr), callbackid_(callbackid) {}
+    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackid)
+      : PrimitiveReturnWorker(callback, handle), callbackid_(callbackid) {}
     void Execute();
   private:
     int callbackid_;
@@ -430,8 +430,8 @@ private:
 
   class SetMigrationMaxDowntimeWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SetMigrationMaxDowntimeWorker(NanCallback *callback, virDomainPtr domainptr, long long downtime, unsigned int flags)
-      : PrimitiveReturnWorker(callback, domainptr), downtime_(downtime), flags_(flags) {}
+    SetMigrationMaxDowntimeWorker(NanCallback *callback, const LibVirtHandle &handle, long long downtime, unsigned int flags)
+      : PrimitiveReturnWorker(callback, handle), downtime_(downtime), flags_(flags) {}
     void Execute();
   private:
     long long downtime_;
@@ -440,8 +440,8 @@ private:
 
   class GetSnapshotsWorker : public LibVirtWorker {
   public:
-    GetSnapshotsWorker(NanCallback *callback, virDomainPtr domainptr)
-      : LibVirtWorker(callback, domainptr) {}
+    GetSnapshotsWorker(NanCallback *callback, const LibVirtHandle &handle)
+      : LibVirtWorker(callback, handle) {}
     void Execute();
   protected:
     void HandleOKCallback();
