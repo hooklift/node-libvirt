@@ -31,6 +31,8 @@ private:
   static NAN_METHOD(Create);
   static NAN_METHOD(Define);
   static NAN_METHOD(Restore);
+  static NAN_METHOD(RegisterEvent);
+  static NAN_METHOD(UnregisterEvent);
 
   // ACTIONS
   static NAN_METHOD(Destroy);
@@ -59,8 +61,6 @@ private:
   static NAN_METHOD(TakeSnapshot);
   static NAN_METHOD(DeleteSnapshot);
   static NAN_METHOD(LookupSnapshotByName);
-  static NAN_METHOD(RegisterEvent);
-  static NAN_METHOD(UnregisterEvent);
 
   // ACCESSORS/MUTATORS
   static NAN_METHOD(GetName);
@@ -129,6 +129,25 @@ private:
     std::string path_;
   };
 
+  class RegisterEventWorker : public PrimitiveReturnWorker<int> {
+  public:
+    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, virDomainPtr domain, int evtype, void *opaque)
+      : PrimitiveReturnWorker(callback, handle), domain_(domain), evtype_(evtype), opaque_(opaque) {}
+    void Execute();
+  private:
+    virDomainPtr domain_;
+    int evtype_;
+    void *opaque_;
+  };
+
+  class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackid)
+      : PrimitiveReturnWorker(callback, handle), callbackid_(callbackid) {}
+    void Execute();
+  private:
+    int callbackid_;
+  };
 
   // ACTION METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
@@ -288,26 +307,6 @@ private:
     void Execute();
   private:
     std::string name_;
-  };
-
-  class RegisterEventWorker : public PrimitiveReturnWorker<int> {
-  public:
-    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, virDomainPtr domain, int evtype, void *opaque)
-      : PrimitiveReturnWorker(callback, handle), domain_(domain), evtype_(evtype), opaque_(opaque) {}
-    void Execute();
-  private:
-    virDomainPtr domain_;
-    int evtype_;
-    void *opaque_;
-  };
-
-  class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
-  public:
-    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackid)
-      : PrimitiveReturnWorker(callback, handle), callbackid_(callbackid) {}
-    void Execute();
-  private:
-    int callbackid_;
   };
 
   // ACCESSOR/MUTATOR METHOD WORKERS
