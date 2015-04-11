@@ -31,6 +31,8 @@ private:
   static NAN_METHOD(Create);
   static NAN_METHOD(Define);
   static NAN_METHOD(Restore);
+  static NAN_METHOD(RegisterEvent);
+  static NAN_METHOD(UnregisterEvent);
 
   // ACTIONS
   static NAN_METHOD(Destroy);
@@ -50,19 +52,14 @@ private:
   static NAN_METHOD(DetachDevice);
   static NAN_METHOD(UpdateDevice);
   static NAN_METHOD(SendKeys);
-
-  // UNFINISHED SYNC ACTIONS
   static NAN_METHOD(Migrate);
   static NAN_METHOD(PinVcpu);
   static NAN_METHOD(MemoryPeek);
   static NAN_METHOD(BlockPeek);
-  static NAN_METHOD(HasCurrentSnapshot);
   static NAN_METHOD(RevertToSnapshot);
   static NAN_METHOD(TakeSnapshot);
   static NAN_METHOD(DeleteSnapshot);
   static NAN_METHOD(LookupSnapshotByName);
-  static NAN_METHOD(RegisterEvent);
-  static NAN_METHOD(UnregisterEvent);
 
   // ACCESSORS/MUTATORS
   static NAN_METHOD(GetName);
@@ -90,12 +87,13 @@ private:
   static NAN_METHOD(GetVcpus);
   static NAN_METHOD(SetVcpus);
   static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetCurrentSnapshot);
+  static NAN_METHOD(SetMigrationMaxDowntime);
+  static NAN_METHOD(HasCurrentSnapshot);
+  static NAN_METHOD(GetSnapshots);
 
   // UNFINISHED SYNC ACCESSORS/MUTATORS
   static NAN_METHOD(SetSchedulerParameters);
-  static NAN_METHOD(GetCurrentSnapshot);
-  static NAN_METHOD(GetSnapshots);
-  static NAN_METHOD(SetMigrationMaxDowntime);
 
 private:
   // HYPERVISOR METHOD WORKERS
@@ -131,6 +129,25 @@ private:
     std::string path_;
   };
 
+  class RegisterEventWorker : public PrimitiveReturnWorker<int> {
+  public:
+    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, virDomainPtr domain, int evtype, void *opaque)
+      : PrimitiveReturnWorker(callback, handle), domain_(domain), evtype_(evtype), opaque_(opaque) {}
+    void Execute();
+  private:
+    virDomainPtr domain_;
+    int evtype_;
+    void *opaque_;
+  };
+
+  class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackid)
+      : PrimitiveReturnWorker(callback, handle), callbackid_(callbackid) {}
+    void Execute();
+  private:
+    int callbackid_;
+  };
 
   // ACTION METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
@@ -183,6 +200,114 @@ private:
     unsigned long flags_;
   };
 
+
+  class SendKeysWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SendKeysWorker(NanCallback *callback, const LibVirtHandle &handle, const std::vector<unsigned int> &keys)
+      : PrimitiveReturnWorker<bool>(callback, handle), keys_(keys) {}
+    void Execute();
+  private:
+    std::vector<unsigned int> keys_;
+  };
+
+  class MigrateWorker : public LibVirtWorker {
+  public:
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &uri)
+      : LibVirtWorker(callback, handle), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    MigrateWorker(NanCallback *callback, const LibVirtHandle &handle, virConnectPtr conn)
+      : LibVirtWorker(callback, handle), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
+    void Execute();
+    void setFlags(const unsigned long flags) { flags_ = flags; }
+    void setBandwidth(const unsigned long bandwidth) { bandwidth_ = bandwidth; }
+    void setDestname(const std::string &destname) { destname_ = destname; }
+  protected:
+    virtual void HandleOKCallback();
+  private:
+    std::string uri_;
+    virConnectPtr conn_;
+    virDomainPtr migrated_;
+    std::string destname_;
+    unsigned long flags_;
+    unsigned long bandwidth_;
+  };
+
+  class PinVcpuWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    PinVcpuWorker(NanCallback *callback, const LibVirtHandle &handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
+      : PrimitiveReturnWorker<bool>(callback, handle), vcpu_(vcpu), usables_(usables), vcpus_(vcpus) {}
+    void Execute();
+  private:
+    int vcpu_;
+    std::vector<bool> usables_;
+    std::vector<int> vcpus_;
+  };
+
+  class MemoryPeekWorker : public LibVirtWorker {
+  public:
+    MemoryPeekWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, handle), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    unsigned long long start_;
+    size_t size_;
+    unsigned int flags_;
+    std::vector<char> buffer_;
+  };
+
+  class BlockPeekWorker : public LibVirtWorker {
+  public:
+    BlockPeekWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
+      : LibVirtWorker(callback, handle), path_(path), start_(start), size_(size), flags_(flags), buffer_(size) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::string path_;
+    unsigned long long start_;
+    size_t size_;
+    unsigned int flags_;
+    std::vector<char> buffer_;
+  };
+
+  class RevertToSnapshotWorker : public LibVirtWorker {
+  public:
+    RevertToSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : LibVirtWorker(callback, handle), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
+  class TakeSnapshotWorker : public LibVirtWorker {
+  public:
+    TakeSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &xml, unsigned int flags)
+      : LibVirtWorker(callback, handle), xml_(xml), flags_(flags) {}
+    void Execute();
+  private:
+    std::string xml_;
+    unsigned int flags_;
+  };
+
+  class DeleteSnapshotWorker : public LibVirtWorker {
+  public:
+    DeleteSnapshotWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : LibVirtWorker(callback, handle), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
+  class LookupSnapshotByNameWorker : public PrimitiveReturnWorker<std::string> {
+  public:
+    LookupSnapshotByNameWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &name)
+      : PrimitiveReturnWorker(callback, handle), name_(name) {}
+    void Execute();
+  private:
+    std::string name_;
+  };
+
   // ACCESSOR/MUTATOR METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
   NLV_OBJECT_RETURN_WORKER(GetInfo, virDomainInfo);
@@ -201,6 +326,8 @@ private:
   NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virSchedParameter);
   NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virSecurityLabel);
   NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainJobInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, bool);
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:
@@ -300,15 +427,26 @@ private:
     unsigned int count_;
   };
 
-  class SendKeysWorker : public PrimitiveReturnWorker<bool> {
+  class SetMigrationMaxDowntimeWorker : public PrimitiveReturnWorker<bool> {
   public:
-    SendKeysWorker(NanCallback *callback, const LibVirtHandle &handle, const std::vector<unsigned int> &keys)
-      : PrimitiveReturnWorker<bool>(callback, handle), keys_(keys) {}
+    SetMigrationMaxDowntimeWorker(NanCallback *callback, const LibVirtHandle &handle, long long downtime, unsigned int flags)
+      : PrimitiveReturnWorker(callback, handle), downtime_(downtime), flags_(flags) {}
     void Execute();
   private:
-    std::vector<unsigned int> keys_;
+    long long downtime_;
+    unsigned int flags_;
   };
 
+  class GetSnapshotsWorker : public LibVirtWorker {
+  public:
+    GetSnapshotsWorker(NanCallback *callback, const LibVirtHandle &handle)
+      : LibVirtWorker(callback, handle) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::vector<std::string> xmls_;
+  };
 
 private:
   static void domain_event_free(void *opaque);
@@ -333,4 +471,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_DOMAIN_H
-

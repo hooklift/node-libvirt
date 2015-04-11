@@ -239,6 +239,156 @@ describe('Domain', function() {
       });
     });
 
+    it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
+      var hypervisor2 = new libvirt.Hypervisor('test:///default');
+      var flags = [
+        test.domain.VIR_MIGRATE_LIVE,
+        test.domain.VIR_MIGRATE_PEER2PEER,
+        test.domain.VIR_MIGRATE_PAUSED,
+        test.domain.VIR_MIGRATE_PERSIST_DEST
+      ];
+
+      hypervisor2.connect(function(err) {
+        expect(err).to.not.exist;
+        test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
+          expect(err).to.exist;
+          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+          // NOTE: not supported by test driver
+          // expect(err).to.not.exist;
+          // expect(domain).to.exist;
+
+          done();
+        });
+      });
+    });
+
+    it('should migrate a domain to another hypervisor through an uri', function(done) {
+      var flags = [
+        test.domain.VIR_MIGRATE_LIVE,
+        test.domain.VIR_MIGRATE_PEER2PEER,
+        test.domain.VIR_MIGRATE_PAUSED,
+        test.domain.VIR_MIGRATE_PERSIST_DEST
+      ];
+
+      test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+
+        done();
+      });
+    });
+
+    it('should allow to change real CPUs, which can be allocated to a virtual CPU', function(done) {
+      test.domain.getVcpus(function(err, res) {
+        expect(err).to.not.exist;
+
+        var affinity = res[0].affinity;
+        affinity[0].usable = false;
+        affinity[1].usable = false;
+
+        test.domain.pinVcpu(res[0].number, affinity, function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.true;
+          done();
+        });
+      });
+    });
+
+    it('should allow to read the domain\'s memory content and return it in a Buffer object', function(done) {
+      var physical = [test.domain.VIR_MEMORY_PHYSICAL];
+      var virtual = [test.domain.VIR_MEMORY_VIRTUAL];
+
+      test.domain.memoryPeek(0, 1024, physical, function(err, res) {
+        expect(err).to.exist;
+        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // expect(res).to.be.instanceof(Buffer);
+
+        test.domain.memoryPeek(0, 1024, virtual, function(err, res) {
+          expect(err).to.exist;
+          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+          // NOTE: not supported by test driver
+          //expect(err).to.not.exist;
+          //expect(res).to.be.instanceof(Buffer);
+
+          done();
+        });
+      });
+    });
+
+    it('should allow to read the content of a domain\'s disk device and return it in a Buffer object', function(done) {
+      test.domain.blockPeek('/dev/sda', 0, 1024, [], function(err, res) {
+        expect(err).to.exist;
+        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+
+        // NOTE: not supported by test driver
+        //expect(err).to.not.exist;
+        //expect(res).to.be.instanceof(Buffer);
+
+        done();
+      });
+    });
+
+    it('should take, lookup, revert and delete a domain snapshot', function(done) {
+      var xml = fixture('snapshot.xml');
+      test.domain.takeSnapshot(xml, [], function(err) {
+        expect(err).to.not.exist;
+
+        test.domain.lookupSnapshotByName('test-snapshot', function(err, res) {
+          expect(err).to.not.exist;
+          expect(xml).to.match(/<name>test-snapshot<\/name>/);
+
+          test.domain.revertToSnapshot('test-snapshot', function(err) {
+            expect(err).to.not.exist;
+
+            test.domain.deleteSnapshot('test-snapshot', function(err) {
+              expect(err).to.not.exist;
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    it('should register, test and unregister a domain event', function(done) {
+      libvirt.setupEvent();
+      var events = [];
+      var callbackid;
+
+      test.hypervisor.registerDomainEvent({
+        evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+        callback: function(hv, dom, data) {
+          events.push(data.evtype);
+
+          if (events.length == 2) {
+            expect(events).to.eql([5, 2]);
+            test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
+              expect(err).to.not.exist;
+              expect(result).to.be.true;
+              done();
+            });
+          }
+        }
+      }, function(err, result) {
+        expect(err).to.not.exist;
+        callbackid = result;
+
+        test.domain.shutdown(function(err, result) {
+          expect(err).to.not.exist;
+          test.domain.start(function(err, result) {
+            expect(err).to.not.exist;
+          });
+        });
+      });
+    });
+
   });
 
   describe('accessors/mutators', function() {
@@ -565,96 +715,73 @@ describe('Domain', function() {
       });
     });
 
-    it('should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration', function() {
+    it('should show if the domain has a current snapshot', function(done) {
+      test.domain.hasCurrentSnapshot(function(err, res) {
+        expect(err).to.not.exist;
+        expect(res).to.be.false;
+        done();
+      });
+    });
+    
+    it('should return information about the current domain snapshot', function(done) {
+      var xml = fixture('snapshot.xml');
+      test.domain.takeSnapshot(xml, [], function(err) {
+        expect(err).to.not.exist;
+
+        test.domain.hasCurrentSnapshot(function(err, res) {
+          expect(err).to.not.exist;
+          expect(res).to.be.true;
+
+          test.domain.getCurrentSnapshot(function(err, snapshot) {
+            expect(err).to.not.exist;
+            expect(snapshot).to.match(/<name>test-snapshot<\/name>/);
+
+            test.domain.deleteSnapshot('test-snapshot', function(err) {
+              expect(err).to.not.exist;
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    it('should set a maximum tolerable time for which the domain is allowed to be paused at the end of live migration', function(done) {
       //test driver doesn't support this function
       //Milliseconds
-      try {
-        test.domain.setMigrationMaxDowntime(100000);
-      } catch (error) {
-        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-      }
+      test.domain.setMigrationMaxDowntime(100000, function(err, result) {
+        expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // expect(result).to.be.true;
+
+        done();
+      });
+    });
+
+    it('should return all the domain snapshots', function(done) {
+      var xml = fixture('snapshot.xml');
+      test.domain.takeSnapshot(xml, [], function(err) {
+        expect(err).to.not.exist;
+
+        test.domain.getSnapshots(function(err, snapshots) {
+          expect(err).to.not.exist;
+          expect(snapshots).to.be.instanceOf(Array);
+          expect(snapshots[0]).to.exist;
+          expect(snapshots[0]).to.match(/<name>test-snapshot<\/name>/);
+
+          test.domain.deleteSnapshot('test-snapshot', function(err) {
+            expect(err).to.not.exist;
+            done();
+          });
+        });
+      });
     });
 
   });
 });
 
-
-
 /*
-  it('should allow to change real CPUs, which can be allocated to a virtual CPU', function() {
-    var vcpus = domain.getVcpus();
-    var affinity = vcpus[0].affinity;
-    affinity[0].usable = false;
-    affinity[1].usable = false;
-    expect(domain.pinVcpu(vcpus[0].number, affinity)).to.equal(true);
-
-    var vcpus2 = domain.getVcpus();
-    var affinity2 = vcpus2[0].affinity;
-    expect(affinity2[0].usable).to.equal(false);
-    expect(affinity2[1].usable).to.equal(false);
-
-    try {
-      domain.pinVcpu();
-    } catch (error) {
-      expect(error.message).to.equal('You must specify two arguments');
-    }
-
-    try {
-      domain.pinVcpu(vcpus[0].number, 2);
-    } catch (error) {
-      expect(error.message).to.equal('The second argument must be an array of objects');
-    }
-
-    try {
-      domain.pinVcpu('test', affinity);
-    } catch (error) {
-      expect(error.message).to.equal('The first argument must be an integer');
-    }
-
-    try {
-      domain.pinVcpu(vcpus[0].number);
-    } catch (error) {
-      expect(error.message).to.equal('You must specify two arguments');
-    }
-
-    try {
-      domain.pinVcpu(vcpus[0].number, ['']);
-    } catch (error) {
-      expect(error.message).to.equal('The second argument must be an array of objects');
-    }
-  });
-
-
-  it('should migrate a domain to another hypervisor through a hypervisor connection', function() {
-    var hypervisor2 = new Hypervisor('test:///default');
-    var flags = [domain.VIR_MIGRATE_LIVE,
-      domain.VIR_MIGRATE_PEER2PEER,
-      domain.VIR_MIGRATE_PAUSED,
-      domain.VIR_MIGRATE_PERSIST_DEST];
-
-    //test driver doesn't support this function
-    //bandwidth in Mbps
-    try {
-      domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags });
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should migrate a domain to another hypervisor through an uri', function() {
-    var flags = [domain.VIR_MIGRATE_LIVE,
-      domain.VIR_MIGRATE_PEER2PEER,
-      domain.VIR_MIGRATE_PAUSED,
-      domain.VIR_MIGRATE_PERSIST_DEST];
-
-    //test driver doesn't support this function
-    //bandwidth in Mbps
-    try {
-      domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags });
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
 
   it('should set the domain scheduler parameters', function() {
     try {
@@ -664,103 +791,6 @@ describe('Domain', function() {
     }
     //info.label.should_not_be undefined
     //info.enforcing.should_not_be undefined
-  });
-
-
-  it('should allow to read the domain\'s memory content and return it in a Buffer object', function() {
-    var physical = [domain.VIR_MEMORY_PHYSICAL];
-    var virtual = [domain.VIR_MEMORY_VIRTUAL];
-
-    try {
-      var psegment = domain.memoryPeek(0, 1024, physical);
-      expect(psegment instanceof Buffer);
-
-      var vsegment = domain.memoryPeek(0, 1024, virtual);
-      expect(vsegment instanceof Buffer);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should allow to read the content of a domain\'s disk device and return it in a Buffer object', function() {
-    try {
-      var blocks = domain.blockPeek('/dev/sda', 0, 1024);
-      expect(blocks instanceof Buffer);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should show if the domain has a current snapshot', function() {
-    try {
-      expect(domain.hasCurrentSnapshot()).to.equal(false);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should revert the domain to a snapshot taken before', function() {
-    //take a snapshot and then revert to it
-    try {
-      expect(domain.revertToSnapshot('test-snapshot')).to.equal(true);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should take a snapshot of the domain', function() {
-    try {
-      expect(domain.takeSnapshot(), true);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should take a snapshot of the domain using a xml domain description', function() {
-    try {
-      var xml = fixture('snapshot.xml');
-      expect(domain.takeSnapshot(xml)).to.equal(true);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should return information about the current domain snapshot', function() {
-    try {
-      var fixture = fixture('snapshot.xml');
-      expect(domain.takeSnapshot(fixture)).to.equal(true);
-
-      var xml = domain.getCurrentSnapshot();
-      expect(xml);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should delete a snapshot', function() {
-    try {
-      expect(domain.deleteSnapshot('test-snapshot')).to.equal(true);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should lookup a snapshot by name', function() {
-    try {
-      var xml = domain.lookupSnapshotByName('test-snapshot');
-      expect(xml).to.be.ok;
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
-  });
-
-  it('should return all the domain snapshots', function() {
-    try {
-      var snapshots = domain.getSnapshots();
-      expect(snapshots).to.be.instanceOf(Array);
-    } catch (error) {
-      expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
-    }
   });
 
 });
