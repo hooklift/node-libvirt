@@ -367,7 +367,7 @@ describe('Domain', function() {
         callback: function(hv, dom, data) {
           events.push(data.evtype);
 
-          if (events.length == 2) {
+          if (events.length === 2) {
             expect(events).to.eql([5, 2]);
             test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
               expect(err).to.not.exist;
@@ -722,7 +722,7 @@ describe('Domain', function() {
         done();
       });
     });
-    
+
     it('should return information about the current domain snapshot', function(done) {
       var xml = fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {

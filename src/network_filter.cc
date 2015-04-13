@@ -7,7 +7,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> NetworkFilter::constructor_template;
-void NetworkFilter::Initialize()
+void NetworkFilter::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -19,6 +19,7 @@ void NetworkFilter::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("NetworkFilter"));
+  exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
 Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)

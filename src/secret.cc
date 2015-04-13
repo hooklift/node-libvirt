@@ -6,7 +6,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> Secret::constructor_template;
-void Secret::Initialize()
+void Secret::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -21,6 +21,7 @@ void Secret::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("Secret"));
+  exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
 Local<Object> Secret::NewInstance(const LibVirtHandle &handle)

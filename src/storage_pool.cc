@@ -12,7 +12,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> StoragePool::constructor_template;
-void StoragePool::Initialize()
+void StoragePool::Initialize(Handle<Object> exports)
 {
   NanScope();
   Local<FunctionTemplate> t = FunctionTemplate::New();
@@ -39,6 +39,7 @@ void StoragePool::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("StoragePool"));
+  exports->Set(NanNew("StoragePool"), t->GetFunction());
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 

@@ -6,7 +6,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> Interface::constructor_template;
-void Interface::Initialize()
+void Interface::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -27,6 +27,7 @@ void Interface::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("Interface"));
+  exports->Set(NanNew("Interface"), t->GetFunction());
 }
 
 Local<Object> Interface::NewInstance(const LibVirtHandle &handle)

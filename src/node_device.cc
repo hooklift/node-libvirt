@@ -9,7 +9,7 @@ using namespace v8;
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> NodeDevice::constructor_template;
-void NodeDevice::Initialize()
+void NodeDevice::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -25,6 +25,7 @@ void NodeDevice::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("NodeDevice"));
+  exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
 Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)

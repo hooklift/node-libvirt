@@ -11,7 +11,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> StorageVolume::constructor_template;
-void StorageVolume::Initialize()
+void StorageVolume::Initialize(Handle<Object> exports)
 {
   NanScope();
   Local<FunctionTemplate> t = FunctionTemplate::New();
@@ -27,6 +27,7 @@ void StorageVolume::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("StorageVolume"));
+  exports->Set(NanNew("StorageVolume"), t->GetFunction());
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
   NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_FILE);
