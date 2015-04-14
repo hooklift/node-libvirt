@@ -155,4 +155,3 @@ NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
 }
 
 }   // namespce NodeLibvirt
-

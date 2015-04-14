@@ -98,4 +98,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_STORAGE_POOL_H
-

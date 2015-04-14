@@ -62,4 +62,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_NODE_DEVICE_H
-

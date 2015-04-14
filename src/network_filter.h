@@ -52,4 +52,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_NETWORK_FILTER_H_
-

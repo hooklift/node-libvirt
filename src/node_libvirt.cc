@@ -38,4 +38,3 @@ void InitAll(Handle<Object> exports)
 }
 
 NODE_MODULE(libvirt, InitAll)
-

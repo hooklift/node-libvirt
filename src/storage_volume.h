@@ -79,4 +79,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_STORAGE_VOLUME_H
-

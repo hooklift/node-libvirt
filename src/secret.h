@@ -78,4 +78,3 @@ private:
 }  // namespace NodeLibvirt
 
 #endif  // SRC_SECRET_H_
-

@@ -472,4 +472,3 @@ NLV_WORKER_EXECUTE(StoragePool, Refresh)
 }
 
 } //namespace NodeLibvirt
-

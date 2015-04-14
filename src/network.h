@@ -80,4 +80,3 @@ private:
 }  // namespace NodeLibvirt
 
 #endif  // SRC_NETWORK_H_
-
