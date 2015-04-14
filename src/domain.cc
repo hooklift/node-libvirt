@@ -1272,7 +1272,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
     cpu->Set(NanNew("cpuTime"), NanNew<Number>(info_[i].cpuTime));
     cpu->Set(NanNew("cpu"), NanNew<Integer>(info_[i].cpu));
 
-    int maxCpus = VIR_NODEINFO_MAXCPUS(nodeInfo_);
+    unsigned int maxCpus = VIR_NODEINFO_MAXCPUS(nodeInfo_);
     Local<Array> affinity = NanNew<Array>(maxCpus);
     for (unsigned int j = 0; j < maxCpus; ++j) {
       Local<Object> realCpu = NanNew<Object>();
@@ -1776,7 +1776,7 @@ NLV_WORKER_EXECUTE(Domain, GetCurrentSnapshot)
 
 NAN_METHOD(Domain::SetMigrationMaxDowntime) {
   NanScope();
-  long long downtime = 0;
+  // long long downtime = 0;
   unsigned int flags = 0;
 
   if(args.Length() != 2 || !args[0]->IsInt32() || !args[1]->IsFunction()) {
