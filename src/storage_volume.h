@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class StorageVolume : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~StorageVolume();
 
@@ -79,4 +79,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_STORAGE_VOLUME_H
-

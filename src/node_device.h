@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class NodeDevice : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~NodeDevice();
 
@@ -62,4 +62,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_NODE_DEVICE_H
-

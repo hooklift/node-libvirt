@@ -19,6 +19,7 @@
     "node": ">=0.10.0"
   },
   "dependencies": {
+    "bluebird": "^2.9.24",
     "nan": "^1.7.0"
   },
   "devDependencies": {

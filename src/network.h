@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class Network : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~Network();
 
@@ -80,4 +80,3 @@ private:
 }  // namespace NodeLibvirt
 
 #endif  // SRC_NETWORK_H_
-

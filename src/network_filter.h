@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class NetworkFilter : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~NetworkFilter();
 
@@ -52,4 +52,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_NETWORK_FILTER_H_
-

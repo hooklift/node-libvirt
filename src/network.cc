@@ -6,7 +6,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> Network::constructor_template;
-void Network::Initialize()
+void Network::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -25,6 +25,7 @@ void Network::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("Network"));
+  exports->Set(NanNew("Network"), t->GetFunction());
 }
 
 Local<Object> Network::NewInstance(const LibVirtHandle &handle)

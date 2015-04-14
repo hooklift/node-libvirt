@@ -7,7 +7,7 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> Domain::constructor_template;
-void Domain::Initialize()
+void Domain::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = FunctionTemplate::New();
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -78,6 +78,7 @@ void Domain::Initialize()
 
   NanAssignPersistent(constructor_template, t);
   constructor_template->SetClassName(NanNew("Domain"));
+  exports->Set(NanNew("Domain"), t->GetFunction());
 
   Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 

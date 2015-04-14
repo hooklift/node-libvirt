@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class Secret : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~Secret();
 
@@ -78,4 +78,3 @@ private:
 }  // namespace NodeLibvirt
 
 #endif  // SRC_SECRET_H_
-

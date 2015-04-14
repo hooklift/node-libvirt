@@ -23,14 +23,14 @@ void InitAll(Handle<Object> exports)
   virInitialize();
   Hypervisor::Initialize(exports);
   Error::Initialize();
-  Domain::Initialize();
-  NodeDevice::Initialize();
-  Interface::Initialize();
-  Network::Initialize();
-  NetworkFilter::Initialize();
-  Secret::Initialize();
-  StoragePool::Initialize();
-  StorageVolume::Initialize();
+  Domain::Initialize(exports);
+  NodeDevice::Initialize(exports);
+  Interface::Initialize(exports);
+  Network::Initialize(exports);
+  NetworkFilter::Initialize(exports);
+  Secret::Initialize(exports);
+  StoragePool::Initialize(exports);
+  StorageVolume::Initialize(exports);
   EventImpl::Initialize(exports);
 
   exports->Set(NanNew("version"), NanNew(NODE_LIBVIRT_VERSION));
@@ -38,4 +38,3 @@ void InitAll(Handle<Object> exports)
 }
 
 NODE_MODULE(libvirt, InitAll)
-

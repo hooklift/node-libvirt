@@ -12,7 +12,7 @@ namespace NodeLibvirt {
 class StoragePool : public ObjectWrap
 {
 public:
-  static void Initialize();
+  static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(const LibVirtHandle &handle);
   virtual ~StoragePool();
 
@@ -98,4 +98,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_STORAGE_POOL_H
-
