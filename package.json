@@ -21,7 +21,7 @@
   "dependencies": {
     "nan": "^1.7.0",
     "bindings": "^1.2.1",
-    "bluebird": "^2.9.24",
+    "bluebird": "^2.9.24"
   },
   "devDependencies": {
     "mocha": "^2.2.1",
