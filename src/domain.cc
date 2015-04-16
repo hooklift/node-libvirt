@@ -964,7 +964,7 @@ NLV_WORKER_EXECUTE(Domain, GetInterfaceStats)
 {
   NLV_WORKER_ASSERT_DOMAIN();
   int result =
-    virDomainInterfaceStats(Handle().ToDomain(), interface_.c_str(), &stats_, sizeof(&stats_));
+    virDomainInterfaceStats(Handle().ToDomain(), interface_.c_str(), &stats_, sizeof(stats_));
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
