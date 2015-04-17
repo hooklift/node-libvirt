@@ -458,8 +458,9 @@ NLV_WORKER_EXECUTE(Domain, GetId)
 {
   NLV_WORKER_ASSERT_DOMAIN();
 
-  int result = virDomainGetID(Handle().ToDomain());
-  if (result == -1) {
+  unsigned int result = virDomainGetID(Handle().ToDomain());
+  if (result == -1u) {
+    data_ = -1;
     SetVirError(virGetLastError());
     return;
   }
