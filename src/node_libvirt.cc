@@ -22,7 +22,7 @@ void InitAll(Handle<Object> exports)
 {
   virInitialize();
   Hypervisor::Initialize(exports);
-  Error::Initialize();
+  Error::Initialize(exports);
   Domain::Initialize(exports);
   NodeDevice::Initialize(exports);
   Interface::Initialize(exports);

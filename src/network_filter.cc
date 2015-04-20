@@ -6,10 +6,11 @@
 
 namespace NodeLibvirt {
 
-Persistent<FunctionTemplate> NetworkFilter::constructor_template;
+Persistent<Function> NetworkFilter::constructor;
 void NetworkFilter::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("NetworkFilter"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "getName", NetworkFilter::GetName);
@@ -17,16 +18,17 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "undefine", NetworkFilter::Undefine);
   NODE_SET_PROTOTYPE_METHOD(t, "toXml", NetworkFilter::ToXml);
 
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("NetworkFilter"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
 Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   NetworkFilter *filter = new NetworkFilter(handle.ToNetworkFilter());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   filter->Wrap(object);
   return NanEscapeScope(object);
 }

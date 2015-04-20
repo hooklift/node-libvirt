@@ -19,6 +19,7 @@ public:
 private:
   explicit StorageVolume(virStorageVolPtr handle) : handle_(handle) {}
   static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virStorageVolPtr handle_;
 
   friend class StoragePool;

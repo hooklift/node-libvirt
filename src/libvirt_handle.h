@@ -2,7 +2,14 @@
 #define LIBVIRT_HANDLE_H
 
 #include <libvirt/libvirt.h>
-#include <memory>
+
+#ifdef __APPLE__
+# include <tr1/memory>
+using namespace std::tr1;
+#else
+# include <memory>
+#endif
+
 using namespace std;
 
 namespace NodeLibvirt {

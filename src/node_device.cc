@@ -8,10 +8,11 @@ using namespace v8;
 
 namespace NodeLibvirt {
 
-Persistent<FunctionTemplate> NodeDevice::constructor_template;
+Persistent<Function> NodeDevice::constructor;
 void NodeDevice::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("NodeDevice"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "destroy",           Destroy);
@@ -23,16 +24,17 @@ void NodeDevice::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "toXml",             ToXml);
   NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",   GetCapabilities);
 
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("NodeDevice"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
 Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   NodeDevice *nodeDevice = new NodeDevice(handle.ToNodeDevice());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   nodeDevice->Wrap(object);
   return NanEscapeScope(object);
 }

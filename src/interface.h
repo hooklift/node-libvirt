@@ -19,7 +19,7 @@ public:
   virInterfacePtr GetInterface() const;
 
 private:
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virInterfacePtr handle_;
 
   friend class Hypervisor;

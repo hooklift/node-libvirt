@@ -5,10 +5,11 @@
 
 namespace NodeLibvirt {
 
-Persistent<FunctionTemplate> Network::constructor_template;
+Persistent<Function> Network::constructor;
 void Network::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("Network"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "start",           Start);
@@ -23,16 +24,17 @@ void Network::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "toXml",           ToXml);
   NODE_SET_PROTOTYPE_METHOD(t, "getBridgeName",   GetBridgeName);
 
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("Network"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("Network"), t->GetFunction());
 }
 
 Local<Object> Network::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   Network *network = new Network(handle.ToNetwork());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   network->Wrap(object);
   return NanEscapeScope(object);
 }

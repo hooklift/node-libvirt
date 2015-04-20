@@ -18,7 +18,7 @@ public:
 
 private:
   explicit Secret(virSecretPtr handle) : handle_(handle) {}
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virSecretPtr handle_;
 
   friend class Hypervisor;

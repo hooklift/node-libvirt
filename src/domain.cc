@@ -7,9 +7,11 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> Domain::constructor_template;
+Persistent<Function> Domain::constructor;
 void Domain::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("Domain"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   // ACTIONS
@@ -76,124 +78,130 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "lookupSnapshotByName",    LookupSnapshotByName);
   NODE_SET_PROTOTYPE_METHOD(t, "getSnapshots",            GetSnapshots);
 
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("Domain"));
-  exports->Set(NanNew("Domain"), t->GetFunction());
+  // Events
+  NODE_SET_PROTOTYPE_METHOD(t, "registerEvent",           RegisterEvent);
+  NODE_SET_PROTOTYPE_METHOD(t, "unregisterEvent",         UnregisterEvent);
 
-  Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+  NanAssignPersistent(constructor_template, t);
+  NanAssignPersistent(constructor, t->GetFunction());
+  exports->Set(NanNew("Domain"), t->GetFunction());
 
   //Constants initialization
   //virDomainState
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_NOSTATE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_RUNNING);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_BLOCKED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_PAUSED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SHUTDOWN);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SHUTOFF);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_CRASHED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_NOSTATE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_RUNNING);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCKED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_PAUSED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SHUTDOWN);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SHUTOFF);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_CRASHED);
 
 #ifdef VIR_DOMAIN_PMSUSPENDED
   // If its available in libvirt.h, then make it available in node
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_PMSUSPENDED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_PMSUSPENDED);
 #endif
 
   //virDomainDeviceModifyFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
 
   //virDomainMigrateFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_LIVE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PEER2PEER);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_TUNNELLED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PERSIST_DEST);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_UNDEFINE_SOURCE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_PAUSED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_DISK);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MIGRATE_NON_SHARED_INC);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_LIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_PEER2PEER);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_TUNNELLED);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_PERSIST_DEST);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_UNDEFINE_SOURCE);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_PAUSED);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_DISK);
+  NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_INC);
 
   //virDomainXMLFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_SECURE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_INACTIVE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_XML_UPDATE_CPU);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_SECURE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_INACTIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_UPDATE_CPU);
 
   //virDomainJobType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_NONE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_BOUNDED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_UNBOUNDED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_COMPLETED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_FAILED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_JOB_CANCELLED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_NONE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_BOUNDED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_UNBOUNDED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_COMPLETED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_FAILED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_JOB_CANCELLED);
 
-  //virDomainMemoryFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_VIRTUAL);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_MEMORY_PHYSICAL);
+  // virDomainMemoryFlags
+  NODE_DEFINE_CONSTANT(exports, VIR_MEMORY_VIRTUAL);
+  NODE_DEFINE_CONSTANT(exports, VIR_MEMORY_PHYSICAL);
 
-  //virDomainEventType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_DEFINED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_UNDEFINED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_RESUMED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED);
+  // virDomainEventType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_DEFINED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_UNDEFINED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STARTED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_SUSPENDED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_RESUMED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED);
 
-  //virDomainEventIOErrorAction
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_IO_ERROR_NONE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_IO_ERROR_PAUSE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_IO_ERROR_REPORT);
+  // virDomainEventIOErrorAction
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_IO_ERROR_NONE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_IO_ERROR_PAUSE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_IO_ERROR_REPORT);
 
-  //virDomainEventResumedDetailType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_RESUMED_UNPAUSED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_RESUMED_MIGRATED);
+  // virDomainEventResumedDetailType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_RESUMED_UNPAUSED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_RESUMED_MIGRATED);
 
-  //virDomainEventStartedDetailType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED_BOOTED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED_MIGRATED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED_RESTORED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STARTED_FROM_SNAPSHOT);
+  // virDomainEventStartedDetailType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STARTED_BOOTED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STARTED_MIGRATED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STARTED_RESTORED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STARTED_FROM_SNAPSHOT);
 
-  //virDomainEventStoppedDetailType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_DESTROYED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_CRASHED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_MIGRATED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_SAVED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_FAILED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_STOPPED_FROM_SNAPSHOT);
+  // virDomainEventStoppedDetailType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_DESTROYED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_CRASHED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_MIGRATED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_SAVED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_FAILED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_STOPPED_FROM_SNAPSHOT);
 
-  //virDomainEventSuspendedDetailType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED_PAUSED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED_MIGRATED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED_IOERROR);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_SUSPENDED_WATCHDOG);
+  // virDomainEventSuspendedDetailType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_SUSPENDED_PAUSED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_SUSPENDED_MIGRATED);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_SUSPENDED_IOERROR);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_SUSPENDED_WATCHDOG);
 
-  //virDomainEventUndefinedDetailType
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_UNDEFINED_REMOVED);
+  // virDomainEventUndefinedDetailType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_UNDEFINED_REMOVED);
 
-  //virDomainEventWatchdogAction
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_NONE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_PAUSE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_RESET);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_POWEROFF);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_SHUTDOWN);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_EVENT_WATCHDOG_DEBUG);
+  // virDomainEventWatchdogAction
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_NONE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_PAUSE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_RESET);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_POWEROFF);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_SHUTDOWN);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_WATCHDOG_DEBUG);
 
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_DOMAIN_SEND_KEY_MAX_KEYS);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SEND_KEY_MAX_KEYS);
+
+
+  // ETC
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
 }
 
 Local<Object> Domain::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   Domain *domain = new Domain(handle.ToDomain());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   domain->Wrap(object);
   return NanEscapeScope(object);
 }
 
 Domain::~Domain()
 {
-  fprintf(stderr, "\n\nDELETING THE DOMAIN!!!\n\n");
-
   if (handle_ != NULL)
     virDomainFree(handle_);
   handle_ = 0;
@@ -802,7 +810,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetInfo)
   result->Set(NanNew("vcpus"), NanNew<Integer>(info_.nrVirtCpu));
   result->Set(NanNew("cpuTime"), NanNew<Number>(info_.cpuTime));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -841,7 +849,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetBlockInfo)
   result->Set(NanNew("allocation"), NanNew<Number>(info_.allocation));
   result->Set(NanNew("physical"), NanNew<Number>(info_.physical));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -883,7 +891,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetBlockStats)
   result->Set(NanNew("writeBytes"), NanNew<Number>(stats_.wr_bytes));
   result->Set(NanNew("errors"), NanNew<Number>(stats_.errs));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -941,7 +949,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetSecurityLabel)
   result->Set(NanNew("label"), NanNew<String>(info_.label));
   result->Set(NanNew("enforcing"), NanNew<Boolean>(info_.enforcing));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -991,7 +999,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetInterfaceStats)
   result->Set(NanNew("rx"), rx);
   result->Set(NanNew("tx"), tx);
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -1035,7 +1043,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetJobInfo)
   result->Set(NanNew("memory"), memory);
   result->Set(NanNew("file"), file);
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -1093,7 +1101,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetMemoryStats)
     }
   }
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -1286,7 +1294,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
     result->Set(NanNew(i), cpu);
   }
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { NanNull(), result };
   callback->Call(2, argv);
 }
 
@@ -1531,7 +1539,7 @@ NAN_METHOD(Domain::MemoryPeek)
   Local<Array> flags_ = Local<Array>::Cast(args[2]);
   unsigned int length = flags_->Length();
   for (unsigned int i = 0; i < length; i++)
-    flags |= flags_->Get(Integer::New(i))->Int32Value();
+    flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
 
   Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
   NanCallback *callback = new NanCallback(args[3].As<Function>());
@@ -1832,7 +1840,7 @@ NLV_WORKER_EXECUTE(Domain, GetSnapshots)
 NLV_WORKER_OKCALLBACK(Domain, GetSnapshots)
 {
   NanScope();
-  Local<Array> snapshots = Array::New(xmls_.size());
+  Local<Array> snapshots = NanNew<Array>(xmls_.size());
   int i = 0;
 
   for (std::vector<std::string>::iterator it = xmls_.begin() ; it != xmls_.end(); ++it)
@@ -1842,6 +1850,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetSnapshots)
   callback->Call(2, argv);
 }
 
+
 NAN_METHOD(Domain::RegisterEvent)
 {
   NanScope();
@@ -1850,78 +1859,65 @@ NAN_METHOD(Domain::RegisterEvent)
     NanThrowTypeError("You must specify a object and a callback as argument");
     NanReturnUndefined();
   }
+
   Local<Object> arg_obj = args[0]->ToObject();
   if (!arg_obj->Has(NanNew("evtype")) ||
       !arg_obj->Get(NanNew("evtype"))->IsInt32()) {
     NanThrowTypeError("You must specify an valid event type");
     NanReturnUndefined();
   }
-  if( !arg_obj->Has(NanNew("callback")) ||
-      !arg_obj->Get(NanNew("callback"))->IsFunction()) {
-    NanThrowTypeError("You must specify a valid callback function");
-    NanReturnUndefined();
-  }
 
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  Domain *domain = NULL;
-  if (arg_obj->Has(NanNew("domain"))) {
-    Local<Object> domain_obj = arg_obj->Get(NanNew("domain"))->ToObject();
-    if (!NanHasInstance(Domain::constructor_template, domain_obj)) {
-      NanThrowTypeError("You must specify a Domain object instance");
-      NanReturnUndefined();
-    }
-    domain = ObjectWrap::Unwrap<Domain>(domain_obj);
-  }
-
-  int evtype = arg_obj->Get(NanNew("evtype"))->Int32Value();
-  Local<Value> jscallback = arg_obj->Get(NanNew("callback"));
-  Persistent<Object> opaque = Persistent<Object>::New(NanNew<Object>());
-  opaque->Set(NanNew("hypervisor"), args.This());
-  opaque->Set(NanNew("callback"), jscallback);
-
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  int eventId = arg_obj->Get(NanNew("evtype"))->Int32Value();
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new RegisterEventWorker(callback, hypervisor->handle_, domain != NULL ? domain->handle_ : NULL, evtype, (void*)*opaque));
+  NanAsyncQueueWorker(new RegisterEventWorker(callback, domain->handle_, domain, eventId));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(Domain, RegisterEvent)
 {
   virConnectDomainEventGenericCallback callback = NULL;
-
-  switch (evtype_) {
+  switch (eventId_) {
     case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_lifecycle_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_lifecycle_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_REBOOT:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_generic_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_rtcchange_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_rtcchange_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_WATCHDOG:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_watchdog_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_watchdog_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_IO_ERROR:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_io_error_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_io_error_reason_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_io_error_reason_callback);
       break;
     case VIR_DOMAIN_EVENT_ID_GRAPHICS:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_graphics_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_graphics_callback);
       break;
     default:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(domain_event_generic_callback);
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_generic_callback);
       break;
   }
 
-  int ret = virConnectDomainEventRegisterAny(Handle().ToConnection(), domain_, evtype_, callback, opaque_, domain_event_free);
-  if (ret == -1) {
+  virDomainPtr domain = Handle().ToDomain();
+  int result = virConnectDomainEventRegisterAny(
+    virDomainGetConnect(domain), domain, eventId_, callback, domain_, domain_event_free
+  );
+
+  if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  data_ = ret;
+  // @todo: this should be added to a vector so we can free it if the
+  //        object is deleted
+
+  data_ = result;
 }
 
 NAN_METHOD(Domain::UnregisterEvent)
@@ -1929,22 +1925,23 @@ NAN_METHOD(Domain::UnregisterEvent)
   NanScope();
 
   if (args.Length() != 2 || !args[0]->IsInt32() || !args[1]->IsFunction()) {
-    NanThrowTypeError("You must specify a integer and a callback");
+    NanThrowTypeError("You must specify a callback identifier and a callback");
     NanReturnUndefined();
   }
 
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new UnregisterEventWorker(callback, hypervisor->handle_, args[0]->Int32Value()));
+  NanAsyncQueueWorker(new UnregisterEventWorker(callback, domain->handle_, args[0]->Int32Value()));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
 {
-  if (virConnectDomainEventDeregisterAny(Handle().ToConnection(), callbackid_) == -1) {
+  if (virConnectDomainEventDeregisterAny(virDomainGetConnect(Handle().ToDomain()), callbackId_) == -1) {
     SetVirError(virGetLastError());
     return;
   }
+
   data_ = true;
 }
 
@@ -1971,24 +1968,24 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   type = virDomainGetSchedulerType(domain->handle_, &nparams);
   if (type == NULL) {
-    ThrowException(Error::New(virGetLastError()));
-    return NanFalse();
+    NanThrowError(Error::New(virGetLastError()));
+    NanReturnValue(NanFalse());
   }
   free(type);
 
   params = (virSchedParameterPtr) malloc(sizeof(*params) * nparams);
   if (params == NULL) {
-    LIBVIRT_THROW_EXCEPTION("unable to allocate memory");
-    return NanFalse();
+    NanThrowError("unable to allocate memory");
+    NanReturnValue(NanFalse());
   }
 
   memset(params, 0, sizeof(*params) * nparams);
 
   ret = virDomainGetSchedulerParameters(domain->handle_, params, &nparams);
   if(ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+    NanThrowError(Error::New(virGetLastError()));
     free(params);
-    return NanFalse();
+    NanReturnValue(NanFalse());
   }
 
   for (int i = 0; i < nparams; i++) {
@@ -2023,77 +2020,41 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   ret = virDomainSetSchedulerParameters(domain->handle_, params, nparams);
   if (ret == -1) {
-    ThrowException(Error::New(virGetLastError()));
+    NanThrowError(Error::New(virGetLastError()));
     free(params);
-    return NanFalse();
+    NanReturnValue(NanFalse());
   }
   free(params);
 
-  return NanTrue();
+  NanReturnValue(NanTrue());
+}
+
+void Domain::domain_event_free(void *opaque)
+{
+  fprintf(stderr, "NOT IMPLEMENTED!");
 }
 
 int Domain::domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr dom, int event,
                                             int detail, void *opaque)
 {
   NanScope();
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
   Local<Object> data = NanNew<Object>();
   data->Set(NanNew("evtype"), NanNew<Integer>(event));
   data->Set(NanNew("detail"), NanNew<Integer>(detail));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  Handle<Value> argv[2] = {
+    NanNew("lifecycleEvent"),
+    data
+  };
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
-
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
 
 int Domain::domain_event_generic_callback(virConnectPtr conn, virDomainPtr dom, void *opaque)
 {
-  NanScope();
-
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[2];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
-
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  TryCatch try_catch;
-  callback->Call(hyp, 2, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
-
+  fprintf(stderr, "GENERIC CALLBACK CALLED");
   return 0;
 }
 
@@ -2101,35 +2062,16 @@ int Domain::domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr dom
                                             long long utcoffset, void *opaque)
 {
   NanScope();
-
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
   Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("utc_offset"), NanNew<Number>(utcoffset));
+  data->Set(NanNew("utcOffset"), NanNew<Number>(utcoffset));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  Handle<Value> argv[2] = {
+    NanNew("rtcChange"),
+    data
+  };
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
-
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
 
@@ -2137,35 +2079,16 @@ int Domain::domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr dom,
                                            void *opaque)
 {
   NanScope();
-
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
-
   Local<Object> data = NanNew<Object>();
   data->Set(NanNew("action"), NanNew<Integer>(action));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  Handle<Value> argv[2] = {
+    NanNew("watchdogEvent"),
+    data
+  };
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
-
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
 
@@ -2174,37 +2097,20 @@ int Domain::domain_event_io_error_callback(virConnectPtr conn, virDomainPtr dom,
                                            int action, void *opaque)
 {
   NanScope();
-
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
-
   Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("src_path"), NanNew(src_path));
-  data->Set(NanNew("dev_alias"), NanNew(dev_alias));
+  data->Set(NanNew("sourcePath"), NanNew(src_path));
+  data->Set(NanNew("devAlias"), NanNew(dev_alias));
   data->Set(NanNew("action"), NanNew<Integer>(action));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  data->Set(NanNew("action"), NanNew<Integer>(action));
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
+  Handle<Value> argv[2] = {
+    NanNew("ioError"),
+    data
+  };
 
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
 
@@ -2213,35 +2119,19 @@ int Domain::domain_event_io_error_reason_callback(virConnectPtr conn, virDomainP
                                                   int action, const char *reason, void *opaque)
 {
   NanScope();
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-
-  /*The virDomainPtr object handle passed into the callback upon delivery
-  of an event is only valid for the duration of execution of the callback
-  If the callback wishes to keep the domain object after the callback,
-  it shall take a reference to it, by calling virDomainRef*/
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
-
   Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("src_path"), NanNew(src_path));
-  data->Set(NanNew("dev_alias"), NanNew(dev_alias));
+  data->Set(NanNew("sourcePath"), NanNew(src_path));
+  data->Set(NanNew("devAlias"), NanNew(dev_alias));
   data->Set(NanNew("reason"), NanNew(reason));
   data->Set(NanNew("action"), NanNew<Integer>(action));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  Handle<Value> argv[2] = {
+    NanNew("ioErrorReason"),
+    data
+  };
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
-
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
 
@@ -2253,21 +2143,6 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
                                            void *opaque)
 {
   NanScope();
-  Local<Object> domain_obj = Domain::NewInstance(dom);
-
-  /*
-    The virDomainPtr object handle passed into the callback upon delivery
-    of an event is only valid for the duration of execution of the callback
-    If the callback wishes to keep the domain object after the callback,
-    it shall take a reference to it, by calling virDomainRef
-  */
-  virDomainRef(dom);
-
-  Local<Value> argv[3];
-  Persistent<Object> obj = static_cast<Object*>(opaque);
-  Local<Object> hyp = obj->Get(NanNew("hypervisor"))->ToObject();
-  Local<Function> callback = obj->Get(NanNew("callback")).As<Function>();
-
   Local<String> lfamily;
   switch (local->family) {
   case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
@@ -2314,24 +2189,14 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
   data->Set(NanNew("phase"), NanNew<Integer>(phase));
   data->Set(NanNew("auth_scheme"), NanNew(auth_scheme));
 
-  argv[0] = hyp;
-  argv[1] = domain_obj; //FIXME change with domain->handle_
-  argv[2] = data;
+  Handle<Value> argv[2] = {
+    NanNew("graphicsEvent"),
+    data
+  };
 
-  TryCatch try_catch;
-  callback->Call(hyp, 3, argv);
-  if (try_catch.HasCaught()) {
-    FatalException(try_catch);
-  }
+  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
+  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
   return 0;
 }
-
-void Domain::domain_event_free(void* /* opaque */)
-{
-  fprintf(stderr, "NOT IMPLEMENTED!");
-}
-
-
-
 
 } //namespace NodeLibvirt

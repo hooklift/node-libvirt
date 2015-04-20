@@ -12,10 +12,12 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> StoragePool::constructor_template;
+Persistent<Function> StoragePool::constructor;
 void StoragePool::Initialize(Handle<Object> exports)
 {
   NanScope();
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("StoragePool"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "build",               Build);
@@ -38,29 +40,29 @@ void StoragePool::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByName",  StorageVolume::LookupByName);
 
   NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("StoragePool"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("StoragePool"), t->GetFunction());
-
-  Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
 
   //Constants initialization
   //virStoragePoolDeleteFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_DELETE_NORMAL);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_DELETE_ZEROED);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_DELETE_NORMAL);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_DELETE_ZEROED);
 
   //virStoragePoolState
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_INACTIVE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_BUILDING);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_RUNNING);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_DEGRADED);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_POOL_INACCESSIBLE);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_INACTIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_BUILDING);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_RUNNING);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_DEGRADED);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_INACCESSIBLE);
 }
 
 Local<Object> StoragePool::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   StoragePool *storagePool = new StoragePool(handle.ToStoragePool());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   storagePool->Wrap(object);
   return NanEscapeScope(object);
 }

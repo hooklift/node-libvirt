@@ -5,10 +5,11 @@
 
 namespace NodeLibvirt {
 
-Persistent<FunctionTemplate> Interface::constructor_template;
+Persistent<Function> Interface::constructor;
 void Interface::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("Interface"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "start",         Start);
@@ -19,22 +20,21 @@ void Interface::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
   NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
 
-  Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
+  NanAssignPersistent(constructor, t->GetFunction());
+  exports->Set(NanNew("Interface"), t->GetFunction());
 
   //Constants
   //virInterfaceXMLFlags
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_INTERFACE_XML_INACTIVE);
-
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("Interface"));
-  exports->Set(NanNew("Interface"), t->GetFunction());
+  NODE_DEFINE_CONSTANT(exports, VIR_INTERFACE_XML_INACTIVE);
 }
 
 Local<Object> Interface::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   Interface *interface = new Interface(handle.ToInterface());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   interface->Wrap(object);
   return NanEscapeScope(object);
 }

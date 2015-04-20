@@ -5,10 +5,11 @@
 
 namespace NodeLibvirt {
 
-Persistent<FunctionTemplate> Secret::constructor_template;
+Persistent<Function> Secret::constructor;
 void Secret::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("Secret"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
@@ -19,16 +20,17 @@ void Secret::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "getUsageType",  GetUsageType);
   NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
 
-  NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("Secret"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
 Local<Object> Secret::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   Secret *secret = new Secret(handle.ToSecret());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   secret->Wrap(object);
   return NanEscapeScope(object);
 }

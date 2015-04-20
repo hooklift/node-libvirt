@@ -11,10 +11,12 @@
 namespace NodeLibvirt {
 
 Persistent<FunctionTemplate> StorageVolume::constructor_template;
+Persistent<Function> StorageVolume::constructor;
 void StorageVolume::Initialize(Handle<Object> exports)
 {
   NanScope();
-  Local<FunctionTemplate> t = FunctionTemplate::New();
+  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
+  t->SetClassName(NanNew("StorageVolume"));
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(t, "getInfo", GetInfo);
@@ -26,19 +28,21 @@ void StorageVolume::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "wipe",    Wipe);
 
   NanAssignPersistent(constructor_template, t);
-  constructor_template->SetClassName(NanNew("StorageVolume"));
+  NanAssignPersistent(constructor, t->GetFunction());
   exports->Set(NanNew("StorageVolume"), t->GetFunction());
 
-  Local<ObjectTemplate> object_tmpl = t->InstanceTemplate();
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_FILE);
-  NODE_DEFINE_CONSTANT(object_tmpl, VIR_STORAGE_VOL_BLOCK);
+  // Constants
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_FILE);
+  NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_BLOCK);
 }
 
 Local<Object> StorageVolume::NewInstance(const LibVirtHandle &handle)
 {
-  NanScope();
+  NanEscapableScope();
+  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Object> object = ctor->NewInstance();
+
   StorageVolume *storageVolume = new StorageVolume(handle.ToStorageVolume());
-  Local<Object> object = constructor_template->GetFunction()->NewInstance();
   storageVolume->Wrap(object);
   return NanEscapeScope(object);
 }

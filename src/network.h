@@ -18,7 +18,7 @@ public:
 
 private:
   explicit Network(virNetworkPtr handle) : handle_(handle) {}
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virNetworkPtr handle_;
 
   friend class Hypervisor;
