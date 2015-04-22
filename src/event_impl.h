@@ -10,6 +10,7 @@ namespace NodeLibvirt {
 
 class nodeEventHandle;
 class nodeEventTimeout;
+
 class EventImpl
 {
 public:
@@ -26,9 +27,17 @@ private:
   static int RemoveTimeout(int timer);
 
   static void HandleCallback(uv_poll_t* handle, int status, int events);
+#if UV_VERSION_MAJOR < 1
+  static void UpdateHandlesOnce(uv_check_t* handle, int status);
   static void CheckCallback(uv_check_t* handle, int status);
   static void TimerCallback(uv_timer_t* handle, int status);
+#else
+  static void UpdateHandlesOnce(uv_check_t* handle);
+  static void CheckCallback(uv_check_t* handle);
+  static void TimerCallback(uv_timer_t* handle);
+#endif
   static void TimeoutCallback(uv_handle_s* handle);
+  static void ClosePollCallback(uv_handle_t* handle);
 
   static int EventToUV(int);
   static int EventFromUV(int);
@@ -47,4 +56,3 @@ private:
 }  //namespace NodeLibvirt
 
 #endif  // SRC_EVENTIMPL_H
-
