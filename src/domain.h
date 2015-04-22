@@ -19,6 +19,7 @@ public:
 private:
   explicit Domain(virDomainPtr handle) : handle_(handle) {}
   static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virDomainPtr handle_;
 
   friend class Hypervisor;
@@ -131,22 +132,21 @@ private:
 
   class RegisterEventWorker : public PrimitiveReturnWorker<int> {
   public:
-    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, virDomainPtr domain, int evtype, void *opaque)
-      : PrimitiveReturnWorker(callback, handle), domain_(domain), evtype_(evtype), opaque_(opaque) {}
+    RegisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, Domain *domain, int eventId)
+      : PrimitiveReturnWorker(callback, handle), domain_(domain), eventId_(eventId) {}
     void Execute();
   private:
-    virDomainPtr domain_;
-    int evtype_;
-    void *opaque_;
+    Domain *domain_;
+    int eventId_;
   };
 
   class UnregisterEventWorker : public PrimitiveReturnWorker<bool> {
   public:
-    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackid)
-      : PrimitiveReturnWorker(callback, handle), callbackid_(callbackid) {}
+    UnregisterEventWorker(NanCallback *callback, const LibVirtHandle &handle, int callbackId)
+      : PrimitiveReturnWorker(callback, handle), callbackId_(callbackId) {}
     void Execute();
   private:
-    int callbackid_;
+    int callbackId_;
   };
 
   // ACTION METHOD WORKERS
@@ -465,7 +465,6 @@ private:
                                             const char *authScheme,
                                             virDomainEventGraphicsSubjectPtr subject,
                                             void *opaque);
-
 };
 
 }  //namespace NodeLibvirt

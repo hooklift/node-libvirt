@@ -33,6 +33,11 @@
             '-std=c++11',
             '<!@(pkg-config --cflags libvirt)'
           ],
+        }],
+        ['OS=="mac"', {
+          'xcode_settings': {
+            'GCC_ENABLE_CPP_RTTI': 'YES'
+          }
         }]
       ]
     }

@@ -18,7 +18,7 @@ public:
 
 private:
   explicit NodeDevice(virNodeDevicePtr handle) : handle_(handle) {}
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   virNodeDevicePtr handle_;
 
   friend class Hypervisor;

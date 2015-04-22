@@ -3,8 +3,9 @@
 
 namespace NodeLibvirt {
 
-struct LibVirtHandlePrivate
+class LibVirtHandlePrivate
 {
+public:
   LibVirtHandlePrivate() {
     data.connection = 0;
     data.interface = 0;

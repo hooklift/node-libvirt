@@ -15,12 +15,12 @@ namespace NodeLibvirt {
 class Error : public ObjectWrap
 {
 public:
-  static void Initialize();
-  static Handle<Value> New(virErrorPtr error);
+  static void Initialize(Handle<Object> exports);
+  static Local<Object> New(virErrorPtr error);
 
 private:
   explicit Error(virErrorPtr error);
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
 
   static NAN_GETTER(Getter);
 
