@@ -100,7 +100,7 @@ void EventImpl::UpdateHandlesOnce(uv_check_t* handle)
     if (timeout->newFrequency == timeout->frequency && !timeout->toDelete)
       continue;
 
-    fprintf(stderr, "CHANGE FREQ, freq=%d\n", timeout->newFrequency);
+    //fprintf(stderr, "CHANGE FREQ, freq=%d\n", timeout->newFrequency);
     uv_timer_stop(&timeout->timerWatcher);
     uv_check_stop(&timeout->checkWatcher);
 
@@ -171,7 +171,7 @@ void EventImpl::ClosePollCallback(uv_handle_t* handle) {
 int EventImpl::AddHandle(int fd, int event, virEventHandleCallback cb, void *opaque,
                          virFreeCallback ff)
 {
-  fprintf(stderr, "Adding handle, fd=%d, event=%d\n", fd, event);
+  //fprintf(stderr, "Adding handle, fd=%d, event=%d\n", fd, event);
 
   uv_mutex_lock(&lock);
   nodeEventHandle *handle;
@@ -259,7 +259,7 @@ nodeEventHandle* EventImpl::FindDeletedHandle()
 int EventImpl::AddTimeout(int frequency, virEventTimeoutCallback cb, void *opaque,
                           virFreeCallback ff)
 {
-  fprintf(stderr, "Adding timeout, freq=%d\n", frequency);
+  //fprintf(stderr, "Adding timeout, freq=%d\n", frequency);
 
   uv_mutex_lock(&lock);
 
@@ -301,7 +301,7 @@ int EventImpl::AddTimeout(int frequency, virEventTimeoutCallback cb, void *opaqu
 
 void EventImpl::UpdateTimeout(int timer, int frequency)
 {
-  fprintf(stderr, "update timeout, timer=%d timeout=%d\n", timer, frequency);
+  //fprintf(stderr, "update timeout, timer=%d timeout=%d\n", timer, frequency);
 
   uv_mutex_lock(&lock);
 
