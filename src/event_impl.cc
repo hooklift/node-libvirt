@@ -75,7 +75,7 @@ void EventImpl::UpdateHandlesOnce(uv_check_t* handle)
   for (std::vector<nodeEventHandle*>::iterator it = handles.begin() ; it != handles.end(); ++it) {
     nodeEventHandle *handle = *it;
 
-    if (handle->newEvent == handle->event && !handle->toDelete)
+    if (handle->deleted || (handle->newEvent == handle->event && !handle->toDelete))
       continue;
 
     if (handle->toDelete) {
@@ -97,7 +97,7 @@ void EventImpl::UpdateHandlesOnce(uv_check_t* handle)
   for (std::vector<nodeEventTimeout*>::iterator it = timeouts.begin() ; it != timeouts.end(); ++it) {
     nodeEventTimeout *timeout = *it;
 
-    if (timeout->newFrequency == timeout->frequency && !timeout->toDelete)
+    if (timeout->deleted || (timeout->newFrequency == timeout->frequency && !timeout->toDelete))
       continue;
 
     //fprintf(stderr, "CHANGE FREQ, freq=%d\n", timeout->newFrequency);
