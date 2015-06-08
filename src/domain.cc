@@ -27,6 +27,7 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "managedSaveRemove",       ManagedSaveRemove);
   NODE_SET_PROTOTYPE_METHOD(t, "abortCurrentJob",         AbortCurrentJob);
   NODE_SET_PROTOTYPE_METHOD(t, "coreDump",                CoreDump);
+  NODE_SET_PROTOTYPE_METHOD(t, "undefine",                Undefine);
 
   NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",            AttachDevice);
   NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",            DetachDevice);
@@ -393,6 +394,19 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
 
   unsigned int flags = 0;
   int result = virDomainCoreDump(Handle().ToDomain(), path_.c_str(), flags);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = true;
+}
+
+NLV_WORKER_METHOD_NO_ARGS(Domain, Undefine)
+NLV_WORKER_EXECUTE(Domain, Undefine)
+{
+  NLV_WORKER_ASSERT_DOMAIN();
+  int result = virDomainUndefine(Handle().ToDomain());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;

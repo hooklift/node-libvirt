@@ -61,6 +61,7 @@ private:
   static NAN_METHOD(TakeSnapshot);
   static NAN_METHOD(DeleteSnapshot);
   static NAN_METHOD(LookupSnapshotByName);
+  static NAN_METHOD(Undefine);
 
   // ACCESSORS/MUTATORS
   static NAN_METHOD(GetName);
@@ -160,6 +161,7 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
 
   class SaveWorker : public PrimitiveReturnWorker<bool> {
   public:
