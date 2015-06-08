@@ -58,6 +58,28 @@ describe('Domain', function() {
         });
       });
     });
+
+    it('should {,un}define a persistent Domain', function(done) {
+      var xml = fixture('domain.xml');
+      test.hypervisor.defineDomain(xml, function(err, domain) {
+        expect(err).to.not.exist;
+        expect(domain).to.exist;
+
+        test.hypervisor.lookupDomainByName('nodejs-test', function(err, lookupDomain) {
+          expect(err).to.not.exist;
+
+          lookupDomain.undefine(function(err, result) {
+            expect(err).to.not.exist;
+            expect(result).to.be.true;
+
+            test.hypervisor.lookupDomainByName('nodejs-test', function(err, lookupDomain) {
+              expect(err).to.exist;
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('actions', function() {
