@@ -3,45 +3,80 @@
 #define SRC_STORAGE_VOLUME_H_
 
 #include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+
+#include "worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-    class StorageVolume : public ObjectWrap {
-        friend class Hypervisor;
-        friend class StoragePool;
+class StorageVolume : public ObjectWrap
+{
+public:
+  static void Initialize(Handle<Object> exports);
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~StorageVolume();
 
-        public:
-            static void Initialize();
-            static inline bool HasInstance(v8::Handle<v8::Value> value) {
-                if (!value->IsObject()) {
-                    return false;
-                }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
-            }
+private:
+  explicit StorageVolume(virStorageVolPtr handle) : handle_(handle) {}
+  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
+  virStorageVolPtr handle_;
 
-        protected:
-            static Handle<Value> Create(const Arguments& args);
-            static Handle<Value> GetInfo(const Arguments& args);
-            static Handle<Value> GetKey(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetPath(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> LookupByKey(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> LookupByPath(const Arguments& args);
-            static Handle<Value> Wipe(const Arguments& args);
-            static Handle<Value> Delete(const Arguments& args);
-            static Handle<Value> Clone(const Arguments& args);
+  friend class StoragePool;
+  friend class Hypervisor;
 
-        private:
-            virStorageVolPtr volume_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+private:
+  // HYPERVISOR METHODS
+  static NAN_METHOD(LookupByKey);
+  static NAN_METHOD(LookupByPath);
+
+  // STORAGEPOOL METHODS
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(Create);
+  static NAN_METHOD(Clone);
+
+  // ACTIONS
+  static NAN_METHOD(Wipe);
+  static NAN_METHOD(Delete);
+
+  // ACCESSORS/MUTATORS
+  static NAN_METHOD(GetInfo);
+  static NAN_METHOD(GetKey);
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetPath);
+  static NAN_METHOD(ToXml);
+
+private:
+  // HYPERVISOR METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByKey);
+  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByPath);
+
+  // STORAGEPOOL METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByName);
+  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, Create);
+
+  class CloneWorker : public LookupInstanceByValueWorker<StorageVolume> {
+  public:
+    CloneWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value, virStorageVolPtr cloneHandle)
+      : LookupInstanceByValueWorker<StorageVolume>(callback, handle, value), cloneHandle_(cloneHandle) {}
+    void Execute();
+  private:
+    virStorageVolPtr cloneHandle_;
+  };
+
+  // ACTION METHOD WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(Wipe, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Delete, bool);
+
+  // ACCESSOR/MUTATOR WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(GetKey, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetPath, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolInfo);
+
+};
 
 }  //namespace NodeLibvirt
 
 #endif  // SRC_STORAGE_VOLUME_H
-

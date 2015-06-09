@@ -5,237 +5,371 @@
 
 namespace NodeLibvirt {
 
-    int EventImpl::nextWatch = 1;
-    int EventImpl::nextTimeout = 1;
-    std::vector<nodeEventHandle*> EventImpl::handles;
-    std::vector<nodeEventTimeout*> EventImpl::timeouts;
+class nodeEventHandle
+{
+public:
+  int watch;
+  virEventHandleCallback cb;
+  void *opaque;
+  int event;
+  int newEvent;
+  int toDelete;
+  int deleted;
+  int fd;
+  uv_poll_t watcher;
+};
 
-    void EventImpl::Initialize(Handle<Object> target) {
-        target->Set(String::NewSymbol("setupEvent"), FunctionTemplate::New(SetupEvent)->GetFunction());
+class nodeEventTimeout
+{
+public:
+  int timer;
+  int frequency;
+  int newFrequency;
+  virEventTimeoutCallback cb;
+  void *opaque;
+  int toDelete;
+  int deleted;
+  uv_timer_t timerWatcher;
+  uv_check_t checkWatcher;
+};
+
+
+uv_check_t updateHandleChecker;
+uv_mutex_t lock;
+int EventImpl::nextWatch = 1;
+int EventImpl::nextTimeout = 1;
+std::vector<nodeEventHandle*> EventImpl::handles;
+std::vector<nodeEventTimeout*> EventImpl::timeouts;
+
+void EventImpl::Initialize(Handle<Object> exports)
+{
+  NanScope();
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(SetupEvent);
+  exports->Set(NanNew("setupEvent"), tpl->GetFunction());
+}
+
+NAN_METHOD(EventImpl::SetupEvent)
+{
+  NanScope();
+
+  uv_mutex_init(&lock);
+  uv_check_init(uv_default_loop(), &updateHandleChecker);
+  uv_check_start(&updateHandleChecker, EventImpl::UpdateHandlesOnce);
+
+  virEventRegisterImpl(
+    AddHandle, UpdateHandle, RemoveHandle,
+    AddTimeout, UpdateTimeout, RemoveTimeout
+  );
+
+  NanReturnUndefined();
+}
+
+#if UV_VERSION_MAJOR < 1
+void EventImpl::UpdateHandlesOnce(uv_check_t* handle, int status)
+#else
+void EventImpl::UpdateHandlesOnce(uv_check_t* handle)
+#endif
+{
+  uv_mutex_lock(&lock);
+
+  for (std::vector<nodeEventHandle*>::iterator it = handles.begin() ; it != handles.end(); ++it) {
+    nodeEventHandle *handle = *it;
+
+    if (handle->deleted || (handle->newEvent == handle->event && !handle->toDelete))
+      continue;
+
+    if (handle->toDelete) {
+      //fprintf(stderr, " CLOSE POLL, watch=%d event=%d\n", handle->watch, handle->newEvent);
+      handle->toDelete = 0;
+      uv_poll_stop(&handle->watcher);
+      uv_close((uv_handle_t*)&handle->watcher, EventImpl::ClosePollCallback);
+    } else if (EventToUV(handle->newEvent) == 0) {
+      //fprintf(stderr, " STOP POLL, watch=%d event=%d\n", handle->watch, handle->newEvent);
+      uv_poll_stop(&handle->watcher);
+    } else {
+      //fprintf(stderr, " START POLL, watch=%d event=%d\n", handle->watch, handle->newEvent);
+      uv_poll_start(&handle->watcher, EventToUV(handle->newEvent), EventImpl::HandleCallback);
     }
 
-    Handle<Value> EventImpl::SetupEvent(const Arguments& args) {
-        HandleScope scope;
+    handle->event = handle->newEvent;
+  }
 
-        virEventRegisterImpl(
-            AddHandle,
-            UpdateHandle,
-            RemoveHandle,
-            AddTimeout,
-            UpdateTimeout,
-            RemoveTimeout
-            );
+  for (std::vector<nodeEventTimeout*>::iterator it = timeouts.begin() ; it != timeouts.end(); ++it) {
+    nodeEventTimeout *timeout = *it;
 
-        return scope.Close(Undefined());
+    if (timeout->deleted || (timeout->newFrequency == timeout->frequency && !timeout->toDelete))
+      continue;
+
+    //fprintf(stderr, "CHANGE FREQ, freq=%d\n", timeout->newFrequency);
+    uv_timer_stop(&timeout->timerWatcher);
+    uv_check_stop(&timeout->checkWatcher);
+
+    if (timeout->toDelete) {
+      timeout->deleted = 1;
+    } else if (timeout->newFrequency == 0) {
+      uv_check_start(&timeout->checkWatcher, CheckCallback);
+    } else if (timeout->newFrequency >= 0) {
+      uv_timer_start(&timeout->timerWatcher, TimerCallback, timeout->newFrequency, timeout->newFrequency);
     }
 
-    void EventImpl::HandleCallback(uv_poll_t* handle, int status, int events) {
-        nodeEventHandle *h = (nodeEventHandle*) handle->data;
-        virEventHandleCallback cb = h->cb;
+    timeout->frequency = timeout->newFrequency;
+  }
 
-        (cb)(h->watch, h->fd, EventImpl::EventFromUV(events), h->opaque);
-    }
+  uv_mutex_unlock(&lock);
+}
 
-    void EventImpl::CheckCallback(uv_check_t* handle, int status) {
-        TimeoutCallback((uv_handle_s*)handle);
-    }
+void EventImpl::HandleCallback(uv_poll_t* handle, int status, int events)
+{
+  //fprintf(stderr, "dispatch handle=%d status=%d, events=%d\n", h->watch, status, events);
 
-    void EventImpl::TimerCallback(uv_timer_t* handle, int status) {
-        TimeoutCallback((uv_handle_s*)handle);
-    }
+  nodeEventHandle *h = (nodeEventHandle*) handle->data;
+  virEventHandleCallback cb = h->cb;
 
-    void EventImpl::TimeoutCallback(uv_handle_s* handle) {
-        nodeEventTimeout *t = (nodeEventTimeout*) handle->data;
-        virEventTimeoutCallback cb = t->cb;
+  (cb)(h->watch, h->fd, EventImpl::EventFromUV(events), h->opaque);
+}
 
-        (cb)(t->timer, t->opaque);
-    }
+#if UV_VERSION_MAJOR < 1
+void EventImpl::CheckCallback(uv_check_t* handle, int status)
+#else
+void EventImpl::CheckCallback(uv_check_t* handle)
+#endif
+{
+  TimeoutCallback((uv_handle_s*)handle);
+}
 
-    int EventImpl::AddHandle(int fd, int event, virEventHandleCallback cb, void *opaque, virFreeCallback ff) {
-        nodeEventHandle *handle;
+#if UV_VERSION_MAJOR < 1
+void EventImpl::TimerCallback(uv_timer_t* handle, int status)
+#else
+void EventImpl::TimerCallback(uv_timer_t* handle)
+#endif
+{
+  TimeoutCallback((uv_handle_s*)handle);
+}
 
-        handle = FindDeletedHandle();
-        if (handle == NULL) {
-            handle = new nodeEventHandle();
-            handle->watch = nextWatch++;
-            handles.push_back(handle);
-        }
+void EventImpl::TimeoutCallback(uv_handle_s* handle)
+{
+  //fprintf(stderr, "dispatch timer=%d\n", t->timer);
 
-        handle->cb = cb;
-        handle->fd = fd;
-        handle->event = event;
-        handle->running = 0;
-        handle->deleted = 0;
-        handle->opaque = opaque;
+  nodeEventTimeout *t = (nodeEventTimeout*) handle->data;
+  virEventTimeoutCallback cb = t->cb;
 
-        uv_poll_init(uv_default_loop(), &handle->watcher, handle->fd);
-        handle->watcher.data = handle;
+  (cb)(t->timer, t->opaque);
 
-        if (event) {
-            uv_poll_start(&handle->watcher, EventToUV(event), HandleCallback);
-            handle->running = 1;
-        }
+}
 
-        return handle->watch;
-    }
+void EventImpl::ClosePollCallback(uv_handle_t* handle) {
+  //fprintf(stderr, "close handle cb\n");
 
-    void EventImpl::UpdateHandle(int watch, int event) {
-        nodeEventHandle* handle;
-        handle = FindHandle(watch);
+  uv_mutex_lock(&lock);
 
-        if (handle == NULL)
-            return;
+  nodeEventHandle *h = (nodeEventHandle*) handle->data;
+  h->deleted = 1;
 
-        if (!event && handle->running) {
-            //fprintf(stderr, " STOP POLL, watch=%d event=%d\n", watch, event);
-	    uv_poll_stop(&handle->watcher);
-            handle->running = 0;
-        } else if (event && handle->event == event && !handle->running) {
-            //fprintf(stderr, " RESTART POLL, watch=%d event=%d\n", watch, event);
-	    uv_poll_start(&handle->watcher, EventToUV(event), HandleCallback);
-            handle->running = 1;
-        } else if (event && handle->event != event) {
-            //fprintf(stderr, " MODIFYING POLL, watch=%d event=%d\n", watch, event);
-            uv_poll_start(&handle->watcher, EventToUV(event), HandleCallback);
-            handle->event = event;
-            handle->running = 1;
-        }
-    }
+  uv_mutex_unlock(&lock);
+}
 
-    int EventImpl::RemoveHandle(int watch) {
-        nodeEventHandle* handle;
-        handle = FindHandle(watch);
+int EventImpl::AddHandle(int fd, int event, virEventHandleCallback cb, void *opaque,
+                         virFreeCallback ff)
+{
+  //fprintf(stderr, "Adding handle, fd=%d, event=%d\n", fd, event);
 
-        if (handle == NULL)
-            return -1;
+  uv_mutex_lock(&lock);
+  nodeEventHandle *handle;
 
-        uv_poll_stop(&handle->watcher);
-        handle->deleted = 1;
+  handle = FindDeletedHandle();
+  if (handle == NULL) {
+    handle = new nodeEventHandle();
+    handle->watch = nextWatch++;
+    handles.push_back(handle);
+  }
 
-        return 0;
-    }
+  handle->cb = cb;
+  handle->fd = fd;
+  handle->event = event;
+  handle->newEvent = event;
+  handle->toDelete = 0;
+  handle->deleted = 0;
+  handle->opaque = opaque;
 
-    nodeEventHandle* EventImpl::FindHandle(int watch) {
-        for (std::vector<nodeEventHandle*>::iterator it = handles.begin() ; it != handles.end(); ++it) {
-            if ((*it)->watch == watch)
-                return *it;
-        }
-        return NULL;
-    }
+  uv_poll_init(uv_default_loop(), &handle->watcher, handle->fd);
+  handle->watcher.data = handle;
 
-    nodeEventHandle* EventImpl::FindDeletedHandle() {
-        for (std::vector<nodeEventHandle*>::iterator it = handles.begin() ; it != handles.end(); ++it) {
-            if ((*it)->deleted)
-                return *it;
-        }
-        return NULL;
-    }
+  if (event) {
+    uv_poll_start(&handle->watcher, EventToUV(event), HandleCallback);
+  }
 
-    int EventImpl::AddTimeout(int frequency, virEventTimeoutCallback cb, void *opaque, virFreeCallback ff) {
-        //fprintf(stderr, "Adding timeout, freq=%d\n", frequency);
-        nodeEventTimeout *timeout;
+  uv_mutex_unlock(&lock);
 
-        timeout = FindDeletedTimeout();
-        if (timeout == NULL) {
-            timeout = new nodeEventTimeout();
-            timeout->timer = nextTimeout++;
-            timeouts.push_back(timeout);
-        }
+  return handle->watch;
+}
 
-        timeout->cb = cb;
-        timeout->frequency = frequency;
-        timeout->deleted = 0; 
-        timeout->opaque = opaque;
+void EventImpl::UpdateHandle(int watch, int event)
+{
+  //fprintf(stderr, "Update handle, watch=%d, event=%d\n", watch, event);
 
-        uv_check_init(uv_default_loop(), &timeout->checkWatcher);
-        uv_timer_init(uv_default_loop(), &timeout->timerWatcher);
-        
-        timeout->checkWatcher.data = timeout;
-        timeout->timerWatcher.data = timeout;
+  uv_mutex_lock(&lock);
 
-        if (frequency == 0) {
-            uv_check_start(&timeout->checkWatcher, CheckCallback);
-        } else if (frequency >= 0) {
-            uv_timer_start(&timeout->timerWatcher, TimerCallback, frequency, frequency);
-        }
+  nodeEventHandle* handle;
+  handle = FindHandle(watch);
+  if (handle != NULL)
+    handle->newEvent = event;
 
-        return timeout->timer;
-    }
+  uv_mutex_unlock(&lock);
+}
 
-    void EventImpl::UpdateTimeout(int timer, int frequency) {
-        //fprintf(stderr, "update timeout, timer=%d timeout=%d\n", timer, frequency);
-        nodeEventTimeout* timeout = FindTimeout(timer);
+int EventImpl::RemoveHandle(int watch)
+{
+  uv_mutex_lock(&lock);
 
-        if (timeout == NULL)
-            return;
+  nodeEventHandle* handle;
+  handle = FindHandle(watch);
 
-        if (frequency == timeout->frequency)
-            return;
+  if (handle != NULL) {
+    handle->newEvent = 0;
+    handle->toDelete = 1;
+  }
 
-        uv_timer_stop(&timeout->timerWatcher);
-        uv_check_stop(&timeout->checkWatcher);
+  uv_mutex_unlock(&lock);
 
-        timeout->frequency = frequency;
-        
-        if (frequency == 0) {
-            uv_check_start(&timeout->checkWatcher, CheckCallback);
-        } else if (frequency >= 0) {
-            uv_timer_start(&timeout->timerWatcher, TimerCallback, frequency, frequency);
-        }
-     
-    }
+  return 0;
+}
 
-    int EventImpl::RemoveTimeout(int timer) {
-        //fprintf(stderr, "remove timeout, timer=%d\n", timer);
-        nodeEventTimeout* timeout = FindTimeout(timer);
+nodeEventHandle* EventImpl::FindHandle(int watch)
+{
+  std::vector<nodeEventHandle*>::iterator it;
+  for (it = handles.begin() ; it != handles.end(); ++it) {
+    if ((*it)->watch == watch)
+      return *it;
+  }
 
-        if (timeout == NULL)
-            return -1;
+  return NULL;
+}
 
-        uv_timer_stop(&timeout->timerWatcher);
-        uv_check_stop(&timeout->checkWatcher);
-        timeout->deleted = 1;
+nodeEventHandle* EventImpl::FindDeletedHandle()
+{
+  std::vector<nodeEventHandle*>::iterator it;
+  for (it = handles.begin() ; it != handles.end(); ++it) {
+    if ((*it)->deleted)
+      return *it;
+  }
 
-        return 0;
-    }
+  return NULL;
+}
 
-    nodeEventTimeout* EventImpl::FindTimeout(int timer) {
-        for (std::vector<nodeEventTimeout*>::iterator it = timeouts.begin() ; it != timeouts.end(); ++it) {
-            if ((*it)->timer == timer)
-                return *it;
-        }
-        return NULL;
-    }
+int EventImpl::AddTimeout(int frequency, virEventTimeoutCallback cb, void *opaque,
+                          virFreeCallback ff)
+{
+  //fprintf(stderr, "Adding timeout, freq=%d\n", frequency);
 
-    nodeEventTimeout* EventImpl::FindDeletedTimeout() {
-        for (std::vector<nodeEventTimeout*>::iterator it = timeouts.begin() ; it != timeouts.end(); ++it) {
-            if ((*it)->deleted)
-                return *it;
-        }
-        return NULL;
-    }
+  uv_mutex_lock(&lock);
 
-    int EventImpl::EventToUV(int event) {
-        int ret = 0;
+  nodeEventTimeout *timeout;
 
-        if (event & VIR_EVENT_HANDLE_READABLE)
-            ret |= UV_READABLE;
-        if (event & VIR_EVENT_HANDLE_WRITABLE)
-            ret |= UV_WRITABLE;
+  timeout = FindDeletedTimeout();
+  if (timeout == NULL) {
+    timeout = new nodeEventTimeout();
+    timeout->timer = nextTimeout++;
 
-        return ret;
-    }
+    uv_check_init(uv_default_loop(), &timeout->checkWatcher);
+    uv_timer_init(uv_default_loop(), &timeout->timerWatcher);
+    timeout->checkWatcher.data = timeout;
+    timeout->timerWatcher.data = timeout;
 
-    int EventImpl::EventFromUV(int event) {
-        int ret = 0;
+    timeouts.push_back(timeout);
+  }
 
-        if (event & UV_READABLE)
-            ret |= VIR_EVENT_HANDLE_READABLE;
-        if (event & UV_WRITABLE)
-            ret |= VIR_EVENT_HANDLE_WRITABLE;
+  timeout->cb = cb;
+  timeout->frequency = frequency;
+  timeout->newFrequency = frequency;
+  timeout->toDelete = 0;
+  timeout->deleted = 0;
+  timeout->opaque = opaque;
 
-        return ret;
-    }
+  timeout->checkWatcher.data = timeout;
+  timeout->timerWatcher.data = timeout;
+
+  if (frequency == 0) {
+    uv_check_start(&timeout->checkWatcher, CheckCallback);
+  } else if (frequency >= 0) {
+    uv_timer_start(&timeout->timerWatcher, TimerCallback, frequency, frequency);
+  }
+
+  uv_mutex_unlock(&lock);
+
+  return timeout->timer;
+}
+
+void EventImpl::UpdateTimeout(int timer, int frequency)
+{
+  //fprintf(stderr, "update timeout, timer=%d timeout=%d\n", timer, frequency);
+
+  uv_mutex_lock(&lock);
+
+  nodeEventTimeout* timeout = FindTimeout(timer);
+
+  if (timeout != NULL)
+    timeout->newFrequency = frequency;
+
+  uv_mutex_unlock(&lock);
+}
+
+int EventImpl::RemoveTimeout(int timer)
+{
+  //fprintf(stderr, "remove timeout, timer=%d\n", timer);
+  uv_mutex_lock(&lock);
+
+  nodeEventTimeout* timeout = FindTimeout(timer);
+
+  if (timeout != NULL)
+    timeout->toDelete = 1;
+
+  uv_mutex_unlock(&lock);
+
+  return 0;
+}
+
+nodeEventTimeout* EventImpl::FindTimeout(int timer)
+{
+  std::vector<nodeEventTimeout*>::iterator it;
+  for (it = timeouts.begin() ; it != timeouts.end(); ++it) {
+    if ((*it)->timer == timer)
+      return *it;
+  }
+
+  return NULL;
+}
+
+nodeEventTimeout* EventImpl::FindDeletedTimeout()
+{
+  std::vector<nodeEventTimeout*>::iterator it;
+  for (it = timeouts.begin() ; it != timeouts.end(); ++it) {
+    if ((*it)->deleted)
+      return *it;
+  }
+
+  return NULL;
+}
+
+int EventImpl::EventToUV(int event)
+{
+  int ret = 0;
+  if (event & VIR_EVENT_HANDLE_READABLE)
+    ret |= UV_READABLE;
+  if (event & VIR_EVENT_HANDLE_WRITABLE)
+    ret |= UV_WRITABLE;
+
+  return ret;
+}
+
+int EventImpl::EventFromUV(int event)
+{
+  int ret = 0;
+  if (event & UV_READABLE)
+    ret |= VIR_EVENT_HANDLE_READABLE;
+  if (event & UV_WRITABLE)
+    ret |= VIR_EVENT_HANDLE_WRITABLE;
+
+  return ret;
+}
 
 } //namespace NodeLibvirt
-

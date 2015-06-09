@@ -1,100 +1,168 @@
-var SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler();
+'use strict';
 
-var sys = require('sys');
-var libvirt = require('../build/Release/libvirt');
-var fixture = require('./lib/helper').fixture;
+var libvirt = require('../build/Release/libvirt'),
+    Hypervisor = libvirt.Hypervisor,
+    SegfaultHandler = require('segfault-handler'),
+    fixture = require('./lib/helper').fixture,
+    expect = require('chai').expect;
 
-var Hypervisor = libvirt.Hypervisor;
+var test = {};
+describe('Secret', function() {
+  before(function() {
+    SegfaultHandler.registerHandler();
+  });
 
-var hypervisor = new Hypervisor('test:///default');
+  describe('hypervisor methods', function() {
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
+    });
 
-module.exports = {
-    'should be located through its uuid': function(beforeExit, assert) {
-        try {
-            var secret = hypervisor.lookupSecretByUUID('8dbf92e0-657f-ad16-7ba9-861574f78941');
-            assert.isDefined(secret.getValue());
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
+    });
 
-    'should be located through its usage': function(beforeExit, assert) {
-        try {
-            var secret = hypervisor.lookupSecretByUsage(hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME, 'usage-id');
-            assert.isDefined(secret.getValue());
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+    it('should be located through its uuid', function(done)  {
+      var uuid = '8dbf92e0-657f-ad16-7ba9-861574f78941';
+      test.hypervisor.lookupSecretByUUID(uuid, function(err, secret) {
+        expect(err).to.exist;
+        done();
 
-    'should define the secret using its xml description': function(beforeExit, assert) {
-        try {
-            var xml = fixture('secret.xml');
-            assert.ok(hypervisor.defineSecret(xml));
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // secret.getValue(function(err, value) {
+        //   expect(err).to.not.exist;
+        //   expect(value).to.exist;
+        //   done();
+        // });
+      });
+    });
 
-    'should return its uuid': function(beforeExit, assert) {
-        try {
-            var uuid = secret.getUUID();
-            assert.isDefined(uuid);
-         } catch(error) {
-           assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+    it('should be located through its usage', function(done)  {
+      var usageType = test.hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME;
+      test.hypervisor.lookupSecretByUsage(usageType, 'usage-id', function(err, secret) {
+        expect(err).to.exist;
+        done();
 
-    'should return its usage id': function(beforeExit, assert) {
-        try {
-            var usage_id = secret.getUsageId();
-            assert.isDefined(usage_id);
-            assert.isNotNull(usage_id);
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+        // secret.getValue(function(err, value) {
+        //   expect(err).to.not.exist;
+        //   expect(value).to.exist;
+        //   done();
+        // });
+      });
+    });
 
-    'should return its usage type': function(beforeExit, assert) {
-       try {
-            var usage_type = secret.getUsageType();
-            asssert.isDefined(usage_type);
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+    it('should define the secret using its xml description', function(done)  {
+      var xml = fixture('secret.xml');
+      test.hypervisor.defineSecret(xml, function(err, secret) {
+        expect(err).to.exist;
+        done();
 
-    'should return its value': function(beforeExit, assert) {
-        try {
-            assert.isDefined(secret.getValue());
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+        // NOTE: not supported in test driver
+        // expect(err).to.not.exist;
+        // expect(secret).to.exist;
+        // done();
+      });
+    });
+  });
 
-    'should set a value': function(beforeExit, assert) {
-        try {
-            assert.ok(secret.setValue('secret-value'));
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+  /*
+    NOTE: none of this will be supported by the test driver, port when can test
 
-    'should return its xml description': function(beforeExit, assert) {
-        try {
-            assert.match(secret.toXml(), /secret/);
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    },
+  describe('methods', function() {
+    beforeEach(function(done) {
+      test.hypervisor = new Hypervisor('test:///default');
+      test.hypervisor.connect(function(err) {
+        expect(err).to.not.exist;
 
-    'should undefine the secret': function(beforeExit, assert) {
-        try {
-            assert.ok(secret.undefine());
-        } catch(error) {
-            assert.eql(error.code, error.VIR_ERR_NO_SUPPORT);
-        }
-    }
-};
+        var xml = fixture('secret.xml');
+        test.hypervisor.defineSecret(xml, function(err, secret) {
+          expect(err).to.not.exist;
+          expect(secret).to.exist;
+          test.secret = secret;
+          done();
+        });
+
+        done();
+      });
+    });
+
+    afterEach(function(done) {
+      test.hypervisor.disconnect(function(err) {
+        expect(err).to.not.exist;
+        test.secret = undefined;
+        done();
+      });
+    });
+
+    it('should return its uuid', function()  {
+      try {
+        var uuid = test.secret.getUUID();
+        expect(uuid).to.exist;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should return its usage id', function()  {
+      try {
+        var usage_id = test.secret.getUsageId();
+        expect(usage_id).to.exist;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should return its usage type', function()  {
+      try {
+        var usage_type = test.secret.getUsageType();
+        expect(usage_type).to.exist;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should return its value', function()  {
+      try {
+        expect(test.secret.getValue()).to.exist;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should set a value', function()  {
+      try {
+        expect(test.secret.setValue('secret-value')).to.be.ok;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should return its xml description', function()  {
+      try {
+        expect(test.secret.toXml()).to.match(/secret/);
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+
+    it('should undefine the secret', function()  {
+      try {
+        expect(test.secret.undefine()).to.be.ok;
+      } catch (error) {
+        expect(error.code).to.equal(error.VIR_ERR_NO_SUPPORT);
+      }
+    });
+  });
+  */
+
+});
 

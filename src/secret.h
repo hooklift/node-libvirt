@@ -3,35 +3,78 @@
 #define SRC_SECRET_H_
 
 #include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+
+#include "worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-    class Secret : public ObjectWrap {
-        friend class Hypervisor;
+class Secret : public ObjectWrap
+{
+public:
+  static void Initialize(Handle<Object> exports);
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~Secret();
 
-        public:
-            static void Initialize();
+private:
+  explicit Secret(virSecretPtr handle) : handle_(handle) {}
+  static Persistent<Function> constructor;
+  virSecretPtr handle_;
 
-        protected:
-            static Handle<Value> Define(const Arguments& args);
-            static Handle<Value> Undefine(const Arguments& args);
-            static Handle<Value> LookupByUsage(const Arguments& args);
-            static Handle<Value> LookupByUUID(const Arguments& args);
-            static Handle<Value> GetUUID(const Arguments& args);
-            static Handle<Value> GetUsageId(const Arguments& args);
-            static Handle<Value> GetUsageType(const Arguments& args);
-            static Handle<Value> GetValue(const Arguments& args);
-            static Handle<Value> SetValue(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
+  friend class Hypervisor;
 
-        private:
-            virSecretPtr secret_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+private:
+  // HYPERVISOR METHODS
+  static NAN_METHOD(LookupByUsage);
+  static NAN_METHOD(LookupByUUID);
+  static NAN_METHOD(Define);
+
+  // ACTIONS
+  static NAN_METHOD(Undefine);
+
+  // ACCESSORS/MUTATORS
+  static NAN_METHOD(GetUUID);
+  static NAN_METHOD(GetUsageId);
+  static NAN_METHOD(GetUsageType);
+  static NAN_METHOD(GetValue);
+  static NAN_METHOD(SetValue);
+  static NAN_METHOD(ToXml);
+
+private:
+  // HYPERVISOR METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(Secret, LookupByUUID);
+  NLV_LOOKUP_BY_VALUE_WORKER(Secret, Define);
+
+  class LookupByUsageWorker : public LookupInstanceByValueWorker<Secret> {
+  public:
+    LookupByUsageWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &usageId, int usageType) \
+      : LookupInstanceByValueWorker<Secret>(callback, handle, usageId), usageType_(usageType) {}
+    void Execute();
+  private:
+    int usageType_;
+  };
+
+  // ACTION WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+
+  // ACCESSOR/MUTATOR WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetValue, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+
+  class SetValueWorker : public PrimitiveReturnWorker<bool> {
+  public:
+    SetValueWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value)
+      : PrimitiveReturnWorker<bool>(callback, handle), value_(value) {} \
+    void Execute();
+  private:
+    std::string value_;
+  };
+
+};
 
 }  // namespace NodeLibvirt
 
 #endif  // SRC_SECRET_H_
-

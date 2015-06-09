@@ -3,42 +3,62 @@
 #define SRC_NODE_DEVICE_H_
 
 #include "node_libvirt.h"
-#include "hypervisor.h"
-#include "error.h"
+
+#include "worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-    class NodeDevice : public ObjectWrap {
-        friend class Hypervisor;
+class NodeDevice : public ObjectWrap
+{
+public:
+  static void Initialize(Handle<Object> exports);
+  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  virtual ~NodeDevice();
 
-        public:
-            static void Initialize();
-            static inline bool HasInstance(v8::Handle<v8::Value> value) {
-                if (!value->IsObject()) {
-                    return false;
-                }
-                v8::Local<v8::Object> object = value->ToObject();
-                return constructor_template->HasInstance(object);
-            }
+private:
+  explicit NodeDevice(virNodeDevicePtr handle) : handle_(handle) {}
+  static Persistent<Function> constructor;
+  virNodeDevicePtr handle_;
 
-        protected:
-            static Handle<Value> Create(const Arguments& args);
-            static Handle<Value> Destroy(const Arguments& args);
-            static Handle<Value> LookupByName(const Arguments& args);
-            static Handle<Value> Detach(const Arguments& args);
-            static Handle<Value> Reattach(const Arguments& args);
-            static Handle<Value> Reset(const Arguments& args);
-            static Handle<Value> GetName(const Arguments& args);
-            static Handle<Value> GetParentName(const Arguments& args);
-            static Handle<Value> ToXml(const Arguments& args);
-            static Handle<Value> GetCapabilities(const Arguments& args);
+  friend class Hypervisor;
 
-        private:
-            virNodeDevicePtr device_;
-            static Persistent<FunctionTemplate> constructor_template;
-    };
+private:
+  // HYPERVISOR METHODS
+  static NAN_METHOD(LookupByName);
+  static NAN_METHOD(Create);
+
+  // ACTIONS
+  static NAN_METHOD(Destroy);
+  static NAN_METHOD(Detach);
+  static NAN_METHOD(Reattach);
+  static NAN_METHOD(Reset);
+
+  // ACCESSORS/MUTATORS
+  static NAN_METHOD(GetName);
+  static NAN_METHOD(GetParentName);
+  static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetCapabilities);
+
+private:
+  // HYPERVISOR METHOD WORKERS
+  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, LookupByName);
+  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, Create);
+
+  // ACTION METHOD WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Detach, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reattach, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, bool);
+
+  // ACCESSOR/MUTATOR METHOD WORKERS
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_LIST_RETURN_WORKER(GetCapabilities, std::string, v8::String);
+
+};
 
 }  //namespace NodeLibvirt
 
 #endif  // SRC_NODE_DEVICE_H
-
