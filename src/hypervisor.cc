@@ -70,6 +70,7 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel",        GetNodeSecurityModel);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo",                 GetNodeInfo);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory",           GetNodeFreeMemory);
+  NODE_SET_PROTOTYPE_METHOD(t, "getNodeMemoryStats",          GetNodeMemoryStats);
   NODE_SET_PROTOTYPE_METHOD(t, "getNodeCellsFreeMemory",      GetNodeCellsFreeMemory);
 
   // INTERFACE
@@ -146,6 +147,10 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_IO_ERROR);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_GRAPHICS);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON);
+  
+  // virMemory
+  NODE_DEFINE_CONSTANT(exports, VIR_NODE_MEMORY_STATS_ALL_CELLS);
+  
 #ifdef VIR_ENUM_SENTINELS
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LAST);
 #endif
@@ -819,6 +824,49 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeFreeMemory)
   }
 
   data_ = result;
+}
+
+NAN_METHOD(Hypervisor::GetNodeMemoryStats)
+{
+  NanScope();
+  if (args.Length() < 3 ||
+      (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsFunction())) {
+    NanThrowTypeError("signature is numCell, flags, callback");
+    NanReturnUndefined();
+  }
+  NanCallback *callback = new NanCallback(args[2].As<Function>());
+  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  int numCells = args[0]->IntegerValue();
+  int flags = args[1]->IntegerValue();
+  NanAsyncQueueWorker(new GetNodeMemoryStatsWorker(callback, hypervisor->handle_, numCells, flags));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Hypervisor, GetNodeMemoryStats)
+{
+  NLV_WORKER_ASSERT_CONNECTION();
+  int nparams = 0;
+  int result = virNodeGetMemoryStats(Handle().ToConnection(), cellNum_, NULL, &nparams, flags_);
+  if ( result == 0 && nparams != 0) {
+      info_.resize(nparams);
+      result = virNodeGetMemoryStats(Handle().ToConnection(), cellNum_, &info_[0], &nparams, flags_);
+  }
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+}
+
+NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeMemoryStats)
+{
+  NanScope();
+
+  Local<Object> result = NanNew<Object>();
+  for(unsigned int i = 0;i < info_.size();++i) {
+    result->Set(NanNew(info_[i].field), NanNew<Number>(info_[i].value));
+  }
+  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  callback->Call(2, argv);
 }
 
 NAN_METHOD(Hypervisor::GetNodeCellsFreeMemory)
