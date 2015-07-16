@@ -115,7 +115,13 @@ describe('Hypervisor', function() {
         });
       });
     });
-
+    it('should return memory details for hypervisor', function(done) {
+      test.hypervisor.getNodeMemoryStats(libvirt.VIR_NODE_MEMORY_STATS_ALL_CELLS,
+        0, function(err, result) {
+        // Not supported by test driver
+        done();
+      });
+    });
     it('should return the vcpu maximum number supported for a guest VM', function(done) {
       test.hypervisor.getMaxVcpus('kvm', function(err, result) {
         expect(err).to.be.null;
