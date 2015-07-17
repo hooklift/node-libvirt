@@ -816,6 +816,7 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
   }
   
   data_ = result;
+  free(result);
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetInfo)
