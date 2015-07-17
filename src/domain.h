@@ -323,13 +323,21 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
   NLV_PRIMITIVE_RETURN_WORKER(IsUpdated, bool);
   NLV_PRIMITIVE_RETURN_WORKER(HasManagedSaveImage, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetSchedulerType, std::string);
   NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virSchedParameter);
   NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virSecurityLabel);
   NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainJobInfo);
   NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, bool);
+
+  class ToXmlWorker : public PrimitiveReturnWorker<std::string> {
+    public:
+      ToXmlWorker(NanCallback *callback, const LibVirtHandle &handle, int flags = 0)
+        : PrimitiveReturnWorker(callback, handle), flags_(flags) {}
+      void Execute();
+    private:
+      unsigned int flags_;
+  };
 
   class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
   public:

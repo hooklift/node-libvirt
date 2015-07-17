@@ -786,19 +786,35 @@ NLV_WORKER_EXECUTE(Domain, SetMemory)
   data_ = true;
 }
 
+NAN_METHOD(Domain::ToXml)
+{
+  NanScope();
+  unsigned int flags = 0;
+  NanCallback *callback;
+  if (args.Length() > 1 && args[1]->IsFunction())
+  {
+    callback = new NanCallback(args[1].As<Function>());
+    flags = args[0]->IntegerValue();
+  } else if (args.Length() == 1 && args[0]->IsFunction()) {
+    callback = new NanCallback(args[0].As<Function>());
+  } else {
+    NanThrowTypeError("signature is callback or flags, callback");
+    NanReturnUndefined();
+  }
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  NanAsyncQueueWorker(new ToXmlWorker(callback, domain->handle_, flags));
+  NanReturnUndefined();
+}
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, ToXml)
 NLV_WORKER_EXECUTE(Domain, ToXml)
 {
   NLV_WORKER_ASSERT_DOMAIN();
-
-  unsigned int flags = 0;
-  char *result = virDomainGetXMLDesc(Handle().ToDomain(), flags);
+  char *result = virDomainGetXMLDesc(Handle().ToDomain(), flags_);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
   }
-
+  
   data_ = result;
   free(result);
 }
