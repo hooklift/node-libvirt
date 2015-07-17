@@ -86,6 +86,7 @@ private:
   static NAN_METHOD(GetNodeSecurityModel);
   static NAN_METHOD(GetNodeInfo);
   static NAN_METHOD(GetNodeFreeMemory);
+  static NAN_METHOD(GetNodeMemoryStats);
   static NAN_METHOD(GetNodeCellsFreeMemory);
 
   // Misc functions
@@ -145,7 +146,7 @@ private:
   NLV_LIST_RETURN_WORKER(ListActiveNetworks, std::string, v8::String);
   NLV_LIST_RETURN_WORKER(ListSecrets, std::string, v8::String);
   NLV_LIST_RETURN_WORKER(ListActiveStoragePools, std::string, v8::String);
-
+  
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedDomains, int);
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedInterfaces, int);
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedNetworks, int);
@@ -218,6 +219,19 @@ private:
     void HandleOKCallback();
   private:
     virSecurityModel securityModel_;
+  };
+
+  class GetNodeMemoryStatsWorker : public ListReturnWorker<double, v8::Number> {
+  public:
+    GetNodeMemoryStatsWorker(NanCallback *callback, const LibVirtHandle &handle, int numCell, int flags)
+      : ListReturnWorker(callback, handle), cellNum_(numCell), flags_(flags) {}
+    void Execute();
+  protected:
+    void HandleOKCallback();
+  private:
+    std::vector<virNodeMemoryStats> info_;
+    int cellNum_;
+    int flags_;
   };
 
   class GetNodeInfoWorker : public LibVirtWorker {
