@@ -149,7 +149,7 @@ Error::Error(virErrorPtr error)
   error_ = error;
 }
 
-Local<Object> Error::New(virErrorPtr error)
+Local<Value> Error::New(virErrorPtr error)
 {
   NanEscapableScope();
 
