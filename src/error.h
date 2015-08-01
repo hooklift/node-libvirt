@@ -16,7 +16,7 @@ class Error : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> New(virErrorPtr error);
+  static Local<Value> New(virErrorPtr error);
 
 private:
   explicit Error(virErrorPtr error);
