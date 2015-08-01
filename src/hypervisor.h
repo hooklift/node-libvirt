@@ -3,6 +3,7 @@
 #define SRC_HYPERVISOR_H_
 
 #include "node_libvirt.h"
+#include "domain.h"
 
 #include "worker_macros.h"
 #include "worker.h"
@@ -107,9 +108,11 @@ private:
 
   class DisconnectWorker : public LibVirtWorker {
   public:
-    DisconnectWorker(NanCallback *callback, const LibVirtHandle &handle)
-      : LibVirtWorker(callback, handle) {}
+    DisconnectWorker(NanCallback *callback, Hypervisor *hypervisor)
+      : LibVirtWorker(callback, hypervisor->handle_), hypervisor_(hypervisor) {}
     void Execute();
+  private:
+    Hypervisor *hypervisor_;
   };
 
   class CompareCPUWorker : public PrimitiveReturnWorker<int> {
@@ -146,7 +149,7 @@ private:
   NLV_LIST_RETURN_WORKER(ListActiveNetworks, std::string, v8::String);
   NLV_LIST_RETURN_WORKER(ListSecrets, std::string, v8::String);
   NLV_LIST_RETURN_WORKER(ListActiveStoragePools, std::string, v8::String);
-  
+
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedDomains, int);
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedInterfaces, int);
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedNetworks, int);

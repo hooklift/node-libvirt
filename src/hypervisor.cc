@@ -147,10 +147,10 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_IO_ERROR);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_GRAPHICS);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON);
-  
+
   // virMemory
   NODE_DEFINE_CONSTANT(exports, VIR_NODE_MEMORY_STATS_ALL_CELLS);
-  
+
 #ifdef VIR_ENUM_SENTINELS
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LAST);
 #endif
@@ -172,6 +172,15 @@ Hypervisor::Hypervisor(string uri, string username, string password, bool readon
 
 Hypervisor::~Hypervisor()
 {
+  if (handle_ != NULL) {
+    int result = virConnectClose(handle_);
+    if (result == -1) {
+      fprintf(stderr, "unable to free connection handle\n");
+      return;
+    }
+
+    handle_ = NULL;
+  }
 }
 
 virConnectPtr Hypervisor::Connection() const
@@ -294,13 +303,30 @@ NLV_WORKER_EXECUTE(Hypervisor, Connect)
     SetVirError(virGetLastError());
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Hypervisor, Disconnect)
+NAN_METHOD(Hypervisor::Disconnect)
+{
+  NanScope();
+  if (args.Length() == 1 && !args[0]->IsFunction()) {
+    NanThrowTypeError("You must specify a function as first argument");
+    NanReturnUndefined();
+  }
+
+  NanCallback *callback = new NanCallback(args[0].As<Function>());
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
+  NanAsyncQueueWorker(new DisconnectWorker(callback, hv));
+  NanReturnUndefined();
+}
+
 NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 {
   NLV_WORKER_ASSERT_CONNECTION();
-  if (Handle().ToConnection() != NULL) {
-    Handle().Clear();
+  int result = virConnectClose(Handle().ToConnection());
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
   }
+
+  Handle().Clear();
 }
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE(MethodName, Accessor)  \

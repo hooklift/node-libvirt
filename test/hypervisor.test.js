@@ -25,7 +25,11 @@ describe('Hypervisor', function() {
       var connection = new Hypervisor('test:///default');
       connection.connect(function(err) {
         expect(err).to.not.exist;
-        done();
+
+        connection.disconnect(function(err) {
+          expect(err).to.not.exist;
+          done();
+        });
       });
     });
 
@@ -33,19 +37,11 @@ describe('Hypervisor', function() {
       var connection = new Hypervisor('test:///default', true);
       connection.connect(function(err) {
         expect(err).to.not.exist;
-        done();
-      });
-    });
-
-    it('should open and close a connection', function(done) {
-      var connection = new Hypervisor('test:///default', true);
-      connection.connect(function(err) {
-        expect(err).to.not.exist;
 
         connection.disconnect(function(err) {
           expect(err).to.not.exist;
           done();
-        });
+        })
       });
     });
 
