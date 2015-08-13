@@ -189,6 +189,17 @@
     data_ = static_cast<bool>(result);  \
   }
 
+#define NLV_BOOL_RETURN_EXECUTE_IMPL2(Class, Method, Accessor)  \
+  NLV_WORKER_EXECUTE(Class, Method) {  \
+    NLV_WORKER_ASSERT_CONNECTION2(); \
+    int result = Accessor(Handle());  \
+    if (result == -1) { \
+      SetVirError(virGetLastError()); \
+      return; \
+    } \
+    data_ = static_cast<bool>(result);  \
+  }
+
 #define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
   NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(Handle().ToConnection(), value_.c_str());  \

@@ -334,8 +334,8 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    NLV_WORKER_ASSERT_CONNECTION(); \
-    char *result = Accessor(Handle().ToConnection()); \
+    NLV_WORKER_ASSERT_CONNECTION2(); \
+    char *result = Accessor(Handle()); \
     if (result == NULL) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -346,8 +346,8 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE_NO_FREE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    NLV_WORKER_ASSERT_CONNECTION(); \
-    const char *result = Accessor(Handle().ToConnection()); \
+    NLV_WORKER_ASSERT_CONNECTION2(); \
+    const char *result = Accessor(Handle()); \
     if (result == NULL) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -365,8 +365,8 @@ HYPERVISOR_STRING_RETURN_EXECUTE(GetHostname, virConnectGetHostname)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetSysInfo)
 NLV_WORKER_EXECUTE(Hypervisor, GetSysInfo)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  char *result = virConnectGetSysinfo(Handle().ToConnection(), 0);
+  NLV_WORKER_ASSERT_CONNECTION2();
+  char *result = virConnectGetSysinfo(Handle(), 0);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -385,10 +385,10 @@ HYPERVISOR_STRING_RETURN_EXECUTE(GetConnectionUri, virConnectGetURI)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetVersion)
 NLV_WORKER_EXECUTE(Hypervisor, GetVersion)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
 
   unsigned long version;
-  int result = virConnectGetVersion(Handle().ToConnection(), &version);
+  int result = virConnectGetVersion(Handle(), &version);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -409,10 +409,10 @@ NLV_WORKER_EXECUTE(Hypervisor, GetVersion)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetLibVirtVersion)
 NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
 
   unsigned long version;
-  int result = virConnectGetLibVersion(Handle().ToConnection(), &version);
+  int result = virConnectGetLibVersion(Handle(), &version);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -429,8 +429,8 @@ NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
 
 #define HYPERVISOR_INT_RETURN_EXECUTE(MethodName, Accessor)  \
   void Hypervisor::MethodName##Worker::Execute() {  \
-    NLV_WORKER_ASSERT_CONNECTION(); \
-    int result = Accessor(Handle().ToConnection());  \
+    NLV_WORKER_ASSERT_CONNECTION2(); \
+    int result = Accessor(Handle());  \
     if (result == -1) { \
       SetVirError(virGetLastError()); \
       return; \
@@ -439,13 +439,13 @@ NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
   }
 
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionEncrypted)
-NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionEncrypted, virConnectIsEncrypted)
+NLV_BOOL_RETURN_EXECUTE_IMPL2(Hypervisor, IsConnectionEncrypted, virConnectIsEncrypted)
 
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionSecure)
-NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionSecure, virConnectIsSecure)
+NLV_BOOL_RETURN_EXECUTE_IMPL2(Hypervisor, IsConnectionSecure, virConnectIsSecure)
 
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, IsConnectionAlive)
-NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionAlive, virConnectIsAlive)
+NLV_BOOL_RETURN_EXECUTE_IMPL2(Hypervisor, IsConnectionAlive, virConnectIsAlive)
 
 NAN_METHOD(Hypervisor::GetMaxVcpus)
 {
@@ -475,8 +475,8 @@ NAN_METHOD(Hypervisor::GetMaxVcpus)
 
 NLV_WORKER_EXECUTE(Hypervisor, GetMaxVcpus)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virConnectGetMaxVcpus(Handle().ToConnection(), type_.c_str());
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virConnectGetMaxVcpus(Handle(), type_.c_str());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -520,9 +520,9 @@ NAN_METHOD(Hypervisor::SetKeepAlive)
 
 NLV_WORKER_EXECUTE(Hypervisor, SetKeepAlive)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
 
-  int result = virConnectSetKeepAlive(Handle().ToConnection(), interval_, count_);
+  int result = virConnectSetKeepAlive(Handle(), interval_, count_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -559,8 +559,8 @@ NAN_METHOD(Hypervisor::GetBaselineCPU)
 
 NLV_WORKER_EXECUTE(Hypervisor, GetBaselineCPU)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  const char *result = virConnectBaselineCPU(Handle().ToConnection(), (const char**)cpus_, count_, flags_);
+  NLV_WORKER_ASSERT_CONNECTION2();
+  const char *result = virConnectBaselineCPU(Handle(), (const char**)cpus_, count_, flags_);
   for (int i = 0; i < count_; ++i) {
     free(cpus_[i]);
   }
@@ -595,8 +595,8 @@ NAN_METHOD(Hypervisor::CompareCPU)
 
 NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virConnectCompareCPU(Handle().ToConnection(), (const char *)cpu_.c_str(), flags_);
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virConnectCompareCPU(Handle(), (const char *)cpu_.c_str(), flags_);
   if (result == VIR_CPU_COMPARE_ERROR) {
     SetVirError(virGetLastError());
     return;
@@ -607,8 +607,8 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
 
 #define HYPERVISOR_STRING_LIST_RETURN_EXECUTE(WorkerName, CountMethod, ListMethod)  \
   void Hypervisor::WorkerName##Worker::Execute() {  \
-    NLV_WORKER_ASSERT_CONNECTION()  \
-    int count = CountMethod(Handle().ToConnection());  \
+    NLV_WORKER_ASSERT_CONNECTION2()  \
+    int count = CountMethod(Handle());  \
     if (count == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -618,7 +618,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
       SetErrorMessage("could not allocate memory"); \
       return; \
     } \
-    int nameCount = ListMethod(Handle().ToConnection(), names, count); \
+    int nameCount = ListMethod(Handle(), names, count); \
     if (nameCount == -1) {  \
       SetVirError(virGetLastError()); \
       delete [] names; \
@@ -633,8 +633,8 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
 
 #define HYPERVISOR_INT_LIST_RETURN_EXECUTE(WorkerName, CountMethod, ListMethod)  \
   void Hypervisor::WorkerName##Worker::Execute() {  \
-    NLV_WORKER_ASSERT_CONNECTION()  \
-    int count = CountMethod(Handle().ToConnection());  \
+    NLV_WORKER_ASSERT_CONNECTION2()  \
+    int count = CountMethod(Handle());  \
     if (count == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -645,7 +645,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
       delete [] elements; \
       return; \
     } \
-    int elementCount = ListMethod(Handle().ToConnection(), elements, count); \
+    int elementCount = ListMethod(Handle(), elements, count); \
     if (elementCount == -1) {  \
       SetVirError(virGetLastError()); \
       return; \
@@ -655,7 +655,6 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
     } \
     delete [] elements; \
   }
-
 
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, ListDefinedDomains)
 HYPERVISOR_STRING_LIST_RETURN_EXECUTE(ListDefinedDomains,
@@ -753,10 +752,10 @@ NAN_METHOD(Hypervisor::ListNodeDevices)
 
 NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
   int num_devices =
-    virNodeNumOfDevices(Handle().ToConnection(), (const char *) capability_.c_str(), flags);
+    virNodeNumOfDevices(Handle(), (const char *) capability_.c_str(), flags);
 
   if (num_devices == -1) {
     SetVirError(virGetLastError());
@@ -770,7 +769,7 @@ NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
   }
 
   num_devices =
-    virNodeListDevices(Handle().ToConnection(), (const char *)capability_.c_str(), names, num_devices, flags);
+    virNodeListDevices(Handle(), (const char *)capability_.c_str(), names, num_devices, flags);
   if (num_devices == -1) {
     free(names);
     SetVirError(virGetLastError());
@@ -788,8 +787,8 @@ NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeSecurityModel)
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeSecurityModel)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virNodeGetSecurityModel(Handle().ToConnection(), &securityModel_);
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virNodeGetSecurityModel(Handle(), &securityModel_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -844,8 +843,8 @@ NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeInfo)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeFreeMemory)
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeFreeMemory)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  unsigned long long result = virNodeGetFreeMemory(Handle().ToConnection());
+  NLV_WORKER_ASSERT_CONNECTION2();
+  unsigned long long result = virNodeGetFreeMemory(Handle());
   if (result == 0) {
     SetVirError(virGetLastError());
     return;
@@ -872,12 +871,12 @@ NAN_METHOD(Hypervisor::GetNodeMemoryStats)
 
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeMemoryStats)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
   int nparams = 0;
-  int result = virNodeGetMemoryStats(Handle().ToConnection(), cellNum_, NULL, &nparams, flags_);
+  int result = virNodeGetMemoryStats(Handle(), cellNum_, NULL, &nparams, flags_);
   if ( result == 0 && nparams != 0) {
       info_.resize(nparams);
-      result = virNodeGetMemoryStats(Handle().ToConnection(), cellNum_, &info_[0], &nparams, flags_);
+      result = virNodeGetMemoryStats(Handle(), cellNum_, &info_[0], &nparams, flags_);
   }
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -920,7 +919,7 @@ NAN_METHOD(Hypervisor::GetNodeCellsFreeMemory)
 
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_CONNECTION2();
 
   unsigned long long *results = NULL;
   results = (unsigned long long*) malloc(maxCells_ * sizeof(*results));
@@ -930,7 +929,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)
   }
 
   int cells =
-    virNodeGetCellsFreeMemory(Handle().ToConnection(), results, startCell_, maxCells_);
+    virNodeGetCellsFreeMemory(Handle(), results, startCell_, maxCells_);
   if (cells == -1) {
     free(results);
     SetVirError(virGetLastError());
