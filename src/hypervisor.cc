@@ -1,5 +1,7 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 
+#include <assert.h>
+
 #include "worker_macros.h"
 
 #include "domain.h"
@@ -162,7 +164,7 @@ void Hypervisor::Initialize(Handle<Object> exports)
 }
 
 Hypervisor::Hypervisor(string uri, string username, string password, bool readonly)
-  : ObjectWrap(),
+  : handle_(NULL),
     uri_(uri),
     username_(username),
     password_(password),
@@ -319,14 +321,15 @@ NAN_METHOD(Hypervisor::Disconnect)
 
 NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virConnectClose(Handle().ToConnection());
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virConnectClose(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  Handle().Clear();
+  assert(result == 0);
+  hypervisor_->handle_ = NULL;
 }
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE(MethodName, Accessor)  \
@@ -421,7 +424,6 @@ NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
 
   char versionString[10];
   sprintf(versionString, "%d.%d.%d", major, minor, patch);
-  fprintf(stderr, "%s", versionString);
   data_ = version;
 }
 
@@ -813,8 +815,8 @@ NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeSecurityModel)
 NLV_WORKER_METHOD_NO_ARGS(Hypervisor, GetNodeInfo)
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeInfo)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virNodeGetInfo(Handle().ToConnection(), &info_);
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virNodeGetInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;

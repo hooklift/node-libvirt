@@ -6,6 +6,16 @@
 #define NLV_CAT(A, B) NLV_CATNX(A, B)
 
 // ASSERTIONS
+#define NLV_WORKER_ASSERT_HANDLE(Type) \
+  if (Handle() == NULL) { \
+    SetErrorMessage("invalid "#Type); \
+    return; \
+  }
+
+#define NLV_WORKER_ASSERT_CONNECTION2() \
+  NLV_WORKER_ASSERT_HANDLE("connection")
+
+
 #define NLV_WORKER_ASSERT_CONNECTION() \
   if (Handle().ToConnection() == NULL) { \
     SetErrorMessage("invalid connection");  \

@@ -8,6 +8,8 @@
 #include "worker_macros.h"
 #include "worker.h"
 
+#include "nlv_async_worker.h"
+
 namespace NodeLibvirt {
 
 class Hypervisor : public ObjectWrap
@@ -95,10 +97,10 @@ private:
 
 private:
   // ACTION WORKERS
-  class ConnectWorker : public LibVirtWorker {
+  class ConnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
     ConnectWorker(NanCallback *callback, Hypervisor *hypervisor)
-      : LibVirtWorker(callback, LibVirtHandle()), hypervisor_(hypervisor) {}
+      : NLVAsyncWorker(callback, NULL), hypervisor_(hypervisor) {}
 
     void Execute();
     static int auth_callback(virConnectCredentialPtr cred, unsigned int ncred, void *data);
@@ -106,10 +108,10 @@ private:
     Hypervisor *hypervisor_;
   };
 
-  class DisconnectWorker : public LibVirtWorker {
+  class DisconnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
     DisconnectWorker(NanCallback *callback, Hypervisor *hypervisor)
-      : LibVirtWorker(callback, hypervisor->handle_), hypervisor_(hypervisor) {}
+      : NLVAsyncWorker(callback, hypervisor->handle_), hypervisor_(hypervisor) {}
     void Execute();
   private:
     Hypervisor *hypervisor_;
@@ -237,10 +239,10 @@ private:
     int flags_;
   };
 
-  class GetNodeInfoWorker : public LibVirtWorker {
+  class GetNodeInfoWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
-    GetNodeInfoWorker(NanCallback *callback, const LibVirtHandle &handle)
-      : LibVirtWorker(callback, handle) {}
+    GetNodeInfoWorker(NanCallback *callback, virConnectPtr handle)
+      : NLVAsyncWorker(callback, handle) {}
     void Execute();
   protected:
     void HandleOKCallback();
