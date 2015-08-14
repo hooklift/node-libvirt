@@ -13,7 +13,7 @@ class Secret : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virSecretPtr handle);
+  static Local<Object> NewInstance(virSecretPtr handle);
   virtual ~Secret();
 
 private:
@@ -42,8 +42,8 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, Secret, virConnectPtr, virSecretPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Secret, virConnectPtr, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Secret, virConnectPtr, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Secret, virConnectPtr, virSecretPtr);
 
   class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, virConnectPtr, virSecretPtr> {
   public:
@@ -55,14 +55,14 @@ private:
   };
 
   // ACTION WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virSecretPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virSecretPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUsageId, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUsageType, virSecretPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetValue, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, virSecretPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetValue, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virSecretPtr, std::string);
 
   class SetValueWorker : public NLVPrimitiveReturnWorker<virSecretPtr, bool> {
   public:

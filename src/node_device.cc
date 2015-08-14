@@ -28,7 +28,7 @@ void NodeDevice::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
-Local<Object> NodeDevice::NewInstance2(virNodeDevicePtr handle)
+Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
@@ -47,7 +47,7 @@ NodeDevice::~NodeDevice()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NodeDevice, LookupByName, virNodeDeviceLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)
 {
   NanScope();
@@ -92,7 +92,7 @@ NAN_METHOD(NodeDevice::Create)
 
 NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION2();
+  NLV_WORKER_ASSERT_CONNECTION();
   unsigned int flags = 0;
   lookupHandle_ = virNodeDeviceCreateXML(Handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
@@ -105,7 +105,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Create)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
 NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -123,7 +123,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
 NLV_WORKER_EXECUTE(NodeDevice, Detach)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceDettach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -136,7 +136,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Detach)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
 NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceReAttach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -149,7 +149,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
 NLV_WORKER_EXECUTE(NodeDevice, Reset)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceReset(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -162,7 +162,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Reset)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
 NLV_WORKER_EXECUTE(NodeDevice, GetName)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   const char *result = virNodeDeviceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -175,7 +175,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetName)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
 NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   const char *result = virNodeDeviceGetParent(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -188,7 +188,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
 NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
   unsigned int flags = 0;
   char *result = virNodeDeviceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
@@ -203,7 +203,7 @@ NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
 NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE2();
+  NLV_WORKER_ASSERT_NODEDEVICE();
 
   NanScope();
   int num_caps = virNodeDeviceNumOfCaps(Handle());

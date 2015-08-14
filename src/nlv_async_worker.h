@@ -64,7 +64,7 @@ private:
 /**
  * Worker that returns a primitive to javascript
  */
-#define NLV_PRIMITIVE_RETURN_WORKER2(Method, HandleType, PrimitiveType)  \
+#define NLV_PRIMITIVE_RETURN_WORKER(Method, HandleType, PrimitiveType)  \
   class Method##Worker : public NLVPrimitiveReturnWorker<HandleType, PrimitiveType> { \
   public: \
     Method##Worker(NanCallback *callback, HandleType handle) \
@@ -94,7 +94,7 @@ protected:
 /**
  * Worker that returns lists
  */
-#define NLV_LIST_RETURN_WORKER2(Method, HandleType, CType, V8Type)  \
+#define NLV_LIST_RETURN_WORKER(Method, HandleType, CType, V8Type)  \
   class Method##Worker : public NLVListReturnWorker<HandleType, CType, V8Type> { \
   public: \
     Method##Worker(NanCallback *callback, HandleType handle) \
@@ -128,7 +128,7 @@ protected:
 /**
  * Worker that returns objects
  */
-#define NLV_OBJECT_RETURN_WORKER2(Method, HandleType, ObjectType) \
+#define NLV_OBJECT_RETURN_WORKER(Method, HandleType, ObjectType) \
   class Method##Worker : public NLVAsyncWorker<HandleType> { \
   public: \
     Method##Worker(NanCallback *callback, HandleType handle)  \
@@ -144,7 +144,7 @@ protected:
 /**
  * Worker that returns a typed parameter object
  */
-#define NLV_TYPED_PARAMETER_RETURN_WORKER2(Method, HandleType, ParameterType)  \
+#define NLV_TYPED_PARAMETER_RETURN_WORKER(Method, HandleType, ParameterType)  \
   class Method##Worker : public NLVTypedParameterReturnWorker<HandleType, ParameterType> { \
   public: \
     Method##Worker(NanCallback *callback, HandleType handle)  \
@@ -203,7 +203,7 @@ protected:
 /**
  * Worker that returns and looked up instance
  */
-#define NLV_LOOKUP_BY_VALUE_WORKER2(Method, InstanceClass, ParentType, InstanceType)  \
+#define NLV_LOOKUP_BY_VALUE_WORKER(Method, InstanceClass, ParentType, InstanceType)  \
   class Method##Worker : public NLVLookupInstanceByValueWorker<InstanceClass, ParentType, InstanceType> { \
   public: \
     Method##Worker(NanCallback *callback, ParentType handle, const std::string &value) \
@@ -211,7 +211,7 @@ protected:
     void Execute(); \
   };
 
-#define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Class, Method, Accessor) \
+#define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
   NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(Handle(), value_.c_str());  \
     if (lookupHandle_ == NULL) { \
@@ -234,7 +234,7 @@ protected:
   using NLVAsyncWorker<ParentHandleType>::callback;
   virtual void HandleOKCallback() {
     NanScope();
-    v8::Local<v8::Value> argv[] = { NanNull(), InstanceClass::NewInstance2(lookupHandle_) };
+    v8::Local<v8::Value> argv[] = { NanNull(), InstanceClass::NewInstance(lookupHandle_) };
     callback->Call(2, argv);
   }
 

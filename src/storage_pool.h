@@ -13,7 +13,7 @@ class StoragePool : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virStoragePoolPtr handle);
+  static Local<Object> NewInstance(virStoragePoolPtr handle);
   virtual ~StoragePool();
 
 private:
@@ -54,17 +54,17 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Define, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Create, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StoragePool, virConnectPtr, virStoragePoolPtr);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Build, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Start, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Stop, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Refresh, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Build, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Stop, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Refresh, virStoragePoolPtr, bool);
 
   class EraseWorker : public NLVPrimitiveReturnWorker<virStoragePoolPtr, bool> {
   public:
@@ -76,14 +76,14 @@ private:
   };
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(GetAutostart, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virStoragePoolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsActive, virStoragePoolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsPersistent, virStoragePoolPtr, bool);
-  NLV_OBJECT_RETURN_WORKER2(GetInfo, virStoragePoolPtr, virStoragePoolInfo);
-  NLV_LIST_RETURN_WORKER2(GetVolumes, virStoragePoolPtr, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virStoragePoolPtr, bool);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStoragePoolPtr, virStoragePoolInfo);
+  NLV_LIST_RETURN_WORKER(GetVolumes, virStoragePoolPtr, std::string, v8::String);
 
   class SetAutostartWorker : public NLVPrimitiveReturnWorker<virStoragePoolPtr, bool> {
   public:

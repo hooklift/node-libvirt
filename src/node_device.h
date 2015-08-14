@@ -13,7 +13,7 @@ class NodeDevice : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virNodeDevicePtr handle);
+  static Local<Object> NewInstance(virNodeDevicePtr handle);
   virtual ~NodeDevice();
 
 private:
@@ -42,20 +42,20 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, NodeDevice, virConnectPtr, virNodeDevicePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Create, NodeDevice, virConnectPtr, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NodeDevice, virConnectPtr, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, NodeDevice, virConnectPtr, virNodeDevicePtr);
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Detach, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Reattach, virNodeDevicePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Reset, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Detach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reattach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, virNodeDevicePtr, bool);
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetParentName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virNodeDevicePtr, std::string);
-  NLV_LIST_RETURN_WORKER2(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNodeDevicePtr, std::string);
+  NLV_LIST_RETURN_WORKER(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
 
 };
 

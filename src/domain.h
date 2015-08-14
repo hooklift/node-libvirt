@@ -13,7 +13,7 @@ class Domain : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virDomainPtr handle);
+  static Local<Object> NewInstance(virDomainPtr handle);
   virtual ~Domain();
 
 private:
@@ -99,10 +99,10 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Create, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Domain, virConnectPtr, virDomainPtr);
 
   class LookupByIdWorker : public NLVLookupInstanceByValueWorker<Domain, virConnectPtr, virDomainPtr> {
   public:
@@ -151,17 +151,17 @@ private:
   };
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Start, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Reboot, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Reset, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Suspend, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Resume, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Shutdown, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(AbortCurrentJob, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(ManagedSave, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(ManagedSaveRemove, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reboot, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Suspend, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Resume, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Shutdown, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virDomainPtr, bool);
 
   class SaveWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
@@ -311,24 +311,24 @@ private:
   };
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virDomainPtr, std::string);
-  NLV_OBJECT_RETURN_WORKER2(GetInfo, virDomainPtr, virDomainInfo);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetId, virDomainPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetOSType, virDomainPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virDomainPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetAutostart, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetMaxMemory, virDomainPtr, double);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetMaxVcpus, virDomainPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsActive, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsPersistent, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsUpdated, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(HasManagedSaveImage, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetSchedulerType, virDomainPtr, std::string);
-  NLV_TYPED_PARAMETER_RETURN_WORKER2(GetSchedulerParameters, virDomainPtr, virSchedParameter);
-  NLV_OBJECT_RETURN_WORKER2(GetSecurityLabel, virDomainPtr, virSecurityLabel);
-  NLV_OBJECT_RETURN_WORKER2(GetJobInfo, virDomainPtr, virDomainJobInfo);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetCurrentSnapshot, virDomainPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(HasCurrentSnapshot, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virDomainPtr, std::string);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virDomainPtr, virDomainInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetId, virDomainPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetOSType, virDomainPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virDomainPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMaxMemory, virDomainPtr, double);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpus, virDomainPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsUpdated, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(HasManagedSaveImage, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetSchedulerType, virDomainPtr, std::string);
+  NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virDomainPtr, virSchedParameter);
+  NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virDomainPtr, virSecurityLabel);
+  NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainPtr, virDomainJobInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, virDomainPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, virDomainPtr, bool);
 
   class ToXmlWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
     public:

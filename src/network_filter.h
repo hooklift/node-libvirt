@@ -13,7 +13,7 @@ class NetworkFilter : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virNWFilterPtr handle);
+  static Local<Object> NewInstance(virNWFilterPtr handle);
   virtual ~NetworkFilter();
 
 private:
@@ -37,15 +37,15 @@ protected:
 
 private:
   // HYPERVISOR WORKER METHODS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, NetworkFilter, virConnectPtr, virNWFilterPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, NetworkFilter, virConnectPtr, virNWFilterPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Define, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, NetworkFilter, virConnectPtr, virNWFilterPtr);
 
   // WORKER METHODS
-  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virNWFilterPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virNWFilterPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virNWFilterPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNWFilterPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNWFilterPtr, std::string);
 
 };
 

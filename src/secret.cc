@@ -24,7 +24,7 @@ void Secret::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
-Local<Object> Secret::NewInstance2(virSecretPtr handle)
+Local<Object> Secret::NewInstance(virSecretPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
@@ -45,7 +45,7 @@ Secret::~Secret()
 NLV_WORKER_METHOD_DEFINE(Secret)
 NLV_WORKER_EXECUTE(Secret, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION2();
+  NLV_WORKER_ASSERT_CONNECTION();
   unsigned int flags = 0;
   lookupHandle_ = virSecretDefineXML(Handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
@@ -57,7 +57,7 @@ NLV_WORKER_EXECUTE(Secret, Define)
 NLV_WORKER_METHOD_NO_ARGS(Secret, Undefine)
 NLV_WORKER_EXECUTE(Secret, Undefine)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   int result = virSecretUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -111,7 +111,7 @@ NAN_METHOD(Secret::LookupByUsage)
 
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
-  NLV_WORKER_ASSERT_CONNECTION2();
+  NLV_WORKER_ASSERT_CONNECTION();
   lookupHandle_ = virSecretLookupByUsage(Handle(), usageType_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
@@ -119,7 +119,7 @@ NLV_WORKER_EXECUTE(Secret, LookupByUsage)
   }
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Secret, LookupByUUID, virSecretLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Secret, LookupByUUID, virSecretLookupByUUIDString)
 NAN_METHOD(Secret::LookupByUUID)
 {
   NanScope();
@@ -144,7 +144,7 @@ NAN_METHOD(Secret::LookupByUUID)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
 NLV_WORKER_EXECUTE(Secret, GetUUID)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virSecretGetUUIDString(Handle(), uuid);
   if (result == -1) {
@@ -160,7 +160,7 @@ NLV_WORKER_EXECUTE(Secret, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageId)
 NLV_WORKER_EXECUTE(Secret, GetUsageId)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   const char *result = virSecretGetUsageID(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -173,7 +173,7 @@ NLV_WORKER_EXECUTE(Secret, GetUsageId)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageType)
 NLV_WORKER_EXECUTE(Secret, GetUsageType)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   // int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
   int result = virSecretGetUsageType(Handle());
   if (result == -1) {
@@ -187,7 +187,7 @@ NLV_WORKER_EXECUTE(Secret, GetUsageType)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetValue)
 NLV_WORKER_EXECUTE(Secret, GetValue)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   size_t size;
   unsigned int flags = 0;
   unsigned char *result = virSecretGetValue(Handle(), &size, flags);
@@ -219,7 +219,7 @@ NAN_METHOD(Secret::SetValue)
 
 NLV_WORKER_EXECUTE(Secret, SetValue)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   unsigned int flags = 0;
   int result = virSecretSetValue(Handle(),
       reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
@@ -234,7 +234,7 @@ NLV_WORKER_EXECUTE(Secret, SetValue)
 NLV_WORKER_METHOD_NO_ARGS(Secret, ToXml)
 NLV_WORKER_EXECUTE(Secret, ToXml)
 {
-  NLV_WORKER_ASSERT_SECRET2();
+  NLV_WORKER_ASSERT_SECRET();
   unsigned int flags = 0;
   char *result = virSecretGetXMLDesc(Handle(), flags);
   if (result == NULL) {

@@ -28,7 +28,7 @@ void Interface::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_INTERFACE_XML_INACTIVE);
 }
 
-Local<Object> Interface::NewInstance2(virInterfacePtr handle)
+Local<Object> Interface::NewInstance(virInterfacePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
@@ -54,7 +54,7 @@ virInterfacePtr Interface::GetInterface() const
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
 NLV_WORKER_EXECUTE(Interface, Start)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
 
   unsigned int flags = 0;
   int result = virInterfaceCreate(Handle(), flags);
@@ -69,7 +69,7 @@ NLV_WORKER_EXECUTE(Interface, Start)
 NLV_WORKER_METHOD_NO_ARGS(Interface, Stop)
 NLV_WORKER_EXECUTE(Interface, Stop)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
 
   unsigned int flags = 0;
   int result = virInterfaceDestroy(Handle(), flags);
@@ -101,7 +101,7 @@ NLV_WORKER_EXECUTE(Interface, Define)
 NLV_WORKER_METHOD_NO_ARGS(Interface, Undefine)
 NLV_WORKER_EXECUTE(Interface, Undefine)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   int result = virInterfaceUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -111,7 +111,7 @@ NLV_WORKER_EXECUTE(Interface, Undefine)
   data_ = true;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Interface, LookupByName, virInterfaceLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByName, virInterfaceLookupByName)
 NAN_METHOD(Interface::LookupByName)
 {
   NanScope();
@@ -134,7 +134,7 @@ NAN_METHOD(Interface::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
 NAN_METHOD(Interface::LookupByMacAddress)
 {
   NanScope();
@@ -160,7 +160,7 @@ NAN_METHOD(Interface::LookupByMacAddress)
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
 NLV_WORKER_EXECUTE(Interface, GetName)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virInterfaceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -173,7 +173,7 @@ NLV_WORKER_EXECUTE(Interface, GetName)
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetMacAddress)
 NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virInterfaceGetMACString(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -186,7 +186,7 @@ NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 NLV_WORKER_METHOD_NO_ARGS(Interface, IsActive)
 NLV_WORKER_EXECUTE(Interface, IsActive)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   int result = virInterfaceIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -199,7 +199,7 @@ NLV_WORKER_EXECUTE(Interface, IsActive)
 NLV_WORKER_METHOD_NO_ARGS(Interface, ToXml)
 NLV_WORKER_EXECUTE(Interface, ToXml)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   unsigned int flags = 0;
   char *result = virInterfaceGetXMLDesc(Handle(), flags);
   if (result == NULL) {

@@ -8,28 +8,28 @@
     return; \
   }
 
-#define NLV_WORKER_ASSERT_CONNECTION2() \
+#define NLV_WORKER_ASSERT_CONNECTION() \
   NLV_WORKER_ASSERT_HANDLE("connection")
 
-#define NLV_WORKER_ASSERT_INTERFACE2() \
+#define NLV_WORKER_ASSERT_INTERFACE() \
   NLV_WORKER_ASSERT_HANDLE("interface")
 
-#define NLV_WORKER_ASSERT_NETWORK2() \
+#define NLV_WORKER_ASSERT_NETWORK() \
   NLV_WORKER_ASSERT_HANDLE("network")
 
-#define NLV_WORKER_ASSERT_NODEDEVICE2() \
+#define NLV_WORKER_ASSERT_NODEDEVICE() \
   NLV_WORKER_ASSERT_HANDLE("node device")
 
-#define NLV_WORKER_ASSERT_SECRET2() \
+#define NLV_WORKER_ASSERT_SECRET() \
   NLV_WORKER_ASSERT_HANDLE("secret")
 
-#define NLV_WORKER_ASSERT_STORAGEPOOL2() \
+#define NLV_WORKER_ASSERT_STORAGEPOOL() \
   NLV_WORKER_ASSERT_HANDLE("storage pool")
 
-#define NLV_WORKER_ASSERT_STORAGEVOLUME2() \
+#define NLV_WORKER_ASSERT_STORAGEVOLUME() \
   NLV_WORKER_ASSERT_HANDLE("storage volume")
 
-#define NLV_WORKER_ASSERT_DOMAIN2() \
+#define NLV_WORKER_ASSERT_DOMAIN() \
   NLV_WORKER_ASSERT_HANDLE("domain")
 
 
@@ -89,9 +89,9 @@
 #define NLV_WORKER_EXECUTE(Class, Method) void Class::Method##Worker::Execute()
 #define NLV_WORKER_OKCALLBACK(Class, Method) void Class::Method##Worker::HandleOKCallback()
 
-#define NLV_BOOL_RETURN_EXECUTE_IMPL2(Class, Method, Accessor)  \
+#define NLV_BOOL_RETURN_EXECUTE_IMPL(Class, Method, Accessor)  \
   NLV_WORKER_EXECUTE(Class, Method) {  \
-    NLV_WORKER_ASSERT_CONNECTION2(); \
+    NLV_WORKER_ASSERT_CONNECTION(); \
     int result = Accessor(Handle());  \
     if (result == -1) { \
       SetVirError(virGetLastError()); \

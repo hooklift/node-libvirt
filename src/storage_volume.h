@@ -13,7 +13,7 @@ class StorageVolume : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virStorageVolPtr handle);
+  static Local<Object> NewInstance(virStorageVolPtr handle);
   virtual ~StorageVolume();
 
 private:
@@ -48,12 +48,12 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByKey, StorageVolume, virConnectPtr, virStorageVolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByPath, StorageVolume, virConnectPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByKey, StorageVolume, virConnectPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByPath, StorageVolume, virConnectPtr, virStorageVolPtr);
 
   // STORAGEPOOL METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Create, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
 
   class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, virStoragePoolPtr, virStorageVolPtr> {
   public:
@@ -65,15 +65,15 @@ private:
   };
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Wipe, virStorageVolPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Delete, virStorageVolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Wipe, virStorageVolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Delete, virStorageVolPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(GetKey, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetPath, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virStorageVolPtr, std::string);
-  NLV_OBJECT_RETURN_WORKER2(GetInfo, virStorageVolPtr, virStorageVolInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetKey, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetPath, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStorageVolPtr, std::string);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolPtr, virStorageVolInfo);
 
 };
 

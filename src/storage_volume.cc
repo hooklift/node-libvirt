@@ -36,7 +36,7 @@ void StorageVolume::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_BLOCK);
 }
 
-Local<Object> StorageVolume::NewInstance2(virStorageVolPtr handle)
+Local<Object> StorageVolume::NewInstance(virStorageVolPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
@@ -77,7 +77,7 @@ NAN_METHOD(StorageVolume::Create)
 
 NLV_WORKER_EXECUTE(StorageVolume, Create)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  NLV_WORKER_ASSERT_STORAGEPOOL();
   unsigned int flags = 0;
   lookupHandle_ = virStorageVolCreateXML(Handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
@@ -89,7 +89,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Create)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)
 NLV_WORKER_EXECUTE(StorageVolume, Delete)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   unsigned int flags = 0;
   int result = virStorageVolDelete(Handle(), flags);
   if (result == -1) {
@@ -108,7 +108,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Delete)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Wipe)
 NLV_WORKER_EXECUTE(StorageVolume, Wipe)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   unsigned int flags = 0;
   int result = virStorageVolWipe(Handle(), flags);
   if (result == -1) {
@@ -135,7 +135,7 @@ NAN_METHOD(StorageVolume::GetInfo)
 
 NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   int result = virStorageVolGetInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -158,7 +158,7 @@ NLV_WORKER_OKCALLBACK(StorageVolume, GetInfo)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetKey)
 NLV_WORKER_EXECUTE(StorageVolume, GetKey)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetKey(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -171,7 +171,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetKey)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetName)
 NLV_WORKER_EXECUTE(StorageVolume, GetName)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -184,7 +184,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetName)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetPath)
 NLV_WORKER_EXECUTE(StorageVolume, GetPath)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetPath(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -197,7 +197,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetPath)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, ToXml)
 NLV_WORKER_EXECUTE(StorageVolume, ToXml)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  NLV_WORKER_ASSERT_STORAGEVOLUME();
   unsigned int flags = 0;
   char *result = virStorageVolGetXMLDesc(Handle(), flags);
   if (result == NULL) {
@@ -209,7 +209,7 @@ NLV_WORKER_EXECUTE(StorageVolume, ToXml)
   free(result);
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByName, virStorageVolLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByName, virStorageVolLookupByName)
 NAN_METHOD(StorageVolume::LookupByName)
 {
   NanScope();
@@ -232,7 +232,7 @@ NAN_METHOD(StorageVolume::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByKey, virStorageVolLookupByKey)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByKey, virStorageVolLookupByKey)
 NAN_METHOD(StorageVolume::LookupByKey)
 {
   NanScope();
@@ -255,7 +255,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByPath, virStorageVolLookupByPath)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByPath, virStorageVolLookupByPath)
 NAN_METHOD(StorageVolume::LookupByPath)
 {
   NanScope();
@@ -318,7 +318,7 @@ NAN_METHOD(StorageVolume::Clone)
 
 NLV_WORKER_EXECUTE(StorageVolume, Clone)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  NLV_WORKER_ASSERT_STORAGEPOOL();
   unsigned int flags = 0;
   lookupHandle_ =
     virStorageVolCreateXMLFrom(Handle(), value_.c_str(), cloneHandle_, flags);

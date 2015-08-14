@@ -13,7 +13,7 @@ class Interface : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance2(virInterfacePtr handle);
+  static Local<Object> NewInstance(virInterfacePtr handle);
   virtual ~Interface();
 
   virInterfacePtr GetInterface() const;
@@ -43,18 +43,18 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, Interface, virConnectPtr, virInterfacePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByMacAddress, Interface, virConnectPtr, virInterfacePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByMacAddress, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Interface, virConnectPtr, virInterfacePtr);
 
   // WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER2(Start, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Stop, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(IsActive, virInterfacePtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virInterfacePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(GetMacAddress, virInterfacePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Stop, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetMacAddress, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virInterfacePtr, std::string);
 
 
 };

@@ -22,7 +22,7 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
-Local<Object> NetworkFilter::NewInstance2(virNWFilterPtr handle)
+Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
@@ -40,7 +40,7 @@ NetworkFilter::~NetworkFilter()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NetworkFilter, LookupByName, virNWFilterLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)
 {
   NanScope();
@@ -63,7 +63,7 @@ NAN_METHOD(NetworkFilter::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
 NAN_METHOD(NetworkFilter::LookupByUUID)
 {
   NanScope();
@@ -88,7 +88,7 @@ NAN_METHOD(NetworkFilter::LookupByUUID)
 NLV_WORKER_METHOD_DEFINE(NetworkFilter)
 NLV_WORKER_EXECUTE(NetworkFilter, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION2();
+  NLV_WORKER_ASSERT_CONNECTION();
   lookupHandle_ = virNWFilterDefineXML(Handle(), value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
@@ -99,7 +99,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, Define)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetName)
 NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virNWFilterGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
@@ -112,7 +112,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetUUID)
 NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virNWFilterGetUUIDString(Handle(), uuid);
   if (result == -1) {
@@ -128,7 +128,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, Undefine)
 NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   int result = virNWFilterUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -141,7 +141,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, ToXml)
 NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
 {
-  NLV_WORKER_ASSERT_INTERFACE2();
+  NLV_WORKER_ASSERT_INTERFACE();
   unsigned int flags = 0;
   char *result = virNWFilterGetXMLDesc(Handle(), flags);
   if (result == NULL) {
