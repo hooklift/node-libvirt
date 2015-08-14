@@ -2,26 +2,28 @@
 #ifndef SRC_DOMAIN_H_
 #define SRC_DOMAIN_H_
 
-#include "node_libvirt.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class Domain : public ObjectWrap
+struct DomainCleanupHandler {
+  static int cleanup(virDomainPtr handle) {
+    return virDomainFree(handle);
+  }
+};
+
+class Domain : public NLVObject<virDomainPtr, DomainCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virDomainPtr handle);
-  virtual ~Domain();
 
 private:
-  explicit Domain(virDomainPtr handle) : handle_(handle) {}
+  explicit Domain(virDomainPtr handle);
   static Persistent<FunctionTemplate> constructor_template;
   static Persistent<Function> constructor;
-  virDomainPtr handle_;
-
   friend class Hypervisor;
 
 private:

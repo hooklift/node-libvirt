@@ -22,6 +22,7 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
+NetworkFilter::NetworkFilter(virNWFilterPtr handle) : NLVObject(handle) {}
 Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
 {
   NanEscapableScope();
@@ -31,13 +32,6 @@ Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
   NetworkFilter *filter = new NetworkFilter(handle);
   filter->Wrap(object);
   return NanEscapeScope(object);
-}
-
-NetworkFilter::~NetworkFilter()
-{
-  if (handle_ != NULL)
-    virNWFilterFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)

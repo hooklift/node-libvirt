@@ -28,6 +28,7 @@ void Interface::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_INTERFACE_XML_INACTIVE);
 }
 
+Interface::Interface(virInterfacePtr handle) : NLVObject(handle) {}
 Local<Object> Interface::NewInstance(virInterfacePtr handle)
 {
   NanEscapableScope();
@@ -37,18 +38,6 @@ Local<Object> Interface::NewInstance(virInterfacePtr handle)
   Interface *interface = new Interface(handle);
   interface->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Interface::~Interface()
-{
-  if (handle_ != NULL)
-    virInterfaceFree(handle_);
-  handle_ = NULL;
-}
-
-virInterfacePtr Interface::GetInterface() const
-{
-  return handle_;
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)

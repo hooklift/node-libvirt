@@ -164,30 +164,12 @@ void Hypervisor::Initialize(Handle<Object> exports)
 }
 
 Hypervisor::Hypervisor(std::string uri, std::string username, std::string password, bool readonly)
-  : handle_(NULL),
+  : NLVObject(NULL),
     uri_(uri),
     username_(username),
     password_(password),
     readOnly_(readonly)
 {
-}
-
-Hypervisor::~Hypervisor()
-{
-  if (handle_ != NULL) {
-    int result = virConnectClose(handle_);
-    if (result == -1) {
-      fprintf(stderr, "unable to free connection handle\n");
-      return;
-    }
-
-    handle_ = NULL;
-  }
-}
-
-virConnectPtr Hypervisor::Connection() const
-{
-  return handle_;
 }
 
 NAN_METHOD(Hypervisor::New)

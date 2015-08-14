@@ -185,11 +185,11 @@ void Domain::Initialize(Handle<Object> exports)
 
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SEND_KEY_MAX_KEYS);
 
-
   // ETC
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
 }
 
+Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
 Local<Object> Domain::NewInstance(virDomainPtr handle)
 {
   NanEscapableScope();
@@ -199,13 +199,6 @@ Local<Object> Domain::NewInstance(virDomainPtr handle)
   Domain *domain = new Domain(handle);
   domain->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Domain::~Domain()
-{
-  if (handle_ != NULL)
-    virDomainFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByName, virDomainLookupByName)

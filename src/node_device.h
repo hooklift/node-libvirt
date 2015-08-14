@@ -2,25 +2,27 @@
 #ifndef SRC_NODE_DEVICE_H_
 #define SRC_NODE_DEVICE_H_
 
-#include "node_libvirt.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class NodeDevice : public ObjectWrap
+struct NodeDeviceCleanupHandler {
+  static int cleanup(virNodeDevicePtr handle) {
+    return virNodeDeviceFree(handle);
+  }
+};
+
+class NodeDevice : public NLVObject<virNodeDevicePtr, NodeDeviceCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virNodeDevicePtr handle);
-  virtual ~NodeDevice();
 
 private:
-  explicit NodeDevice(virNodeDevicePtr handle) : handle_(handle) {}
+  explicit NodeDevice(virNodeDevicePtr handle);
   static Persistent<Function> constructor;
-  virNodeDevicePtr handle_;
-
   friend class Hypervisor;
 
 private:

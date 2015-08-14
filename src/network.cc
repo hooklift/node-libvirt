@@ -28,6 +28,7 @@ void Network::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Network"), t->GetFunction());
 }
 
+Network::Network(virNetworkPtr handle) : NLVObject(handle) {}
 Local<Object> Network::NewInstance(virNetworkPtr handle)
 {
   NanEscapableScope();
@@ -37,13 +38,6 @@ Local<Object> Network::NewInstance(virNetworkPtr handle)
   Network *network = new Network(handle);
   network->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Network::~Network()
-{
-  if (handle_ != NULL)
-    virNetworkFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)

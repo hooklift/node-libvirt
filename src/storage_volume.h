@@ -2,26 +2,28 @@
 #ifndef SRC_STORAGE_VOLUME_H_
 #define SRC_STORAGE_VOLUME_H_
 
-#include "node_libvirt.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class StorageVolume : public ObjectWrap
+struct StorageVolumeCleanupHandler {
+  static int cleanup(virStorageVolPtr handle) {
+    return virStorageVolFree(handle);
+  }
+};
+
+class StorageVolume : public NLVObject<virStorageVolPtr, StorageVolumeCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virStorageVolPtr handle);
-  virtual ~StorageVolume();
 
 private:
-  explicit StorageVolume(virStorageVolPtr handle) : handle_(handle) {}
+  explicit StorageVolume(virStorageVolPtr handle);
   static Persistent<FunctionTemplate> constructor_template;
   static Persistent<Function> constructor;
-  virStorageVolPtr handle_;
-
   friend class StoragePool;
   friend class Hypervisor;
 

@@ -4,29 +4,28 @@
 
 #include <string>
 
-#include "node_libvirt.h"
-#include "domain.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class Hypervisor : public ObjectWrap
+struct HypervisorCleanupHandler {
+  static int cleanup(virConnectPtr handle) {
+    return virConnectClose(handle);
+  }
+};
+
+class Hypervisor : public NLVObject<virConnectPtr, HypervisorCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
 
-  virConnectPtr Connection() const;
-
 private:
   explicit Hypervisor(std::string uri, std::string user, std::string pass, bool readOnly);
-  virtual ~Hypervisor();
-
   static Persistent<Function> constructor;
   static Persistent<FunctionTemplate> constructor_template;
 
-  virConnectPtr handle_;
   std::string uri_;
   std::string username_;
   std::string password_;

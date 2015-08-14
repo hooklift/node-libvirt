@@ -2,30 +2,30 @@
 #ifndef SRC_INTERFACE_H_
 #define SRC_INTERFACE_H_
 
-#include "node_libvirt.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class Interface : public ObjectWrap
+struct InterfaceCleanupHandler {
+  static int cleanup(virInterfacePtr handle) {
+    return virInterfaceFree(handle);
+  }
+};
+
+class Interface : public NLVObject<virInterfacePtr, InterfaceCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virInterfacePtr handle);
-  virtual ~Interface();
-
-  virInterfacePtr GetInterface() const;
 
 private:
   static Persistent<Function> constructor;
-  virInterfacePtr handle_;
-
   friend class Hypervisor;
 
 private:
-  explicit Interface(virInterfacePtr handle) : handle_(handle) {}
+  explicit Interface(virInterfacePtr handle);
 
   // HYPERVISOR METHODS
   static NAN_METHOD(LookupByName);

@@ -36,6 +36,7 @@ void StorageVolume::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_BLOCK);
 }
 
+StorageVolume::StorageVolume(virStorageVolPtr handle) : NLVObject(handle) {}
 Local<Object> StorageVolume::NewInstance(virStorageVolPtr handle)
 {
   NanEscapableScope();
@@ -45,13 +46,6 @@ Local<Object> StorageVolume::NewInstance(virStorageVolPtr handle)
   StorageVolume *storageVolume = new StorageVolume(handle);
   storageVolume->Wrap(object);
   return NanEscapeScope(object);
-}
-
-StorageVolume::~StorageVolume()
-{
-  if (handle_ != NULL)
-    virStorageVolFree(handle_);
-  handle_ = 0;
 }
 
 NAN_METHOD(StorageVolume::Create)

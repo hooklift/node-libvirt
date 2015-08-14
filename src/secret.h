@@ -2,25 +2,27 @@
 #ifndef SRC_SECRET_H_
 #define SRC_SECRET_H_
 
-#include "node_libvirt.h"
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class Secret : public ObjectWrap
+struct SecretCleanupHandler {
+  static int cleanup(virSecretPtr handle) {
+    return virSecretFree(handle);
+  }
+};
+
+class Secret : public NLVObject<virSecretPtr, SecretCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virSecretPtr handle);
-  virtual ~Secret();
 
 private:
-  explicit Secret(virSecretPtr handle) : handle_(handle) {}
+  explicit Secret(virSecretPtr handle);
   static Persistent<Function> constructor;
-  virSecretPtr handle_;
-
   friend class Hypervisor;
 
 private:

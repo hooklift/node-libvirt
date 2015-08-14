@@ -2,25 +2,27 @@
 #ifndef SRC_NETWORK_FILTER_H_
 #define SRC_NETWORK_FILTER_H_
 
-#include <nan.h>
-
+#include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
 
-class NetworkFilter : public ObjectWrap
+struct NetworkFilterCleanupHandler {
+  static int cleanup(virNWFilterPtr handle) {
+    return virNWFilterFree(handle);
+  }
+};
+
+class NetworkFilter : public NLVObject<virNWFilterPtr, NetworkFilterCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
   static Local<Object> NewInstance(virNWFilterPtr handle);
-  virtual ~NetworkFilter();
 
 private:
-  explicit NetworkFilter(virNWFilterPtr handle) : handle_(handle) {}
+  explicit NetworkFilter(virNWFilterPtr handle);
   static Persistent<Function> constructor;
-  virNWFilterPtr handle_;
-
   friend class Hypervisor;
 
 protected:

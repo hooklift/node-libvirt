@@ -28,6 +28,7 @@ void NodeDevice::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
+NodeDevice::NodeDevice(virNodeDevicePtr handle) : NLVObject(handle) {}
 Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
 {
   NanEscapableScope();
@@ -37,14 +38,6 @@ Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
   NodeDevice *nodeDevice = new NodeDevice(handle);
   nodeDevice->Wrap(object);
   return NanEscapeScope(object);
-}
-
-
-NodeDevice::~NodeDevice()
-{
-  if (handle_ != NULL)
-    virNodeDeviceFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)

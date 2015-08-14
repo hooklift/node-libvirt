@@ -56,6 +56,7 @@ void StoragePool::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_INACCESSIBLE);
 }
 
+StoragePool::StoragePool(virStoragePoolPtr handle) : NLVObject(handle) {}
 Local<Object> StoragePool::NewInstance(virStoragePoolPtr handle)
 {
   NanEscapableScope();
@@ -65,13 +66,6 @@ Local<Object> StoragePool::NewInstance(virStoragePoolPtr handle)
   StoragePool *storagePool = new StoragePool(handle);
   storagePool->Wrap(object);
   return NanEscapeScope(object);
-}
-
-StoragePool::~StoragePool()
-{
-  if (handle_ != NULL)
-    virStoragePoolFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StoragePool, LookupByName, virStoragePoolLookupByName)

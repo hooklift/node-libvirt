@@ -24,6 +24,7 @@ void Secret::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
+Secret::Secret(virSecretPtr handle) : NLVObject(handle) {}
 Local<Object> Secret::NewInstance(virSecretPtr handle)
 {
   NanEscapableScope();
@@ -33,13 +34,6 @@ Local<Object> Secret::NewInstance(virSecretPtr handle)
   Secret *secret = new Secret(handle);
   secret->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Secret::~Secret()
-{
-  if (handle_ != NULL)
-    virSecretFree(handle_);
-  handle_ = 0;
 }
 
 NLV_WORKER_METHOD_DEFINE(Secret)
