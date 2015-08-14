@@ -5,6 +5,7 @@
       'product_prefix': 'lib',
       'sources': [
         'src/node_libvirt.cc',
+        'src/nlv_async_worker.cc',
         'src/hypervisor.cc',
         'src/error.cc',
         'src/interface.cc',

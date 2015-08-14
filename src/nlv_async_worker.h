@@ -6,58 +6,42 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
-#include "error.h"
-
-using namespace NodeLibvirt;
 
 /**
  * Base class for all workers in node-libvirt
  */
+class NLVAsyncWorkerBase : public NanAsyncWorker
+{
+public:
+  explicit NLVAsyncWorkerBase(NanCallback *callback);
+
+  virErrorPtr VirError() const;
+  void SetVirError(virErrorPtr error);
+
+  virtual void WorkComplete();
+
+protected:
+  virtual void HandleErrorCallback();
+
+private:
+  virErrorPtr virError_;
+
+};
+
+/**
+ * Base class for most NLV async workers
+ */
 template <typename T>
-class NLVAsyncWorker : public NanAsyncWorker
+class NLVAsyncWorker : public NLVAsyncWorkerBase
 {
 public:
   explicit NLVAsyncWorker(NanCallback *callback, T handle)
-    : NanAsyncWorker(callback), handle_(handle), virError_(NULL) {}
+    : NLVAsyncWorkerBase(callback), handle_(handle) {}
 
   T Handle() const { return handle_; }
 
-  virErrorPtr VirError() const { return virError_; }
-  void SetVirError(virErrorPtr error) { virError_ = error; }
-
-  virtual void WorkComplete()
-  {
-    NanScope();
-
-    if (virError_ == NULL && ErrorMessage() == NULL) {
-      HandleOKCallback();
-    } else {
-      HandleErrorCallback();
-    }
-
-    delete callback;
-    callback = NULL;
-  }
-
-protected:
-  virtual void HandleErrorCallback()
-  {
-    NanScope();
-
-    if (virError_ != NULL) {
-      v8::Handle<v8::Value> argv[] = { Error::New(VirError()) };
-      callback->Call(1, argv);
-    } else {
-      v8::Local<v8::Value> argv[] = {
-        v8::Exception::Error(NanNew<v8::String>(ErrorMessage()))
-      };
-      callback->Call(1, argv);
-    }
-  }
-
 private:
   T handle_;
-  virErrorPtr virError_;
 
 };
 
@@ -242,6 +226,5 @@ protected:
   InstanceHandleType lookupHandle_;
 
 };
-
 
 #endif  // NLV_ASYNC_WORKER_H
