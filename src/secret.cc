@@ -64,11 +64,6 @@ NLV_WORKER_EXECUTE(Secret, Undefine)
     return;
   }
 
-  // @todo: cleanup actual pointer
-  // if (Handle().ToSecret() != NULL) {
-  //   Handle().Clear();
-  // }
-
   data_ = true;
 }
 

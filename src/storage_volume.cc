@@ -97,11 +97,6 @@ NLV_WORKER_EXECUTE(StorageVolume, Delete)
     return;
   }
 
-  // @todo: handle actual pointer
-  // if (Handle().ToStorageVolume() != NULL) {
-  //   Handle().Clear();
-  // }
-
   data_ = true;
 }
 

@@ -78,12 +78,6 @@ NLV_WORKER_EXECUTE(Interface, Stop)
     return;
   }
 
-  // if (Handle() != NULL) {
-  //   virInterfaceFree(Handle());
-  //   // handle_ = NULL;
-  //   // @todo: set actual Interface class instance handle to NULL
-  // }
-
   data_ = static_cast<bool>(result);
 }
 

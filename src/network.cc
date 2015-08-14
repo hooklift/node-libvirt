@@ -245,12 +245,6 @@ NLV_WORKER_EXECUTE(Network, Destroy)
     return;
   }
 
-  // if (Handle() != NULL) {
-  //   virNetworkFree(Handle());
-  //   // @todo: remember to free in actual Network instance
-  //   // Handle().Clear();
-  // }
-
   data_ = true;
 }
 

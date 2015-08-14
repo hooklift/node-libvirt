@@ -220,11 +220,6 @@ NLV_WORKER_EXECUTE(StoragePool, Stop)
     return;
   }
 
-  // @todo: actually handle original pointer
-  // if (Handle().ToStoragePool() != NULL) {
-  //   Handle().Clear();
-  // }
-
   data_ = true;
 }
 
@@ -262,11 +257,6 @@ NLV_WORKER_EXECUTE(StoragePool, Erase)
     SetVirError(virGetLastError());
     return;
   }
-
-  // @todo: actually handle original pointer
-  // if (Handle().ToStoragePool() != NULL) {
-  //   Handle().Clear();
-  // }
 
   data_ = true;
 }

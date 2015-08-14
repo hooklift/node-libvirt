@@ -101,7 +101,6 @@ NLV_WORKER_EXECUTE(NodeDevice, Create)
   }
 }
 
-//Really neccesary call destroy from javascript ???
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
 NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 {
@@ -111,11 +110,6 @@ NLV_WORKER_EXECUTE(NodeDevice, Destroy)
     SetVirError(virGetLastError());
     return;
   }
-
-  // @todo: handle clearing the ACTUAL pointer
-  // if (Handle().ToNodeDevice() != NULL) {
-  //   Handle().Clear();
-  // }
 
   data_ = true;
 }

@@ -420,11 +420,6 @@ NLV_WORKER_EXECUTE(Domain, Destroy)
     return;
   }
 
-  // @todo: delete actual pointer
-  // if (Handle() != NULL) {
-  //   Handle().Clear();
-  // }
-
   data_ = true;
 }
 
