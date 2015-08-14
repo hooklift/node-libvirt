@@ -163,7 +163,7 @@ void Hypervisor::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Hypervisor"), t->GetFunction());
 }
 
-Hypervisor::Hypervisor(string uri, string username, string password, bool readonly)
+Hypervisor::Hypervisor(std::string uri, std::string username, std::string password, bool readonly)
   : handle_(NULL),
     uri_(uri),
     username_(username),
@@ -214,9 +214,9 @@ NAN_METHOD(Hypervisor::New)
   }
 
   bool readOnly = false;
-  string username;
-  string password;
-  string uri = *NanUtf8String(args[0]);
+  std::string username;
+  std::string password;
+  std::string uri = *NanUtf8String(args[0]);
 
   if (argsLen >= 2) {
     if (args[1]->IsBoolean()) {

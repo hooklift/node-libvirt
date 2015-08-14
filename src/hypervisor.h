@@ -2,13 +2,13 @@
 #ifndef SRC_HYPERVISOR_H_
 #define SRC_HYPERVISOR_H_
 
+#include <string>
+
 #include "node_libvirt.h"
 #include "domain.h"
 
-#include "worker_macros.h"
-#include "worker.h"
-
 #include "nlv_async_worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
@@ -20,16 +20,16 @@ public:
   virConnectPtr Connection() const;
 
 private:
-  explicit Hypervisor(string uri, string user, string pass, bool readOnly);
+  explicit Hypervisor(std::string uri, std::string user, std::string pass, bool readOnly);
   virtual ~Hypervisor();
 
   static Persistent<Function> constructor;
   static Persistent<FunctionTemplate> constructor_template;
 
   virConnectPtr handle_;
-  string uri_;
-  string username_;
-  string password_;
+  std::string uri_;
+  std::string username_;
+  std::string password_;
   bool readOnly_;
 
   friend class Interface;

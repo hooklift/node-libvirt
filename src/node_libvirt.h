@@ -9,8 +9,6 @@
 using namespace v8;
 using namespace node;
 
-#include "libvirt_handle.h"
-
 #define NODE_LIBVIRT_VERSION "v0.1.0"
 
 #define NLV_WARN_UNFINISHED(Method)   \

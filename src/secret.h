@@ -4,7 +4,7 @@
 
 #include "node_libvirt.h"
 
-#include "worker.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
 namespace NodeLibvirt {
