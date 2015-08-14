@@ -13,7 +13,7 @@ class NetworkFilter : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virNWFilterPtr handle);
   virtual ~NetworkFilter();
 
 private:
@@ -37,9 +37,9 @@ protected:
 
 private:
   // HYPERVISOR WORKER METHODS
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, NetworkFilter, virConnectPtr, virNWFilterPtr);
 
   // WORKER METHODS
   NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virNWFilterPtr, bool);

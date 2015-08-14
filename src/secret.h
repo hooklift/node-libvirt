@@ -13,7 +13,7 @@ class Secret : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virSecretPtr handle);
   virtual ~Secret();
 
 private:
@@ -42,13 +42,13 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Secret, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(Secret, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, Secret, virConnectPtr, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Secret, virConnectPtr, virSecretPtr);
 
-  class LookupByUsageWorker : public LookupInstanceByValueWorker<Secret> {
+  class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, virConnectPtr, virSecretPtr> {
   public:
-    LookupByUsageWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &usageId, int usageType) \
-      : LookupInstanceByValueWorker<Secret>(callback, handle, usageId), usageType_(usageType) {}
+    LookupByUsageWorker(NanCallback *callback, virConnectPtr handle, const std::string &usageId, int usageType) \
+      : NLVLookupInstanceByValueWorker<Secret, virConnectPtr, virSecretPtr>(callback, handle, usageId), usageType_(usageType) {}
     void Execute();
   private:
     int usageType_;

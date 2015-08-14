@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
+
 #include "hypervisor.h"
-#include "worker_macros.h"
 #include "interface.h"
 
 namespace NodeLibvirt {
@@ -28,13 +28,13 @@ void Interface::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_INTERFACE_XML_INACTIVE);
 }
 
-Local<Object> Interface::NewInstance(const LibVirtHandle &handle)
+Local<Object> Interface::NewInstance2(virInterfacePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Interface *interface = new Interface(handle.ToInterface());
+  Interface *interface = new Interface(handle);
   interface->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -78,11 +78,11 @@ NLV_WORKER_EXECUTE(Interface, Stop)
     return;
   }
 
-  if (Handle() != NULL) {
-    virInterfaceFree(Handle());
-    // handle_ = NULL;
-    // @todo: set actual Interface class instance handle to NULL
-  }
+  // if (Handle() != NULL) {
+  //   virInterfaceFree(Handle());
+  //   // handle_ = NULL;
+  //   // @todo: set actual Interface class instance handle to NULL
+  // }
 
   data_ = static_cast<bool>(result);
 }
@@ -91,9 +91,8 @@ NLV_WORKER_METHOD_DEFINE(Interface)
 NLV_WORKER_EXECUTE(Interface, Define)
 {
   unsigned int flags = 0;
-  lookupHandle_ =
-    virInterfaceDefineXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToInterface() == NULL) {
+  lookupHandle_ = virInterfaceDefineXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -112,7 +111,7 @@ NLV_WORKER_EXECUTE(Interface, Undefine)
   data_ = true;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByName, virInterfaceLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Interface, LookupByName, virInterfaceLookupByName)
 NAN_METHOD(Interface::LookupByName)
 {
   NanScope();
@@ -135,7 +134,7 @@ NAN_METHOD(Interface::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
 NAN_METHOD(Interface::LookupByMacAddress)
 {
   NanScope();

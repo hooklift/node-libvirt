@@ -190,13 +190,13 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
 }
 
-Local<Object> Domain::NewInstance(const LibVirtHandle &handle)
+Local<Object> Domain::NewInstance2(virDomainPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Domain *domain = new Domain(handle.ToDomain());
+  Domain *domain = new Domain(handle);
   domain->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -208,7 +208,7 @@ Domain::~Domain()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByName, virDomainLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Domain, LookupByName, virDomainLookupByName)
 NAN_METHOD(Domain::LookupByName)
 {
   NanScope();
@@ -230,7 +230,7 @@ NAN_METHOD(Domain::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByUUID, virDomainLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Domain, LookupByUUID, virDomainLookupByUUIDString)
 NAN_METHOD(Domain::LookupByUUID)
 {
   NanScope();
@@ -275,9 +275,9 @@ NAN_METHOD(Domain::LookupById)
 
 NLV_WORKER_EXECUTE(Domain, LookupById)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virDomainLookupByID(Handle().ToConnection(), id_);
-  if (lookupHandle_.ToDomain() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virDomainLookupByID(Handle(), id_);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -286,12 +286,10 @@ NLV_WORKER_EXECUTE(Domain, LookupById)
 NLV_WORKER_METHOD_CREATE(Domain)
 NLV_WORKER_EXECUTE(Domain, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virDomainCreateXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToDomain() == NULL) {
+  lookupHandle_ = virDomainCreateXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -300,11 +298,9 @@ NLV_WORKER_EXECUTE(Domain, Create)
 NLV_WORKER_METHOD_DEFINE(Domain)
 NLV_WORKER_EXECUTE(Domain, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-
-  lookupHandle_ =
-    virDomainDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToDomain() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virDomainDefineXML(Handle(), value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -1477,7 +1473,7 @@ NLV_WORKER_OKCALLBACK(Domain, Migrate)
   NanScope();
 
   if (migrated_ != NULL) {
-    Local<Object> domain_obj = Domain::NewInstance(migrated_);
+    Local<Object> domain_obj = Domain::NewInstance2(migrated_);
     Local<Value> argv[] = { NanNull(), domain_obj };
     callback->Call(2, argv);
   } else {

@@ -13,7 +13,7 @@ class StorageVolume : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virStorageVolPtr handle);
   virtual ~StorageVolume();
 
 private:
@@ -48,17 +48,17 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByKey);
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByPath);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByKey, StorageVolume, virConnectPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByPath, StorageVolume, virConnectPtr, virStorageVolPtr);
 
   // STORAGEPOOL METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Create, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
 
-  class CloneWorker : public LookupInstanceByValueWorker<StorageVolume> {
+  class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, virStoragePoolPtr, virStorageVolPtr> {
   public:
-    CloneWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value, virStorageVolPtr cloneHandle)
-      : LookupInstanceByValueWorker<StorageVolume>(callback, handle, value), cloneHandle_(cloneHandle) {}
+    CloneWorker(NanCallback *callback, virStoragePoolPtr handle, const std::string &value, virStorageVolPtr cloneHandle)
+      : NLVLookupInstanceByValueWorker<StorageVolume, virStoragePoolPtr, virStorageVolPtr>(callback, handle, value), cloneHandle_(cloneHandle) {}
     void Execute();
   private:
     virStorageVolPtr cloneHandle_;

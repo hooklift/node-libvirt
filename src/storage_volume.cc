@@ -36,13 +36,13 @@ void StorageVolume::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_BLOCK);
 }
 
-Local<Object> StorageVolume::NewInstance(const LibVirtHandle &handle)
+Local<Object> StorageVolume::NewInstance2(virStorageVolPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  StorageVolume *storageVolume = new StorageVolume(handle.ToStorageVolume());
+  StorageVolume *storageVolume = new StorageVolume(handle);
   storageVolume->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -77,10 +77,10 @@ NAN_METHOD(StorageVolume::Create)
 
 NLV_WORKER_EXECUTE(StorageVolume, Create)
 {
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virStorageVolCreateXML(Handle().ToStoragePool(), value_.c_str(), flags);
-  if (lookupHandle_.ToStoragePool() == NULL) {
+  lookupHandle_ = virStorageVolCreateXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -209,7 +209,7 @@ NLV_WORKER_EXECUTE(StorageVolume, ToXml)
   free(result);
 }
 
-NLV_SP_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByName, virStorageVolLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByName, virStorageVolLookupByName)
 NAN_METHOD(StorageVolume::LookupByName)
 {
   NanScope();
@@ -232,7 +232,7 @@ NAN_METHOD(StorageVolume::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByKey, virStorageVolLookupByKey)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByKey, virStorageVolLookupByKey)
 NAN_METHOD(StorageVolume::LookupByKey)
 {
   NanScope();
@@ -255,7 +255,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByPath, virStorageVolLookupByPath)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StorageVolume, LookupByPath, virStorageVolLookupByPath)
 NAN_METHOD(StorageVolume::LookupByPath)
 {
   NanScope();
@@ -318,10 +318,11 @@ NAN_METHOD(StorageVolume::Clone)
 
 NLV_WORKER_EXECUTE(StorageVolume, Clone)
 {
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
   lookupHandle_ =
-    virStorageVolCreateXMLFrom(Handle().ToStoragePool(), value_.c_str(), cloneHandle_, flags);
-  if (lookupHandle_.ToStorageVolume() == NULL) {
+    virStorageVolCreateXMLFrom(Handle(), value_.c_str(), cloneHandle_, flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }

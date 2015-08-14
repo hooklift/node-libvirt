@@ -28,13 +28,13 @@ void Network::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Network"), t->GetFunction());
 }
 
-Local<Object> Network::NewInstance(const LibVirtHandle &handle)
+Local<Object> Network::NewInstance2(virNetworkPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Network *network = new Network(handle.ToNetwork());
+  Network *network = new Network(handle);
   network->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -46,7 +46,7 @@ Network::~Network()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Network, LookupByName, virNetworkLookupByName)
 NAN_METHOD(Network::LookupByName)
 {
   NanScope();
@@ -68,7 +68,7 @@ NAN_METHOD(Network::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByUUID, virNetworkLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Network, LookupByUUID, virNetworkLookupByUUIDString)
 NAN_METHOD(Network::LookupByUUID)
 {
   NanScope();
@@ -93,9 +93,9 @@ NAN_METHOD(Network::LookupByUUID)
 NLV_WORKER_METHOD_CREATE(Network)
 NLV_WORKER_EXECUTE(Network, Create)
 {
-  lookupHandle_ =
-    virNetworkCreateXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetwork() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virNetworkCreateXML(Handle(), value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -104,9 +104,9 @@ NLV_WORKER_EXECUTE(Network, Create)
 NLV_WORKER_METHOD_DEFINE(Network)
 NLV_WORKER_EXECUTE(Network, Define)
 {
-  lookupHandle_ =
-    virNetworkDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetwork() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virNetworkDefineXML(Handle(), value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }

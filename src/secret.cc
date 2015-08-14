@@ -24,13 +24,13 @@ void Secret::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
-Local<Object> Secret::NewInstance(const LibVirtHandle &handle)
+Local<Object> Secret::NewInstance2(virSecretPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Secret *secret = new Secret(handle.ToSecret());
+  Secret *secret = new Secret(handle);
   secret->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -45,10 +45,10 @@ Secret::~Secret()
 NLV_WORKER_METHOD_DEFINE(Secret)
 NLV_WORKER_EXECUTE(Secret, Define)
 {
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virSecretDefineXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToSecret() == NULL) {
+  lookupHandle_ = virSecretDefineXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -111,15 +111,15 @@ NAN_METHOD(Secret::LookupByUsage)
 
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
-  lookupHandle_ =
-    virSecretLookupByUsage(Handle().ToConnection(), usageType_, value_.c_str());
-  if (lookupHandle_.ToSecret() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virSecretLookupByUsage(Handle(), usageType_, value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Secret, LookupByUUID, virSecretLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(Secret, LookupByUUID, virSecretLookupByUUIDString)
 NAN_METHOD(Secret::LookupByUUID)
 {
   NanScope();

@@ -15,7 +15,7 @@ class Network : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virNetworkPtr handle);
   virtual ~Network();
 
 private:
@@ -49,10 +49,10 @@ protected:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, Define);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, Network, virConnectPtr, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, Network, virConnectPtr, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Network, virConnectPtr, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Create, Network, virConnectPtr, virNetworkPtr);
 
   // METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virNetworkPtr, bool);

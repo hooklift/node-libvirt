@@ -13,7 +13,7 @@ class StoragePool : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virStoragePoolPtr handle);
   virtual ~StoragePool();
 
 private:
@@ -54,10 +54,10 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, Define);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Create, StoragePool, virConnectPtr, virStoragePoolPtr);
 
   // METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER2(Build, virStoragePoolPtr, bool);

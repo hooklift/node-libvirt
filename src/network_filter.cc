@@ -22,13 +22,13 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
-Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)
+Local<Object> NetworkFilter::NewInstance2(virNWFilterPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  NetworkFilter *filter = new NetworkFilter(handle.ToNetworkFilter());
+  NetworkFilter *filter = new NetworkFilter(handle);
   filter->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -40,7 +40,7 @@ NetworkFilter::~NetworkFilter()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)
 {
   NanScope();
@@ -63,7 +63,7 @@ NAN_METHOD(NetworkFilter::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
 NAN_METHOD(NetworkFilter::LookupByUUID)
 {
   NanScope();
@@ -88,9 +88,9 @@ NAN_METHOD(NetworkFilter::LookupByUUID)
 NLV_WORKER_METHOD_DEFINE(NetworkFilter)
 NLV_WORKER_EXECUTE(NetworkFilter, Define)
 {
-  lookupHandle_ =
-    virNWFilterDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetworkFilter() == NULL) {
+  NLV_WORKER_ASSERT_CONNECTION2();
+  lookupHandle_ = virNWFilterDefineXML(Handle(), value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }

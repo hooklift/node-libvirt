@@ -4,10 +4,8 @@
 
 #include "node_libvirt.h"
 
-#include "worker.h"
-#include "worker_macros.h"
-
 #include "nlv_async_worker.h"
+#include "worker_macros.h"
 
 namespace NodeLibvirt {
 
@@ -15,7 +13,7 @@ class Interface : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virInterfacePtr handle);
   virtual ~Interface();
 
   virInterfacePtr GetInterface() const;
@@ -45,9 +43,9 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Interface, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(Interface, LookupByMacAddress);
-  NLV_LOOKUP_BY_VALUE_WORKER(Interface, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByMacAddress, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Interface, virConnectPtr, virInterfacePtr);
 
   // WORKERS
   NLV_PRIMITIVE_RETURN_WORKER2(Start, virInterfacePtr, bool);

@@ -28,16 +28,17 @@ void NodeDevice::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
-Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
+Local<Object> NodeDevice::NewInstance2(virNodeDevicePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  NodeDevice *nodeDevice = new NodeDevice(handle.ToNodeDevice());
+  NodeDevice *nodeDevice = new NodeDevice(handle);
   nodeDevice->Wrap(object);
   return NanEscapeScope(object);
 }
+
 
 NodeDevice::~NodeDevice()
 {
@@ -46,7 +47,7 @@ NodeDevice::~NodeDevice()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)
 {
   NanScope();
@@ -91,10 +92,10 @@ NAN_METHOD(NodeDevice::Create)
 
 NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virNodeDeviceCreateXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToNodeDevice() == NULL) {
+  lookupHandle_ = virNodeDeviceCreateXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }

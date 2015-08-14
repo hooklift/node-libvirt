@@ -15,7 +15,7 @@ class NodeDevice : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virNodeDevicePtr handle);
   virtual ~NodeDevice();
 
 private:
@@ -44,8 +44,8 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, NodeDevice, virConnectPtr, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Create, NodeDevice, virConnectPtr, virNodeDevicePtr);
 
   // ACTION METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virNodeDevicePtr, bool);

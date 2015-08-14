@@ -56,13 +56,13 @@ void StoragePool::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_POOL_INACCESSIBLE);
 }
 
-Local<Object> StoragePool::NewInstance(const LibVirtHandle &handle)
+Local<Object> StoragePool::NewInstance2(virStoragePoolPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  StoragePool *storagePool = new StoragePool(handle.ToStoragePool());
+  StoragePool *storagePool = new StoragePool(handle);
   storagePool->Wrap(object);
   return NanEscapeScope(object);
 }
@@ -74,7 +74,7 @@ StoragePool::~StoragePool()
   handle_ = 0;
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StoragePool, LookupByName, virStoragePoolLookupByName)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StoragePool, LookupByName, virStoragePoolLookupByName)
 NAN_METHOD(StoragePool::LookupByName)
 {
   NanScope();
@@ -97,7 +97,7 @@ NAN_METHOD(StoragePool::LookupByName)
   NanReturnUndefined();
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StoragePool, LookupByUUID, virStoragePoolLookupByUUIDString)
+NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL2(StoragePool, LookupByUUID, virStoragePoolLookupByUUIDString)
 NAN_METHOD(StoragePool::LookupByUUID)
 {
   NanScope();
@@ -148,10 +148,10 @@ NAN_METHOD(StoragePool::Create)
 
 NLV_WORKER_EXECUTE(StoragePool, Create)
 {
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virStoragePoolCreateXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToStoragePool() == NULL) {
+  lookupHandle_ = virStoragePoolCreateXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -160,10 +160,10 @@ NLV_WORKER_EXECUTE(StoragePool, Create)
 NLV_WORKER_METHOD_DEFINE(StoragePool)
 NLV_WORKER_EXECUTE(StoragePool, Define)
 {
+  NLV_WORKER_ASSERT_CONNECTION2();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virStoragePoolDefineXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToStoragePool() == NULL) {
+  lookupHandle_ = virStoragePoolDefineXML(Handle(), value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }

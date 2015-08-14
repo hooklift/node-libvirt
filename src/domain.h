@@ -15,7 +15,7 @@ class Domain : public ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
+  static Local<Object> NewInstance2(virDomainPtr handle);
   virtual ~Domain();
 
 private:
@@ -101,15 +101,15 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Domain, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(Domain, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(Domain, Create);
-  NLV_LOOKUP_BY_VALUE_WORKER(Domain, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByName, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(LookupByUUID, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Create, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER2(Define, Domain, virConnectPtr, virDomainPtr);
 
-  class LookupByIdWorker : public LookupInstanceByValueWorker<Domain> {
+  class LookupByIdWorker : public NLVLookupInstanceByValueWorker<Domain, virConnectPtr, virDomainPtr> {
   public:
-    LookupByIdWorker(NanCallback *callback, const LibVirtHandle &handle, int id)
-      : LookupInstanceByValueWorker<Domain>(callback, handle, std::string()), id_(id) {}
+    LookupByIdWorker(NanCallback *callback, virConnectPtr handle, int id)
+      : NLVLookupInstanceByValueWorker<Domain, virConnectPtr, virDomainPtr>(callback, handle, std::string()), id_(id) {}
     void Execute();
   private:
     int id_;
