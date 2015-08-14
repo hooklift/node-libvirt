@@ -42,10 +42,10 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, Define);
 
   // WORKER METHODS
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virNWFilterPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virNWFilterPtr, std::string);
 
 };
 

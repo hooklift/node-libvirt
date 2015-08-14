@@ -7,6 +7,8 @@
 #include "worker.h"
 #include "worker_macros.h"
 
+#include "nlv_async_worker.h"
+
 namespace NodeLibvirt {
 
 class Network : public ObjectWrap
@@ -53,23 +55,23 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(Network, Create);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Start, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virNetworkPtr, bool);
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetAutostart, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetBridgeName, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(IsActive, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(IsPersistent, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virNetworkPtr, std::string);
 
-  class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
+  class SetAutostartWorker : public NLVPrimitiveReturnWorker<virNetworkPtr, bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
-      : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {} \
+    SetAutostartWorker(NanCallback *callback, virNetworkPtr handle, bool autoStart)
+      : NLVPrimitiveReturnWorker<virNetworkPtr, bool>(callback, handle), autoStart_(autoStart) {} \
     void Execute();
   private:
     bool autoStart_;

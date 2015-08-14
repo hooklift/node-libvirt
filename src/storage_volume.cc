@@ -89,18 +89,18 @@ NLV_WORKER_EXECUTE(StorageVolume, Create)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)
 NLV_WORKER_EXECUTE(StorageVolume, Delete)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
   unsigned int flags = 0;
-  int result = virStorageVolDelete(Handle().ToStorageVolume(), flags);
+  int result = virStorageVolDelete(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToStorageVolume() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: handle actual pointer
+  // if (Handle().ToStorageVolume() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -108,10 +108,9 @@ NLV_WORKER_EXECUTE(StorageVolume, Delete)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Wipe)
 NLV_WORKER_EXECUTE(StorageVolume, Wipe)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
   unsigned int flags = 0;
-  int result = virStorageVolWipe(Handle().ToStorageVolume(), flags);
+  int result = virStorageVolWipe(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -136,7 +135,8 @@ NAN_METHOD(StorageVolume::GetInfo)
 
 NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
 {
-  int result = virStorageVolGetInfo(Handle().ToStorageVolume(), &info_);
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  int result = virStorageVolGetInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -158,9 +158,8 @@ NLV_WORKER_OKCALLBACK(StorageVolume, GetInfo)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetKey)
 NLV_WORKER_EXECUTE(StorageVolume, GetKey)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
-  const char *result = virStorageVolGetKey(Handle().ToStorageVolume());
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  const char *result = virStorageVolGetKey(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -172,9 +171,8 @@ NLV_WORKER_EXECUTE(StorageVolume, GetKey)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetName)
 NLV_WORKER_EXECUTE(StorageVolume, GetName)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
-  const char *result = virStorageVolGetName(Handle().ToStorageVolume());
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  const char *result = virStorageVolGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -186,9 +184,8 @@ NLV_WORKER_EXECUTE(StorageVolume, GetName)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, GetPath)
 NLV_WORKER_EXECUTE(StorageVolume, GetPath)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
-  const char *result = virStorageVolGetPath(Handle().ToStorageVolume());
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
+  const char *result = virStorageVolGetPath(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -200,10 +197,9 @@ NLV_WORKER_EXECUTE(StorageVolume, GetPath)
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, ToXml)
 NLV_WORKER_EXECUTE(StorageVolume, ToXml)
 {
-  NLV_WORKER_ASSERT_STORAGEVOLUME();
-
+  NLV_WORKER_ASSERT_STORAGEVOLUME2();
   unsigned int flags = 0;
-  char *result = virStorageVolGetXMLDesc(Handle().ToStorageVolume(), flags);
+  char *result = virStorageVolGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;

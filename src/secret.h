@@ -55,19 +55,19 @@ private:
   };
 
   // ACTION WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virSecretPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetValue, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetUUID, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetUsageId, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetUsageType, virSecretPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetValue, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virSecretPtr, std::string);
 
-  class SetValueWorker : public PrimitiveReturnWorker<bool> {
+  class SetValueWorker : public NLVPrimitiveReturnWorker<virSecretPtr, bool> {
   public:
-    SetValueWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value)
-      : PrimitiveReturnWorker<bool>(callback, handle), value_(value) {} \
+    SetValueWorker(NanCallback *callback, virSecretPtr handle, const std::string &value)
+      : NLVPrimitiveReturnWorker<virSecretPtr, bool>(callback, handle), value_(value) {} \
     void Execute();
   private:
     std::string value_;

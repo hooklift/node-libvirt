@@ -75,12 +75,13 @@ private:
 template <typename HandleType, typename PrimitiveType>
 class NLVPrimitiveReturnWorker : public NLVAsyncWorker<HandleType>
 {
-  using NLVAsyncWorker<HandleType>::callback;
 public:
   explicit NLVPrimitiveReturnWorker(NanCallback *callback, HandleType handle)
     : NLVAsyncWorker<HandleType>(callback, handle) {}
 
 protected:
+  using NLVAsyncWorker<HandleType>::callback;
+
   void HandleOKCallback() {
     NanScope();
     v8::Local<v8::Value> argv[] = { NanNull(), NanNew(data_) };
@@ -104,13 +105,13 @@ protected:
 template <typename HandleType, typename CType, typename V8Type>
 class NLVListReturnWorker : public NLVAsyncWorker<HandleType>
 {
-protected:
-  using NLVAsyncWorker<HandleType>::callback;
 public:
   explicit NLVListReturnWorker(NanCallback *callback, HandleType handle)
     : NLVAsyncWorker<HandleType>(callback, handle) {}
 
 protected:
+  using NLVAsyncWorker<HandleType>::callback;
+
   virtual void HandleOKCallback() {
     NanScope();
     v8::Local<v8::Array> result = NanNew<v8::Array>(data_.size());
@@ -123,6 +124,79 @@ protected:
 
   std::vector<CType> data_;
 };
+
+/**
+ * Worker that returns objects
+ */
+#define NLV_OBJECT_RETURN_WORKER2(Method, HandleType, ObjectType) \
+  class Method##Worker : public NLVAsyncWorker<HandleType> { \
+  public: \
+    Method##Worker(NanCallback *callback, HandleType handle)  \
+      : NLVAsyncWorker<HandleType>(callback, handle) {}  \
+    void Execute(); \
+  protected:  \
+    using NLVAsyncWorker<HandleType>::callback; \
+    void HandleOKCallback();  \
+  private:  \
+    ObjectType info_;  \
+  };
+
+#define NLV_TYPED_PARAMETER_RETURN_WORKER2(Method, HandleType, ParameterType)  \
+  class Method##Worker : public NLVTypedParameterReturnWorker<HandleType, ParameterType> { \
+  public: \
+    Method##Worker(NanCallback *callback, HandleType handle)  \
+      : NLVTypedParameterReturnWorker<HandleType, ParameterType>(callback, handle) {} \
+    void Execute(); \
+  };
+
+template <typename HandleType, typename T>
+class NLVTypedParameterReturnWorker : public NLVAsyncWorker<HandleType>
+{
+public:
+  explicit NLVTypedParameterReturnWorker(NanCallback *callback, HandleType handle)
+    : NLVAsyncWorker<HandleType>(callback, handle) {}
+
+protected:
+  using NLVAsyncWorker<HandleType>::callback;
+  virtual void HandleOKCallback() {
+    NanScope();
+    v8::Local<v8::Object> result = NanNew<v8::Object>();
+    typename std::vector<T>::const_iterator it;
+    for (it = params_.begin(); it != params_.end(); ++it) {
+      v8::Local<v8::Value> value;
+      switch((*it).type) {
+      case VIR_TYPED_PARAM_INT:
+        value = NanNew<v8::Integer>((*it).value.i);
+        break;
+      case VIR_TYPED_PARAM_UINT:
+        value = NanNew<v8::Integer>((*it).value.ui);
+        break;
+      case VIR_TYPED_PARAM_LLONG:
+        value = NanNew<v8::Number>((*it).value.l);
+        break;
+      case VIR_TYPED_PARAM_ULLONG:
+        value = NanNew<v8::Number>((*it).value.ul);
+        break;
+      case VIR_TYPED_PARAM_DOUBLE:
+        value = NanNew<v8::Number>((*it).value.d);
+        break;
+      case VIR_TYPED_PARAM_BOOLEAN:
+        value = NanNew<v8::Boolean>((*it).value.b);
+        break;
+      default:
+        value = NanNull();
+      }
+
+      result->Set(NanNew((*it).field), value);
+    }
+
+    v8::Local<v8::Value> argv[] = { NanNull(), result };
+    callback->Call(2, argv);
+  };
+
+  std::vector<T> params_;
+};
+
 
 
 #endif  // NLV_ASYNC_WORKER_H

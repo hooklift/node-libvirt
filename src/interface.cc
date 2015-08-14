@@ -43,7 +43,7 @@ Interface::~Interface()
 {
   if (handle_ != NULL)
     virInterfaceFree(handle_);
-  handle_ = 0;
+  handle_ = NULL;
 }
 
 virInterfacePtr Interface::GetInterface() const
@@ -54,10 +54,10 @@ virInterfacePtr Interface::GetInterface() const
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
 NLV_WORKER_EXECUTE(Interface, Start)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
+  NLV_WORKER_ASSERT_INTERFACE2();
 
   unsigned int flags = 0;
-  int result = virInterfaceCreate(Handle().ToInterface(), flags);
+  int result = virInterfaceCreate(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -69,17 +69,19 @@ NLV_WORKER_EXECUTE(Interface, Start)
 NLV_WORKER_METHOD_NO_ARGS(Interface, Stop)
 NLV_WORKER_EXECUTE(Interface, Stop)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
+  NLV_WORKER_ASSERT_INTERFACE2();
 
   unsigned int flags = 0;
-  int result = virInterfaceDestroy(Handle().ToInterface(), flags);
+  int result = virInterfaceDestroy(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToInterface() != NULL) {
-    Handle().Clear();
+  if (Handle() != NULL) {
+    virInterfaceFree(Handle());
+    // handle_ = NULL;
+    // @todo: set actual Interface class instance handle to NULL
   }
 
   data_ = static_cast<bool>(result);
@@ -100,8 +102,8 @@ NLV_WORKER_EXECUTE(Interface, Define)
 NLV_WORKER_METHOD_NO_ARGS(Interface, Undefine)
 NLV_WORKER_EXECUTE(Interface, Undefine)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-  int result = virInterfaceUndefine(Handle().ToInterface());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  int result = virInterfaceUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -159,9 +161,8 @@ NAN_METHOD(Interface::LookupByMacAddress)
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
 NLV_WORKER_EXECUTE(Interface, GetName)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virInterfaceGetName(Handle().ToInterface());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  const char *result = virInterfaceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -173,9 +174,8 @@ NLV_WORKER_EXECUTE(Interface, GetName)
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetMacAddress)
 NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virInterfaceGetMACString(Handle().ToInterface());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  const char *result = virInterfaceGetMACString(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -187,9 +187,8 @@ NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 NLV_WORKER_METHOD_NO_ARGS(Interface, IsActive)
 NLV_WORKER_EXECUTE(Interface, IsActive)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
-  int result = virInterfaceIsActive(Handle().ToInterface());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  int result = virInterfaceIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -201,10 +200,9 @@ NLV_WORKER_EXECUTE(Interface, IsActive)
 NLV_WORKER_METHOD_NO_ARGS(Interface, ToXml)
 NLV_WORKER_EXECUTE(Interface, ToXml)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
+  NLV_WORKER_ASSERT_INTERFACE2();
   unsigned int flags = 0;
-  char *result = virInterfaceGetXMLDesc(Handle().ToInterface(), flags);
+  char *result = virInterfaceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;

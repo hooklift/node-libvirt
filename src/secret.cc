@@ -57,17 +57,17 @@ NLV_WORKER_EXECUTE(Secret, Define)
 NLV_WORKER_METHOD_NO_ARGS(Secret, Undefine)
 NLV_WORKER_EXECUTE(Secret, Undefine)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
-  int result = virSecretUndefine(Handle().ToSecret());
+  NLV_WORKER_ASSERT_SECRET2();
+  int result = virSecretUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToSecret() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: cleanup actual pointer
+  // if (Handle().ToSecret() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -144,10 +144,9 @@ NAN_METHOD(Secret::LookupByUUID)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
 NLV_WORKER_EXECUTE(Secret, GetUUID)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
+  NLV_WORKER_ASSERT_SECRET2();
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virSecretGetUUIDString(Handle().ToSecret(), uuid);
+  int result = virSecretGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -161,9 +160,8 @@ NLV_WORKER_EXECUTE(Secret, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageId)
 NLV_WORKER_EXECUTE(Secret, GetUsageId)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
-  const char *result = virSecretGetUsageID(Handle().ToSecret());
+  NLV_WORKER_ASSERT_SECRET2();
+  const char *result = virSecretGetUsageID(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -175,10 +173,9 @@ NLV_WORKER_EXECUTE(Secret, GetUsageId)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageType)
 NLV_WORKER_EXECUTE(Secret, GetUsageType)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
+  NLV_WORKER_ASSERT_SECRET2();
   // int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
-  int result = virSecretGetUsageType(Handle().ToSecret());
+  int result = virSecretGetUsageType(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -190,11 +187,10 @@ NLV_WORKER_EXECUTE(Secret, GetUsageType)
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetValue)
 NLV_WORKER_EXECUTE(Secret, GetValue)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
+  NLV_WORKER_ASSERT_SECRET2();
   size_t size;
   unsigned int flags = 0;
-  unsigned char *result = virSecretGetValue(Handle().ToSecret(), &size, flags);
+  unsigned char *result = virSecretGetValue(Handle(), &size, flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -223,10 +219,9 @@ NAN_METHOD(Secret::SetValue)
 
 NLV_WORKER_EXECUTE(Secret, SetValue)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
+  NLV_WORKER_ASSERT_SECRET2();
   unsigned int flags = 0;
-  int result = virSecretSetValue(Handle().ToSecret(),
+  int result = virSecretSetValue(Handle(),
       reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -239,10 +234,9 @@ NLV_WORKER_EXECUTE(Secret, SetValue)
 NLV_WORKER_METHOD_NO_ARGS(Secret, ToXml)
 NLV_WORKER_EXECUTE(Secret, ToXml)
 {
-  NLV_WORKER_ASSERT_SECRET();
-
+  NLV_WORKER_ASSERT_SECRET2();
   unsigned int flags = 0;
-  char *result = virSecretGetXMLDesc(Handle().ToSecret(), flags);
+  char *result = virSecretGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;

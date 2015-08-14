@@ -7,6 +7,8 @@
 #include "worker.h"
 #include "worker_macros.h"
 
+#include "nlv_async_worker.h"
+
 namespace NodeLibvirt {
 
 class Interface : public ObjectWrap
@@ -48,13 +50,13 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(Interface, Define);
 
   // WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Stop, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetMacAddress, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(Start, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Stop, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Undefine, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(IsActive, virInterfacePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetMacAddress, virInterfacePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virInterfacePtr, std::string);
 
 
 };

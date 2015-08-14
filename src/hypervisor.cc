@@ -328,7 +328,7 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
     return;
   }
 
-  assert(result == 0);
+//  assert(result == 0);
   hypervisor_->handle_ = NULL;
 }
 

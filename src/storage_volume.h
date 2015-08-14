@@ -65,15 +65,15 @@ private:
   };
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Wipe, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Delete, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Wipe, virStorageVolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Delete, virStorageVolPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetKey, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetPath, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolInfo);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetKey, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetPath, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virStorageVolPtr, std::string);
+  NLV_OBJECT_RETURN_WORKER2(GetInfo, virStorageVolPtr, virStorageVolInfo);
 
 };
 

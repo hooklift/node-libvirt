@@ -104,17 +104,17 @@ NLV_WORKER_EXECUTE(NodeDevice, Create)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
 NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceDestroy(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  int result = virNodeDeviceDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToNodeDevice() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: handle clearing the ACTUAL pointer
+  // if (Handle().ToNodeDevice() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -122,9 +122,8 @@ NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
 NLV_WORKER_EXECUTE(NodeDevice, Detach)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceDettach(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  int result = virNodeDeviceDettach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -136,9 +135,8 @@ NLV_WORKER_EXECUTE(NodeDevice, Detach)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
 NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceReAttach(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  int result = virNodeDeviceReAttach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -150,9 +148,8 @@ NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
 NLV_WORKER_EXECUTE(NodeDevice, Reset)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceReset(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  int result = virNodeDeviceReset(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -164,9 +161,8 @@ NLV_WORKER_EXECUTE(NodeDevice, Reset)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
 NLV_WORKER_EXECUTE(NodeDevice, GetName)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  const char *result = virNodeDeviceGetName(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  const char *result = virNodeDeviceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -178,9 +174,8 @@ NLV_WORKER_EXECUTE(NodeDevice, GetName)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
 NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
-  const char *result = virNodeDeviceGetParent(Handle().ToNodeDevice());
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+  const char *result = virNodeDeviceGetParent(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -192,10 +187,9 @@ NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
 NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 {
-  NLV_WORKER_ASSERT_NODEDEVICE();
-
+  NLV_WORKER_ASSERT_NODEDEVICE2();
   unsigned int flags = 0;
-  char *result = virNodeDeviceGetXMLDesc(Handle().ToNodeDevice(), flags);
+  char *result = virNodeDeviceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -208,8 +202,10 @@ NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
 NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
 {
+  NLV_WORKER_ASSERT_NODEDEVICE2();
+
   NanScope();
-  int num_caps = virNodeDeviceNumOfCaps(Handle().ToNodeDevice());
+  int num_caps = virNodeDeviceNumOfCaps(Handle());
   if (num_caps == -1) {
     SetVirError(virGetLastError());
     return;
@@ -221,7 +217,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
     return;
   }
 
-  num_caps = virNodeDeviceListCaps(Handle().ToNodeDevice(), names, num_caps);
+  num_caps = virNodeDeviceListCaps(Handle(), names, num_caps);
   if (num_caps == -1) {
     free(names);
     SetVirError(virGetLastError());

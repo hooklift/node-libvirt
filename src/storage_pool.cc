@@ -172,10 +172,9 @@ NLV_WORKER_EXECUTE(StoragePool, Define)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Build)
 NLV_WORKER_EXECUTE(StoragePool, Build)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
-  int result = virStoragePoolBuild(Handle().ToStoragePool(), flags);
+  int result = virStoragePoolBuild(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -187,9 +186,8 @@ NLV_WORKER_EXECUTE(StoragePool, Build)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Undefine)
 NLV_WORKER_EXECUTE(StoragePool, Undefine)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  int result = virStoragePoolUndefine(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -201,10 +199,9 @@ NLV_WORKER_EXECUTE(StoragePool, Undefine)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Start)
 NLV_WORKER_EXECUTE(StoragePool, Start)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
-  int result = virStoragePoolCreate(Handle().ToStoragePool(), flags);
+  int result = virStoragePoolCreate(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -216,17 +213,17 @@ NLV_WORKER_EXECUTE(StoragePool, Start)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Stop)
 NLV_WORKER_EXECUTE(StoragePool, Stop)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  int result = virStoragePoolDestroy(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToStoragePool() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: actually handle original pointer
+  // if (Handle().ToStoragePool() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -255,19 +252,21 @@ NAN_METHOD(StoragePool::Erase)
 
 NLV_WORKER_EXECUTE(StoragePool, Erase)
 {
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   if (flags_ == 0) {
     flags_ |= VIR_STORAGE_POOL_DELETE_NORMAL;
   }
 
-  int result = virStoragePoolDelete(Handle().ToStoragePool(), flags_);
+  int result = virStoragePoolDelete(Handle(), flags_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToStoragePool() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: actually handle original pointer
+  // if (Handle().ToStoragePool() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -275,10 +274,9 @@ NLV_WORKER_EXECUTE(StoragePool, Erase)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetAutostart)
 NLV_WORKER_EXECUTE(StoragePool, GetAutostart)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   int autostart;
-  int result = virStoragePoolGetAutostart(Handle().ToStoragePool(), &autostart);
+  int result = virStoragePoolGetAutostart(Handle(), &autostart);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -305,9 +303,8 @@ NAN_METHOD(StoragePool::SetAutostart)
 
 NLV_WORKER_EXECUTE(StoragePool, SetAutostart)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  int result = virStoragePoolSetAutostart(Handle().ToStoragePool(), autoStart_ ? 1 : 0);
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -319,7 +316,8 @@ NLV_WORKER_EXECUTE(StoragePool, SetAutostart)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetInfo)
 NLV_WORKER_EXECUTE(StoragePool, GetInfo)
 {
-  int result = virStoragePoolGetInfo(Handle().ToStoragePool(), &info_);
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolGetInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -342,9 +340,8 @@ NLV_WORKER_OKCALLBACK(StoragePool, GetInfo)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetName)
 NLV_WORKER_EXECUTE(StoragePool, GetName)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  const char *result = virStoragePoolGetName(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  const char *result = virStoragePoolGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -356,10 +353,9 @@ NLV_WORKER_EXECUTE(StoragePool, GetName)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, GetUUID)
 NLV_WORKER_EXECUTE(StoragePool, GetUUID)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virStoragePoolGetUUIDString(Handle().ToStoragePool(), uuid);
+  int result = virStoragePoolGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -373,10 +369,9 @@ NLV_WORKER_EXECUTE(StoragePool, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, ToXml)
 NLV_WORKER_EXECUTE(StoragePool, ToXml)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
-  char *result = virStoragePoolGetXMLDesc(Handle().ToStoragePool(), flags);
+  char *result = virStoragePoolGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -389,9 +384,8 @@ NLV_WORKER_EXECUTE(StoragePool, ToXml)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, IsActive)
 NLV_WORKER_EXECUTE(StoragePool, IsActive)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  int result = virStoragePoolIsActive(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -403,9 +397,8 @@ NLV_WORKER_EXECUTE(StoragePool, IsActive)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, IsPersistent)
 NLV_WORKER_EXECUTE(StoragePool, IsPersistent)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
-  int result = virStoragePoolIsPersistent(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int result = virStoragePoolIsPersistent(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -430,7 +423,8 @@ NAN_METHOD(StoragePool::GetVolumes)
 
 NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
 {
-  int num_volumes = virStoragePoolNumOfVolumes(Handle().ToStoragePool());
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
+  int num_volumes = virStoragePoolNumOfVolumes(Handle());
   if (num_volumes == -1) {
     SetVirError(virGetLastError());
     return;
@@ -442,7 +436,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
     return;
   }
 
-  num_volumes = virStoragePoolListVolumes(Handle().ToStoragePool(), volumes, num_volumes);
+  num_volumes = virStoragePoolListVolumes(Handle(), volumes, num_volumes);
   if (num_volumes == -1) {
     free(volumes);
     SetVirError(virGetLastError());
@@ -461,10 +455,9 @@ NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
 NLV_WORKER_METHOD_NO_ARGS(StoragePool, Refresh)
 NLV_WORKER_EXECUTE(StoragePool, Refresh)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
-
+  NLV_WORKER_ASSERT_STORAGEPOOL2();
   unsigned int flags = 0;
-  int result = virStoragePoolRefresh(Handle().ToStoragePool(), flags);
+  int result = virStoragePoolRefresh(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;

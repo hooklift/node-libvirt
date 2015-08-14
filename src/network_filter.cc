@@ -99,9 +99,8 @@ NLV_WORKER_EXECUTE(NetworkFilter, Define)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetName)
 NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virNWFilterGetName(Handle().ToNetworkFilter());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  const char *result = virNWFilterGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -113,10 +112,9 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetUUID)
 NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
+  NLV_WORKER_ASSERT_INTERFACE2();
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virNWFilterGetUUIDString(Handle().ToNetworkFilter(), uuid);
+  int result = virNWFilterGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -130,8 +128,8 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, Undefine)
 NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-  int result = virNWFilterUndefine(Handle().ToNetworkFilter());
+  NLV_WORKER_ASSERT_INTERFACE2();
+  int result = virNWFilterUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -143,10 +141,9 @@ NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, ToXml)
 NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
 {
-  NLV_WORKER_ASSERT_INTERFACE();
-
+  NLV_WORKER_ASSERT_INTERFACE2();
   unsigned int flags = 0;
-  char *result = virNWFilterGetXMLDesc(Handle().ToNetworkFilter(), flags);
+  char *result = virNWFilterGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;

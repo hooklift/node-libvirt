@@ -328,8 +328,8 @@ NAN_METHOD(Domain::Save)
 
 NLV_WORKER_EXECUTE(Domain, Save)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSave(Handle().ToDomain(), path_.c_str());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainSave(Handle(), path_.c_str());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -362,8 +362,8 @@ NAN_METHOD(Domain::Restore)
 
 NLV_WORKER_EXECUTE(Domain, Restore)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  int result = virDomainRestore(Handle().ToConnection(), path_.c_str());
+  NLV_WORKER_ASSERT_CONNECTION2();
+  int result = virDomainRestore(Handle(), path_.c_str());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -390,10 +390,10 @@ NAN_METHOD(Domain::CoreDump)
 
 NLV_WORKER_EXECUTE(Domain, CoreDump)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned int flags = 0;
-  int result = virDomainCoreDump(Handle().ToDomain(), path_.c_str(), flags);
+  int result = virDomainCoreDump(Handle(), path_.c_str(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -405,8 +405,8 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Undefine)
 NLV_WORKER_EXECUTE(Domain, Undefine)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainUndefine(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -418,16 +418,17 @@ NLV_WORKER_EXECUTE(Domain, Undefine)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Destroy)
 NLV_WORKER_EXECUTE(Domain, Destroy)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainDestroy(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  if (Handle().ToDomain() != NULL) {
-    Handle().Clear();
-  }
+  // @todo: delete actual pointer
+  // if (Handle() != NULL) {
+  //   Handle().Clear();
+  // }
 
   data_ = true;
 }
@@ -435,10 +436,10 @@ NLV_WORKER_EXECUTE(Domain, Destroy)
 NLV_WORKER_METHOD_NO_ARGS(Domain, ManagedSave)
 NLV_WORKER_EXECUTE(Domain, ManagedSave)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned int flags = 0;
-  int result = virDomainManagedSave(Handle().ToDomain(), flags);
+  int result = virDomainManagedSave(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -450,10 +451,10 @@ NLV_WORKER_EXECUTE(Domain, ManagedSave)
 NLV_WORKER_METHOD_NO_ARGS(Domain, ManagedSaveRemove)
 NLV_WORKER_EXECUTE(Domain, ManagedSaveRemove)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned int flags = 0;
-  int result = virDomainManagedSaveRemove(Handle().ToDomain(), flags);
+  int result = virDomainManagedSaveRemove(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -465,8 +466,8 @@ NLV_WORKER_EXECUTE(Domain, ManagedSaveRemove)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetName)
 NLV_WORKER_EXECUTE(Domain, GetName)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  const char *result = virDomainGetName(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  const char *result = virDomainGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -478,9 +479,9 @@ NLV_WORKER_EXECUTE(Domain, GetName)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetId)
 NLV_WORKER_EXECUTE(Domain, GetId)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
-  unsigned int result = virDomainGetID(Handle().ToDomain());
+  unsigned int result = virDomainGetID(Handle());
   if (result == -1u) {
     data_ = -1;
     SetVirError(virGetLastError());
@@ -493,9 +494,9 @@ NLV_WORKER_EXECUTE(Domain, GetId)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetOSType)
 NLV_WORKER_EXECUTE(Domain, GetOSType)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
-  const char *result = virDomainGetOSType(Handle().ToDomain());
+  const char *result = virDomainGetOSType(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -507,10 +508,10 @@ NLV_WORKER_EXECUTE(Domain, GetOSType)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetUUID)
 NLV_WORKER_EXECUTE(Domain, GetUUID)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virDomainGetUUIDString(Handle().ToDomain(), uuid);
+  int result = virDomainGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -524,10 +525,10 @@ NLV_WORKER_EXECUTE(Domain, GetUUID)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetAutostart)
 NLV_WORKER_EXECUTE(Domain, GetAutostart)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   int autostart;
-  int result = virDomainGetAutostart(Handle().ToDomain(), &autostart);
+  int result = virDomainGetAutostart(Handle(), &autostart);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -539,8 +540,8 @@ NLV_WORKER_EXECUTE(Domain, GetAutostart)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetMaxMemory)
 NLV_WORKER_EXECUTE(Domain, GetMaxMemory)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned long result = virDomainGetMaxMemory(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  unsigned long result = virDomainGetMaxMemory(Handle());
   if (result == 0) {
     SetVirError(virGetLastError());
     return;
@@ -552,8 +553,8 @@ NLV_WORKER_EXECUTE(Domain, GetMaxMemory)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetMaxVcpus)
 NLV_WORKER_EXECUTE(Domain, GetMaxVcpus)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainGetMaxVcpus(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainGetMaxVcpus(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -565,8 +566,8 @@ NLV_WORKER_EXECUTE(Domain, GetMaxVcpus)
 NLV_WORKER_METHOD_NO_ARGS(Domain, IsActive)
 NLV_WORKER_EXECUTE(Domain, IsActive)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainIsActive(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -578,8 +579,8 @@ NLV_WORKER_EXECUTE(Domain, IsActive)
 NLV_WORKER_METHOD_NO_ARGS(Domain, IsPersistent)
 NLV_WORKER_EXECUTE(Domain, IsPersistent)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainIsPersistent(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainIsPersistent(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -591,9 +592,9 @@ NLV_WORKER_EXECUTE(Domain, IsPersistent)
 NLV_WORKER_METHOD_NO_ARGS(Domain, IsUpdated)
 NLV_WORKER_EXECUTE(Domain, IsUpdated)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
-  int result = virDomainIsUpdated(Handle().ToDomain());
+  int result = virDomainIsUpdated(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -606,8 +607,8 @@ NLV_WORKER_EXECUTE(Domain, IsUpdated)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Start)
 NLV_WORKER_EXECUTE(Domain, Start)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainCreate(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainCreate(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -619,10 +620,10 @@ NLV_WORKER_EXECUTE(Domain, Start)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Reboot)
 NLV_WORKER_EXECUTE(Domain, Reboot)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned long flags = 0;
-  int result = virDomainReboot(Handle().ToDomain(), flags);
+  int result = virDomainReboot(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -634,10 +635,10 @@ NLV_WORKER_EXECUTE(Domain, Reboot)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Reset)
 NLV_WORKER_EXECUTE(Domain, Reset)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned long flags = 0;
-  int result = virDomainReset(Handle().ToDomain(), flags);
+  int result = virDomainReset(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -649,8 +650,8 @@ NLV_WORKER_EXECUTE(Domain, Reset)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Shutdown)
 NLV_WORKER_EXECUTE(Domain, Shutdown)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainShutdown(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainShutdown(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -662,8 +663,8 @@ NLV_WORKER_EXECUTE(Domain, Shutdown)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Suspend)
 NLV_WORKER_EXECUTE(Domain, Suspend)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSuspend(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainSuspend(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -675,8 +676,8 @@ NLV_WORKER_EXECUTE(Domain, Suspend)
 NLV_WORKER_METHOD_NO_ARGS(Domain, Resume)
 NLV_WORKER_EXECUTE(Domain, Resume)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainResume(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainResume(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -688,10 +689,10 @@ NLV_WORKER_EXECUTE(Domain, Resume)
 NLV_WORKER_METHOD_NO_ARGS(Domain, HasManagedSaveImage)
 NLV_WORKER_EXECUTE(Domain, HasManagedSaveImage)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned long flags = 0;
-  int result = virDomainHasManagedSaveImage(Handle().ToDomain(), flags);
+  int result = virDomainHasManagedSaveImage(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -718,8 +719,8 @@ NAN_METHOD(Domain::SetAutostart)
 
 NLV_WORKER_EXECUTE(Domain, SetAutostart)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSetAutostart(Handle().ToDomain(), autoStart_ ? 1 : 0);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -747,8 +748,8 @@ NAN_METHOD(Domain::SetMaxMemory)
 
 NLV_WORKER_EXECUTE(Domain, SetMaxMemory)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSetMaxMemory(Handle().ToDomain(), maxMemory_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainSetMaxMemory(Handle(), maxMemory_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -776,8 +777,8 @@ NAN_METHOD(Domain::SetMemory)
 
 NLV_WORKER_EXECUTE(Domain, SetMemory)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSetMemory(Handle().ToDomain(), memory_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainSetMemory(Handle(), memory_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -808,13 +809,13 @@ NAN_METHOD(Domain::ToXml)
 
 NLV_WORKER_EXECUTE(Domain, ToXml)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  char *result = virDomainGetXMLDesc(Handle().ToDomain(), flags_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  char *result = virDomainGetXMLDesc(Handle(), flags_);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
   }
-  
+
   data_ = result;
   free(result);
 }
@@ -822,8 +823,8 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetInfo)
 NLV_WORKER_EXECUTE(Domain, GetInfo)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainGetInfo(Handle().ToDomain(), &info_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainGetInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -862,9 +863,9 @@ NAN_METHOD(Domain::GetBlockInfo)
 
 NLV_WORKER_EXECUTE(Domain, GetBlockInfo)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
   unsigned int flags = 0;
-  int result = virDomainGetBlockInfo(Handle().ToDomain(), path_.c_str(), &info_, flags);
+  int result = virDomainGetBlockInfo(Handle(), path_.c_str(), &info_, flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -901,10 +902,10 @@ NAN_METHOD(Domain::GetBlockStats)
 
 NLV_WORKER_EXECUTE(Domain, GetBlockStats)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   int result =
-    virDomainBlockStats(Handle().ToDomain(), path_.c_str(), &stats_, sizeof(stats_));
+    virDomainBlockStats(Handle(), path_.c_str(), &stats_, sizeof(stats_));
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -928,8 +929,8 @@ NLV_WORKER_OKCALLBACK(Domain, GetBlockStats)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetSchedulerType)
 NLV_WORKER_EXECUTE(Domain, GetSchedulerType)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  char *result = virDomainGetSchedulerType(Handle().ToDomain(), NULL);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  char *result = virDomainGetSchedulerType(Handle(), NULL);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -942,11 +943,11 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerType)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetSchedulerParameters)
 NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   // get number of parameters
   int numParams;
-  char *type = virDomainGetSchedulerType(Handle().ToDomain(), &numParams);
+  char *type = virDomainGetSchedulerType(Handle(), &numParams);
   if (type == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -954,7 +955,7 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
   free(type);
 
   params_.resize(numParams);
-  int result = virDomainGetSchedulerParameters(Handle().ToDomain(), params_.data(), &numParams);
+  int result = virDomainGetSchedulerParameters(Handle(), params_.data(), &numParams);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -964,8 +965,8 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetSecurityLabel)
 NLV_WORKER_EXECUTE(Domain, GetSecurityLabel)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainGetSecurityLabel(Handle().ToDomain(), &info_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainGetSecurityLabel(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1001,9 +1002,9 @@ NAN_METHOD(Domain::GetInterfaceStats)
 
 NLV_WORKER_EXECUTE(Domain, GetInterfaceStats)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
   int result =
-    virDomainInterfaceStats(Handle().ToDomain(), interface_.c_str(), &stats_, sizeof(stats_));
+    virDomainInterfaceStats(Handle(), interface_.c_str(), &stats_, sizeof(stats_));
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1036,8 +1037,8 @@ NLV_WORKER_OKCALLBACK(Domain, GetInterfaceStats)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetJobInfo)
 NLV_WORKER_EXECUTE(Domain, GetJobInfo)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainGetJobInfo(Handle().ToDomain(), &info_);
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainGetJobInfo(Handle(), &info_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1080,8 +1081,8 @@ NLV_WORKER_OKCALLBACK(Domain, GetJobInfo)
 NLV_WORKER_METHOD_NO_ARGS(Domain, AbortCurrentJob)
 NLV_WORKER_EXECUTE(Domain, AbortCurrentJob)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainAbortJob(Handle().ToDomain());
+  NLV_WORKER_ASSERT_DOMAIN2();
+  int result = virDomainAbortJob(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1093,11 +1094,11 @@ NLV_WORKER_EXECUTE(Domain, AbortCurrentJob)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetMemoryStats)
 NLV_WORKER_EXECUTE(Domain, GetMemoryStats)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   unsigned int flags = 0;
   stats_.resize(VIR_DOMAIN_MEMORY_STAT_NR);
-  int result = virDomainMemoryStats(Handle().ToDomain(), stats_.data(), stats_.size(), flags);
+  int result = virDomainMemoryStats(Handle(), stats_.data(), stats_.size(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1165,13 +1166,13 @@ NAN_METHOD(Domain::AttachDevice)
 
 NLV_WORKER_EXECUTE(Domain, AttachDevice)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   int result;
   if (flags_ > 0) {
-    result = virDomainAttachDeviceFlags(Handle().ToDomain(), xml_.c_str(), flags_);
+    result = virDomainAttachDeviceFlags(Handle(), xml_.c_str(), flags_);
   } else {
-    result = virDomainAttachDevice(Handle().ToDomain(), xml_.c_str());
+    result = virDomainAttachDevice(Handle(), xml_.c_str());
   }
 
   if (result == -1) {
@@ -1212,13 +1213,13 @@ NAN_METHOD(Domain::DetachDevice)
 
 NLV_WORKER_EXECUTE(Domain, DetachDevice)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   int result;
   if (flags_ > 0) {
-    result = virDomainDetachDeviceFlags(Handle().ToDomain(), xml_.c_str(), flags_);
+    result = virDomainDetachDeviceFlags(Handle(), xml_.c_str(), flags_);
   } else {
-    result = virDomainDetachDevice(Handle().ToDomain(), xml_.c_str());
+    result = virDomainDetachDevice(Handle(), xml_.c_str());
   }
 
   if (result == -1) {
@@ -1259,9 +1260,9 @@ NAN_METHOD(Domain::UpdateDevice)
 
 NLV_WORKER_EXECUTE(Domain, UpdateDevice)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
-  int result = virDomainUpdateDeviceFlags(Handle().ToDomain(), xml_.c_str(), flags_);
+  int result = virDomainUpdateDeviceFlags(Handle(), xml_.c_str(), flags_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1273,16 +1274,16 @@ NLV_WORKER_EXECUTE(Domain, UpdateDevice)
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetVcpus)
 NLV_WORKER_EXECUTE(Domain, GetVcpus)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   virDomainInfo info;
-  int result = virDomainGetInfo(Handle().ToDomain(), &info);
+  int result = virDomainGetInfo(Handle(), &info);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
-  result = virNodeGetInfo(virDomainGetConnect(Handle().ToDomain()), &nodeInfo_);
+  result = virNodeGetInfo(virDomainGetConnect(Handle()), &nodeInfo_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1292,7 +1293,7 @@ NLV_WORKER_EXECUTE(Domain, GetVcpus)
   map_.resize(info.nrVirtCpu * cpuMapLen, 0);
   info_.resize(info.nrVirtCpu);
   result =
-    virDomainGetVcpus(Handle().ToDomain(), info_.data(), info_.size(), map_.data(), map_.size());
+    virDomainGetVcpus(Handle(), info_.data(), info_.size(), map_.data(), map_.size());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1346,9 +1347,9 @@ NAN_METHOD(Domain::SetVcpus)
 
 NLV_WORKER_EXECUTE(Domain, SetVcpus)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
-  int result = virDomainSetVcpus(Handle().ToDomain(), count_);
+  int result = virDomainSetVcpus(Handle(), count_);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1381,10 +1382,10 @@ NAN_METHOD(Domain::SendKeys)
 
 NLV_WORKER_EXECUTE(Domain, SendKeys)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   int result =
-    virDomainSendKey(Handle().ToDomain(), 0, 150, keys_.data(), keys_.size(), 0);
+    virDomainSendKey(Handle(), 0, 150, keys_.data(), keys_.size(), 0);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -1453,17 +1454,17 @@ NAN_METHOD(Domain::Migrate)
 
 NLV_WORKER_EXECUTE(Domain, Migrate)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
+  NLV_WORKER_ASSERT_DOMAIN2();
 
   if(conn_) {
-    migrated_ = virDomainMigrate(Handle().ToDomain(), conn_, flags_, destname_.c_str(), uri_.c_str(), bandwidth_);
+    migrated_ = virDomainMigrate(Handle(), conn_, flags_, destname_.c_str(), uri_.c_str(), bandwidth_);
     if(migrated_ == NULL) {
       SetVirError(virGetLastError());
       return;
     }
   } else {
     int ret = -1;
-    ret = virDomainMigrateToURI(Handle().ToDomain(), uri_.c_str(), flags_, destname_.c_str(), bandwidth_);
+    ret = virDomainMigrateToURI(Handle(), uri_.c_str(), flags_, destname_.c_str(), bandwidth_);
     if(ret == -1) {
       SetVirError(virGetLastError());
       return;
@@ -1522,7 +1523,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
   int maxcpus;
   int cpumaplen;
 
-  if(virNodeGetInfo(virDomainGetConnect(Handle().ToDomain()), &nodeinfo) == -1) {
+  if(virNodeGetInfo(virDomainGetConnect(Handle()), &nodeinfo) == -1) {
     SetVirError(virGetLastError());
     return;
   }
@@ -1542,7 +1543,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
       VIR_UNUSE_CPU(cpumap.data(), vcpus_[i]);
   }
 
-  if(virDomainPinVcpu(Handle().ToDomain(), vcpu_, cpumap.data(), cpumaplen) == -1) {
+  if(virDomainPinVcpu(Handle(), vcpu_, cpumap.data(), cpumaplen) == -1) {
     SetVirError(virGetLastError());
     return;
   }
@@ -1579,7 +1580,7 @@ NAN_METHOD(Domain::MemoryPeek)
 
 NLV_WORKER_EXECUTE(Domain, MemoryPeek)
 {
-  if(virDomainMemoryPeek(Handle().ToDomain(), start_, size_ , buffer_.data(), flags_) == -1)
+  if(virDomainMemoryPeek(Handle(), start_, size_ , buffer_.data(), flags_) == -1)
     SetVirError(virGetLastError());
 }
 
@@ -1621,7 +1622,7 @@ NAN_METHOD(Domain::BlockPeek)
 
 NLV_WORKER_EXECUTE(Domain, BlockPeek)
 {
-  if(virDomainBlockPeek(Handle().ToDomain(), path_.c_str(), start_, size_ , buffer_.data(), flags_) == -1)
+  if(virDomainBlockPeek(Handle(), path_.c_str(), start_, size_ , buffer_.data(), flags_) == -1)
     SetVirError(virGetLastError());
 }
 
@@ -1638,7 +1639,7 @@ NLV_WORKER_EXECUTE(Domain, HasCurrentSnapshot)
 {
   unsigned int flags = 0;
   int ret = -1;
-  ret = virDomainHasCurrentSnapshot(Handle().ToDomain(), flags);
+  ret = virDomainHasCurrentSnapshot(Handle(), flags);
 
   if (ret == -1) {
     SetVirError(virGetLastError());
@@ -1669,7 +1670,7 @@ NLV_WORKER_EXECUTE(Domain, RevertToSnapshot)
   unsigned int flags = 0;
   int ret = -1;
 
-  snapshot = virDomainSnapshotLookupByName(Handle().ToDomain(), name_.c_str(), flags);
+  snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
   if(snapshot == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -1709,7 +1710,7 @@ NAN_METHOD(Domain::TakeSnapshot) {
 NLV_WORKER_EXECUTE(Domain, TakeSnapshot)
 {
   virDomainSnapshotPtr snapshot = NULL;
-  snapshot = virDomainSnapshotCreateXML(Handle().ToDomain(), xml_.c_str(), flags_);
+  snapshot = virDomainSnapshotCreateXML(Handle(), xml_.c_str(), flags_);
   if(snapshot == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -1739,7 +1740,7 @@ NLV_WORKER_EXECUTE(Domain, DeleteSnapshot)
   unsigned int flags = 0;
   virDomainSnapshotPtr snapshot = NULL;
 
-  snapshot = virDomainSnapshotLookupByName(Handle().ToDomain(), name_.c_str(), flags);
+  snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
   if(snapshot == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -1772,7 +1773,7 @@ NLV_WORKER_EXECUTE(Domain, LookupSnapshotByName)
   virDomainSnapshotPtr snapshot = NULL;
   char* xml = NULL;
 
-  snapshot = virDomainSnapshotLookupByName(Handle().ToDomain(), name_.c_str(), flags);
+  snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
   if(snapshot == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -1796,7 +1797,7 @@ NLV_WORKER_EXECUTE(Domain, GetCurrentSnapshot)
   virDomainSnapshotPtr snapshot = NULL;
   char* xml = NULL;
 
-  snapshot = virDomainSnapshotCurrent(Handle().ToDomain(), flags);
+  snapshot = virDomainSnapshotCurrent(Handle(), flags);
   if(snapshot == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -1831,7 +1832,7 @@ NAN_METHOD(Domain::SetMigrationMaxDowntime) {
 
 NLV_WORKER_EXECUTE(Domain, SetMigrationMaxDowntime)
 {
-  if(virDomainMigrateSetMaxDowntime(Handle().ToDomain(), downtime_, flags_) == -1) {
+  if(virDomainMigrateSetMaxDowntime(Handle(), downtime_, flags_) == -1) {
     SetVirError(virGetLastError());
     return;
   }
@@ -1846,20 +1847,20 @@ NLV_WORKER_EXECUTE(Domain, GetSnapshots)
   unsigned int flags = 0;
   int num_snapshots = 0;
 
-  num_snapshots = virDomainSnapshotNum(Handle().ToDomain(), flags);
+  num_snapshots = virDomainSnapshotNum(Handle(), flags);
   if(num_snapshots == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
   std::vector<char*> names(num_snapshots);
-  if(virDomainSnapshotListNames(Handle().ToDomain(), names.data(), num_snapshots, flags) == -1) {
+  if(virDomainSnapshotListNames(Handle(), names.data(), num_snapshots, flags) == -1) {
     SetVirError(virGetLastError());
     return;
   }
 
   for (std::vector<char*>::iterator it = names.begin() ; it != names.end(); ++it) {
-    virDomainSnapshotPtr snapshot = virDomainSnapshotLookupByName(Handle().ToDomain(), *it, flags);
+    virDomainSnapshotPtr snapshot = virDomainSnapshotLookupByName(Handle(), *it, flags);
     char *xml = virDomainSnapshotGetXMLDesc(snapshot, flags);
     xmls_.push_back(xml);
     virDomainSnapshotFree(snapshot);
@@ -1934,7 +1935,7 @@ NLV_WORKER_EXECUTE(Domain, RegisterEvent)
       break;
   }
 
-  virDomainPtr domain = Handle().ToDomain();
+  virDomainPtr domain = Handle();
   int result = virConnectDomainEventRegisterAny(
     virDomainGetConnect(domain), domain, eventId_, callback, domain_, domain_event_free
   );
@@ -1967,7 +1968,7 @@ NAN_METHOD(Domain::UnregisterEvent)
 
 NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
 {
-  if (virConnectDomainEventDeregisterAny(virDomainGetConnect(Handle().ToDomain()), callbackId_) == -1) {
+  if (virConnectDomainEventDeregisterAny(virDomainGetConnect(Handle()), callbackId_) == -1) {
     SetVirError(virGetLastError());
     return;
   }

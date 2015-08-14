@@ -7,6 +7,8 @@
 #include "worker.h"
 #include "worker_macros.h"
 
+#include "nlv_async_worker.h"
+
 namespace NodeLibvirt {
 
 class NodeDevice : public ObjectWrap
@@ -46,16 +48,16 @@ private:
   NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, Create);
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Detach, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reattach, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reset, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Destroy, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Detach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Reattach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER2(Reset, virNodeDevicePtr, bool);
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-  NLV_LIST_RETURN_WORKER(GetCapabilities, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(GetParentName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER2(ToXml, virNodeDevicePtr, std::string);
+  NLV_LIST_RETURN_WORKER2(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
 
 };
 
