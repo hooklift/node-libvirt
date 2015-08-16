@@ -58,7 +58,7 @@ NAN_METHOD(NodeDevice::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -79,15 +79,15 @@ NAN_METHOD(NodeDevice::Create)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string xmlData(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virNodeDeviceCreateXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virNodeDeviceCreateXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;

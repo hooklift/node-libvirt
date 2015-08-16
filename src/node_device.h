@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct NodeDeviceCleanupHandler {
@@ -44,8 +46,8 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NodeDevice, virConnectPtr, virNodeDevicePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Create, NodeDevice, virConnectPtr, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NodeDevice, Hypervisor, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, NodeDevice, Hypervisor, virNodeDevicePtr);
 
   // ACTION METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNodeDevicePtr, bool);

@@ -74,7 +74,7 @@ NLV_WORKER_METHOD_DEFINE(Interface)
 NLV_WORKER_EXECUTE(Interface, Define)
 {
   unsigned int flags = 0;
-  lookupHandle_ = virInterfaceDefineXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virInterfaceDefineXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -110,10 +110,10 @@ NAN_METHOD(Interface::LookupByName)
     NanReturnUndefined();
   }
 
-  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, unwrapped->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -133,10 +133,10 @@ NAN_METHOD(Interface::LookupByMacAddress)
     NanReturnUndefined();
   }
 
-  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, unwrapped->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 

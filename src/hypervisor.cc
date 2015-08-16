@@ -205,7 +205,9 @@ NAN_METHOD(Hypervisor::New)
       readOnly = args[1]->IsTrue();
     } else if (args[1]->IsObject()) {
       Local<Object> options = args[1].As<Object>();
-      readOnly = NanBooleanOptionValue(options, NanNew("readOnly"), false);
+
+      if (options->Has(NanNew("readOnly")))
+        readOnly = options->Get(NanNew("readOnly"))->BooleanValue();
 
       if (options->Has(NanNew("username")))
         username = *NanUtf8String(options->Get(NanNew("username")));
@@ -304,14 +306,16 @@ NAN_METHOD(Hypervisor::Disconnect)
 NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
 {
   NLV_WORKER_ASSERT_CONNECTION();
-  int result = virConnectClose(Handle());
-  if (result == -1) {
-    SetVirError(virGetLastError());
-    return;
-  }
+  hypervisor_->ClearChildren();
+  hypervisor_->ClearHandle();
+  // int result = virConnectClose(Handle());
+  // if (result == -1) {
+  //   SetVirError(virGetLastError());
+  //   return;
+  // }
 
-//  assert(result == 0);
-  hypervisor_->handle_ = NULL;
+  // assert(result == 0);
+  // hypervisor_->handle_ = NULL;
 }
 
 #define HYPERVISOR_STRING_RETURN_EXECUTE(MethodName, Accessor)  \

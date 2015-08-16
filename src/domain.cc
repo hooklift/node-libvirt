@@ -219,7 +219,7 @@ NAN_METHOD(Domain::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -241,7 +241,7 @@ NAN_METHOD(Domain::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
@@ -262,14 +262,14 @@ NAN_METHOD(Domain::LookupById)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   int id = args[0]->IntegerValue();
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByIdWorker(callback, hv->handle_, id));
+  NanAsyncQueueWorker(new LookupByIdWorker(callback, hv, id));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(Domain, LookupById)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virDomainLookupByID(Handle(), id_);
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virDomainLookupByID(parent_->handle_, id_);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -279,9 +279,9 @@ NLV_WORKER_EXECUTE(Domain, LookupById)
 NLV_WORKER_METHOD_CREATE(Domain)
 NLV_WORKER_EXECUTE(Domain, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virDomainCreateXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virDomainCreateXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -291,8 +291,8 @@ NLV_WORKER_EXECUTE(Domain, Create)
 NLV_WORKER_METHOD_DEFINE(Domain)
 NLV_WORKER_EXECUTE(Domain, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virDomainDefineXML(Handle(), value_.c_str());
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virDomainDefineXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;

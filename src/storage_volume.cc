@@ -65,15 +65,15 @@ NAN_METHOD(StorageVolume::Create)
   StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(args.This());
   std::string xmlData(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, sp->handle_, xmlData));
+  NanAsyncQueueWorker(new CreateWorker(callback, sp, xmlData));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(StorageVolume, Create)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virStorageVolCreateXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virStorageVolCreateXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -217,7 +217,7 @@ NAN_METHOD(StorageVolume::LookupByName)
   StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, sp->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, sp, name));
   NanReturnUndefined();
 }
 
@@ -240,7 +240,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string key(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByKeyWorker(callback, hv->handle_, key));
+  NanAsyncQueueWorker(new LookupByKeyWorker(callback, hv, key));
   NanReturnUndefined();
 }
 
@@ -263,7 +263,7 @@ NAN_METHOD(StorageVolume::LookupByPath)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string path(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByPathWorker(callback, hv->handle_, path));
+  NanAsyncQueueWorker(new LookupByPathWorker(callback, hv, path));
   NanReturnUndefined();
 }
 
@@ -301,16 +301,16 @@ NAN_METHOD(StorageVolume::Clone)
   StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
 
   NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new CloneWorker(callback, sp->handle_, xml, sv->handle_));
+  NanAsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(StorageVolume, Clone)
 {
-  NLV_WORKER_ASSERT_STORAGEPOOL();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
   lookupHandle_ =
-    virStorageVolCreateXMLFrom(Handle(), value_.c_str(), cloneHandle_, flags);
+    virStorageVolCreateXMLFrom(parent_->handle_, value_.c_str(), cloneHandle_, flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;

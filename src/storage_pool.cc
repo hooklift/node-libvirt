@@ -87,7 +87,7 @@ NAN_METHOD(StoragePool::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -109,7 +109,7 @@ NAN_METHOD(StoragePool::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
@@ -136,15 +136,15 @@ NAN_METHOD(StoragePool::Create)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string xmlData(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(StoragePool, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virStoragePoolCreateXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virStoragePoolCreateXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -154,9 +154,9 @@ NLV_WORKER_EXECUTE(StoragePool, Create)
 NLV_WORKER_METHOD_DEFINE(StoragePool)
 NLV_WORKER_EXECUTE(StoragePool, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virStoragePoolDefineXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virStoragePoolDefineXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;

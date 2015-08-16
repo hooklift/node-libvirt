@@ -140,8 +140,12 @@ describe('Storage Volume', function() {
     it('should return volume information', function(done) {
       test.volume.getInfo(function(err, info) {
         expect(err).to.not.exist;
+
+        // @todo: find better way to store these constants
+        // var storageVolumeFile = test.volume.VIR_STORAGE_VOL_FILE;
+        var storageVolumeFile = 0;
         expect(info).to.eql({
-          type: test.volume.VIR_STORAGE_VOL_FILE,
+          type: storageVolumeFile,
           capacity: 5368709120,
           allocation: 0
         });

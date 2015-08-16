@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct SecretCleanupHandler {
@@ -44,13 +46,13 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Secret, virConnectPtr, virSecretPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Define, Secret, virConnectPtr, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Secret, Hypervisor, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Secret, Hypervisor, virSecretPtr);
 
-  class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, virConnectPtr, virSecretPtr> {
+  class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr> {
   public:
-    LookupByUsageWorker(NanCallback *callback, virConnectPtr handle, const std::string &usageId, int usageType) \
-      : NLVLookupInstanceByValueWorker<Secret, virConnectPtr, virSecretPtr>(callback, handle, usageId), usageType_(usageType) {}
+    LookupByUsageWorker(NanCallback *callback, Hypervisor *parent, const std::string &usageId, int usageType) \
+      : NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr>(callback, parent, usageId), usageType_(usageType) {}
     void Execute();
   private:
     int usageType_;

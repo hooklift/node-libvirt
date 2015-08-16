@@ -58,7 +58,7 @@ NAN_METHOD(Network::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -80,15 +80,15 @@ NAN_METHOD(Network::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
 NLV_WORKER_METHOD_CREATE(Network)
 NLV_WORKER_EXECUTE(Network, Create)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virNetworkCreateXML(Handle(), value_.c_str());
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virNetworkCreateXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -98,8 +98,8 @@ NLV_WORKER_EXECUTE(Network, Create)
 NLV_WORKER_METHOD_DEFINE(Network)
 NLV_WORKER_EXECUTE(Network, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virNetworkDefineXML(Handle(), value_.c_str());
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virNetworkDefineXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;

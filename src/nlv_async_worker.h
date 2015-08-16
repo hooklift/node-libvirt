@@ -187,56 +187,28 @@ protected:
 /**
  * Worker that returns and looked up instance
  */
-#define NLV_LOOKUP_BY_VALUE_WORKER(Method, InstanceClass, ParentType, InstanceType)  \
-  class Method##Worker : public NLVLookupInstanceByValueWorker<InstanceClass, ParentType, InstanceType> { \
+#define NLV_LOOKUP_BY_VALUE_WORKER(Method, InstanceClass, ParentClass, InstanceType)  \
+  class Method##Worker : public NLVLookupInstanceByValueWorker<InstanceClass, ParentClass, InstanceType> { \
   public: \
-    Method##Worker(NanCallback *callback, ParentType handle, const std::string &value) \
-      : NLVLookupInstanceByValueWorker<InstanceClass, ParentType, InstanceType>(callback, handle, value) {} \
+    Method##Worker(NanCallback *callback, ParentClass *parent, const std::string &value) \
+      : NLVLookupInstanceByValueWorker<InstanceClass, ParentClass, InstanceType>(callback, parent, value) {} \
     void Execute(); \
   };
 
 #define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
   NLV_WORKER_EXECUTE(Class, Method) { \
-    lookupHandle_ = Accessor(Handle(), value_.c_str());  \
+    lookupHandle_ = Accessor(parent_->handle_, value_.c_str());  \
     if (lookupHandle_ == NULL) { \
       SetVirError(virGetLastError()); \
       return; \
     } \
   }
 
-template <typename InstanceClass, typename ParentHandleType, typename InstanceHandleType>
-class NLVLookupInstanceByValueWorker : public NLVAsyncWorker<ParentHandleType>
+template <typename InstanceClass, typename ParentClass, typename InstanceHandleType>
+class NLVLookupInstanceByValueWorker : public NLVAsyncWorkerBase
 {
 public:
   explicit NLVLookupInstanceByValueWorker(NanCallback *callback,
-                                          ParentHandleType handle,
-                                          const std::string &value)
-    : NLVAsyncWorker<ParentHandleType>(callback, handle), value_(value) {}
-
-protected:
-  using NLVAsyncWorker<ParentHandleType>::callback;
-  virtual void HandleOKCallback() {
-    NanScope();
-    v8::Local<v8::Value> argv[] = { NanNull(), InstanceClass::NewInstance(lookupHandle_) };
-    callback->Call(2, argv);
-  }
-
-  std::string value_;
-  InstanceHandleType lookupHandle_;
-
-};
-
-
-
-
-
-
-/*
-template <typename InstanceClass, typename ParentClass, typename InstanceHandleType>
-class NLVLookupInstanceByValueWorkerV2 : public NLVAsyncWorkerBase
-{
-public:
-  explicit NLVLookupInstanceByValueWorkerV2(NanCallback *callback,
                                             ParentClass *parent,
                                             const std::string &value)
     : NLVAsyncWorkerBase(callback), parent_(parent), value_(value), lookupHandle_(NULL) {}
@@ -245,7 +217,10 @@ protected:
   using NLVAsyncWorkerBase::callback;
   virtual void HandleOKCallback() {
     NanScope();
-    v8::Local<v8::Value> argv[] = { NanNull(), InstanceClass::NewInstance(lookupHandle_) };
+    Local<Object> childObject = InstanceClass::NewInstance(lookupHandle_);
+    InstanceClass *child = ObjectWrap::Unwrap<InstanceClass>(childObject);
+    parent_->children_.push_back(child);
+    v8::Local<v8::Value> argv[] = { NanNull(), childObject };
     callback->Call(2, argv);
   }
 
@@ -254,13 +229,5 @@ protected:
   InstanceHandleType lookupHandle_;
 
 };
-*/
-
-
-
-
-
-
-
 
 #endif  // NLV_ASYNC_WORKER_H

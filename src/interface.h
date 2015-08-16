@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct InterfaceCleanupHandler {
@@ -43,9 +45,9 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Interface, virConnectPtr, virInterfacePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByMacAddress, Interface, virConnectPtr, virInterfacePtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Define, Interface, virConnectPtr, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Interface, Hypervisor, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByMacAddress, Interface, Hypervisor, virInterfacePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Interface, Hypervisor, virInterfacePtr);
 
   // WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(Start, virInterfacePtr, bool);

@@ -41,7 +41,7 @@ describe('Hypervisor', function() {
         connection.disconnect(function(err) {
           expect(err).to.not.exist;
           done();
-        })
+        });
       });
     });
 

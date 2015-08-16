@@ -39,9 +39,9 @@ Local<Object> Secret::NewInstance(virSecretPtr handle)
 NLV_WORKER_METHOD_DEFINE(Secret)
 NLV_WORKER_EXECUTE(Secret, Define)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virSecretDefineXML(Handle(), value_.c_str(), flags);
+  lookupHandle_ = virSecretDefineXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -94,14 +94,14 @@ NAN_METHOD(Secret::LookupByUsage)
   int usageType = args[0]->Int32Value();
   std::string usageId(*NanUtf8String(args[1]->ToString()));
   NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv->handle_, usageId, usageType));
+  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv, usageId, usageType));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
-  NLV_WORKER_ASSERT_CONNECTION();
-  lookupHandle_ = virSecretLookupByUsage(Handle(), usageType_, value_.c_str());
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virSecretLookupByUsage(parent_->handle_, usageType_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -126,7 +126,7 @@ NAN_METHOD(Secret::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 

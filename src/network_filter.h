@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct NetworkFilterCleanupHandler {
@@ -39,9 +41,9 @@ protected:
 
 private:
   // HYPERVISOR WORKER METHODS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NetworkFilter, virConnectPtr, virNWFilterPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, NetworkFilter, virConnectPtr, virNWFilterPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Define, NetworkFilter, virConnectPtr, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NetworkFilter, Hypervisor, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, NetworkFilter, Hypervisor, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, NetworkFilter, Hypervisor, virNWFilterPtr);
 
   // WORKER METHODS
   NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNWFilterPtr, bool);

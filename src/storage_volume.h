@@ -6,6 +6,9 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+#include "storage_pool.h"
+
 namespace NodeLibvirt {
 
 struct StorageVolumeCleanupHandler {
@@ -50,17 +53,17 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByKey, StorageVolume, virConnectPtr, virStorageVolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByPath, StorageVolume, virConnectPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByKey, StorageVolume, Hypervisor, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByPath, StorageVolume, Hypervisor, virStorageVolPtr);
 
   // STORAGEPOOL METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Create, StorageVolume, virStoragePoolPtr, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StorageVolume, StoragePool, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StorageVolume, StoragePool, virStorageVolPtr);
 
-  class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, virStoragePoolPtr, virStorageVolPtr> {
+  class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr> {
   public:
-    CloneWorker(NanCallback *callback, virStoragePoolPtr handle, const std::string &value, virStorageVolPtr cloneHandle)
-      : NLVLookupInstanceByValueWorker<StorageVolume, virStoragePoolPtr, virStorageVolPtr>(callback, handle, value), cloneHandle_(cloneHandle) {}
+    CloneWorker(NanCallback *callback, StoragePool *parent, const std::string &value, virStorageVolPtr cloneHandle)
+      : NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr>(callback, parent, value), cloneHandle_(cloneHandle) {}
     void Execute();
   private:
     virStorageVolPtr cloneHandle_;

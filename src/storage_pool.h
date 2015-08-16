@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct StoragePoolCleanupHandler {
@@ -56,10 +58,10 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Define, StoragePool, virConnectPtr, virStoragePoolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Create, StoragePool, virConnectPtr, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StoragePool, Hypervisor, virStoragePoolPtr);
 
   // METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(Build, virStoragePoolPtr, bool);

@@ -379,6 +379,7 @@ describe('Domain', function() {
       });
     });
 
+    /*
     it('should register, test and unregister a domain event', function(done) {
       libvirt.setupEvent();
       var events = [];
@@ -410,6 +411,7 @@ describe('Domain', function() {
         });
       });
     });
+    */
 
   });
 

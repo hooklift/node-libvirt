@@ -12,6 +12,7 @@ class NLVObjectBase : public node::ObjectWrap
 {
 public:
   virtual void ClearHandle() = 0;
+  virtual void ClearChildren() = 0;
 };
 
 template <typename HandleType, typename CleanupHandler>
@@ -24,7 +25,7 @@ public:
     ClearHandle();
   }
 
-  void ClearHandle() {
+  virtual void ClearHandle() {
     if (handle_ != NULL) {
       int result = CleanupHandler::cleanup(handle_);
       assert(result == 0);
@@ -32,15 +33,17 @@ public:
     }
   }
 
-  void ClearChildren() {
+  virtual void ClearChildren() {
     std::vector<NLVObjectBase*>::const_iterator it;
     for (it = children_.cbegin(); it != children_.cend(); ++it) {
+      (*it)->ClearChildren();
       (*it)->ClearHandle();
     }
   }
 
-protected:
   std::vector<NLVObjectBase*> children_;
+
+protected:
   HandleType handle_;
 
 };

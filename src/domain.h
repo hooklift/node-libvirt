@@ -6,6 +6,8 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
+#include "hypervisor.h"
+
 namespace NodeLibvirt {
 
 struct DomainCleanupHandler {
@@ -101,15 +103,15 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Create, Domain, virConnectPtr, virDomainPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Define, Domain, virConnectPtr, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Domain, Hypervisor, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Domain, Hypervisor, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, Domain, Hypervisor, virDomainPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Domain, Hypervisor, virDomainPtr);
 
-  class LookupByIdWorker : public NLVLookupInstanceByValueWorker<Domain, virConnectPtr, virDomainPtr> {
+  class LookupByIdWorker : public NLVLookupInstanceByValueWorker<Domain, Hypervisor, virDomainPtr> {
   public:
-    LookupByIdWorker(NanCallback *callback, virConnectPtr handle, int id)
-      : NLVLookupInstanceByValueWorker<Domain, virConnectPtr, virDomainPtr>(callback, handle, std::string()), id_(id) {}
+    LookupByIdWorker(NanCallback *callback, Hypervisor *parent, int id)
+      : NLVLookupInstanceByValueWorker<Domain, Hypervisor, virDomainPtr>(callback, parent, std::string()), id_(id) {}
     void Execute();
   private:
     int id_;

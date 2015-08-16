@@ -32,6 +32,11 @@
 #define NLV_WORKER_ASSERT_DOMAIN() \
   NLV_WORKER_ASSERT_HANDLE("domain")
 
+#define NLV_WORKER_ASSERT_PARENT_HANDLE() \
+  if (parent_->handle_ == NULL) { \
+    SetErrorMessage("invalid parent"); \
+    return; \
+  }
 
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \
@@ -62,7 +67,7 @@
     Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This()); \
     std::string xmlData(*NanUtf8String(args[0]->ToString())); \
     NanCallback *callback = new NanCallback(args[1].As<Function>());  \
-    NanAsyncQueueWorker(new DefineWorker(callback, hv->handle_, xmlData));  \
+    NanAsyncQueueWorker(new DefineWorker(callback, hv, xmlData));  \
     NanReturnUndefined(); \
   }
 
@@ -81,7 +86,7 @@
     Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This()); \
     std::string xmlData(*NanUtf8String(args[0]->ToString())); \
     NanCallback *callback = new NanCallback(args[1].As<Function>());  \
-    NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));  \
+    NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));  \
     NanReturnUndefined(); \
   }
 

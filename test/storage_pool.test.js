@@ -116,10 +116,14 @@ describe('Storage Pool', function() {
     });
 
     it('should return its information', function(done) {
+      // @todo: work on more idiomatic definitions of these
+      //        constants: test.pool.VIR_STORAGE_POOL_RUNNING
+      var storageRunning = 2;
+
       test.pool.getInfo(function(err, info) {
         expect(err).to.not.exist;
         expect(info).to.eql({
-          state: test.pool.VIR_STORAGE_POOL_RUNNING,
+          state: storageRunning,
           capacity: 107374182400,
           allocation: 0,
           available: 107374182400
@@ -250,22 +254,32 @@ describe('Storage Pool', function() {
     });
 
     it('should erase a pool', function(done) {
-      test.pool.erase([], function(err, result) {
+      test.pool.stop(function(err, result) {
         expect(err).to.not.exist;
         expect(result).to.be.ok;
-        done();
+
+        test.pool.erase([], function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.ok;
+          done();
+        });
       });
     });
 
     it('should be undefined', function(done) {
-      test.pool.undefine(function(err, result) {
+      test.pool.stop(function(err, result) {
         expect(err).to.not.exist;
         expect(result).to.be.ok;
 
-        test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
-          expect(err).to.exist;
-          expect(pool).to.not.exist;
-          done();
+        test.pool.undefine(function(err, result) {
+          expect(err).to.not.exist;
+          expect(result).to.be.ok;
+
+          test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
+            expect(err).to.exist;
+            expect(pool).to.not.exist;
+            done();
+          });
         });
       });
     });
