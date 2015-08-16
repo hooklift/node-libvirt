@@ -1,12 +1,12 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_EVENTIMPL_H_
-#define SRC_EVENTIMPL_H_
+#ifndef EVENTIMPL_H
+#define EVENTIMPL_H
 
 #include "node_libvirt.h"
 #include "error.h"
 #include <vector>
 
-namespace NodeLibvirt {
+namespace NLV {
 
 class nodeEventHandle;
 class nodeEventTimeout;
@@ -55,6 +55,6 @@ private:
   static std::vector<nodeEventTimeout*> timeouts;
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_EVENTIMPL_H
+#endif  // EVENTIMPL_H

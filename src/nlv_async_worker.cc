@@ -1,7 +1,7 @@
 #include "error.h"
 #include "nlv_async_worker.h"
 
-using namespace NodeLibvirt;
+using namespace NLV;
 
 NLVAsyncWorkerBase::NLVAsyncWorkerBase(NanCallback *callback)
     : NanAsyncWorker(callback),

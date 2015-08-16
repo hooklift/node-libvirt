@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NODE_LIBVIRT_H_
-#define SRC_NODE_LIBVIRT_H_
+#ifndef NODE_LIBVIRT_H
+#define NODE_LIBVIRT_H
 
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
@@ -14,4 +14,4 @@ using namespace node;
 #define NLV_WARN_UNFINISHED(Method)   \
   fprintf(stderr, "WARNING: " #Method " is still synchronous and needs to be ported\n");
 
-#endif  // SRC_NODE_LIBVIRT_H_
+#endif  // NODE_LIBVIRT_H

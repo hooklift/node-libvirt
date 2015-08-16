@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_SECRET_H_
-#define SRC_SECRET_H_
+#ifndef SECRET_H
+#define SECRET_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct SecretCleanupHandler {
   static int cleanup(virSecretPtr handle) {
@@ -79,6 +79,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_SECRET_H_
+#endif  // SECRET_H

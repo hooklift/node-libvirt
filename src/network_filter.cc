@@ -4,7 +4,7 @@
 #include "hypervisor.h"
 #include "network_filter.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> NetworkFilter::constructor;
 void NetworkFilter::Initialize(Handle<Object> exports)
@@ -147,4 +147,4 @@ NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
   free(result);
 }
 
-}   // namespce NodeLibvirt
+}   // namespce NLV

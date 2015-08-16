@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NODE_DEVICE_H_
-#define SRC_NODE_DEVICE_H_
+#ifndef NODE_DEVICE_H
+#define NODE_DEVICE_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct NodeDeviceCleanupHandler {
   static int cleanup(virNodeDevicePtr handle) {
@@ -63,6 +63,6 @@ private:
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_NODE_DEVICE_H
+#endif  // NODE_DEVICE_H

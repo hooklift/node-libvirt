@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_STORAGE_POOL_H_
-#define SRC_STORAGE_POOL_H_
+#ifndef STORAGE_POOL_H
+#define STORAGE_POOL_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct StoragePoolCleanupHandler {
   static int cleanup(virStoragePoolPtr handle) {
@@ -100,6 +100,6 @@ private:
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_STORAGE_POOL_H
+#endif  // STORAGE_POOL_H

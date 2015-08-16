@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NETWORK_H_
-#define SRC_NETWORK_H_
+#ifndef NETWORK_H
+#define NETWORK_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct NetworkCleanupHandler {
   static int cleanup(virNetworkPtr handle) {
@@ -81,6 +81,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_NETWORK_H_
+#endif  // NETWORK_H

@@ -78,7 +78,16 @@ describe('Storage Pool', function() {
         test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
           expect(err).to.not.exist;
           test.pool = pool;
-          done();
+
+          test.pool.isActive(function(err, active) {
+            expect(err).to.not.exist;
+            if (active) return done();
+
+            test.pool.start(function(err, started) {
+              expect(err).to.not.exist;
+              done();
+            });
+          });
         });
       });
     });

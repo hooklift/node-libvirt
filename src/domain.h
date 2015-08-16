@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_DOMAIN_H_
-#define SRC_DOMAIN_H_
+#ifndef DOMAIN_H
+#define DOMAIN_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct DomainCleanupHandler {
   static int cleanup(virDomainPtr handle) {
@@ -481,6 +481,6 @@ private:
                                             void *opaque);
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_DOMAIN_H
+#endif  // DOMAIN_H

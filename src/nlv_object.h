@@ -20,10 +20,7 @@ class NLVObject : public NLVObjectBase
 {
 public:
   NLVObject(HandleType handle) : handle_(handle) {}
-  ~NLVObject() {
-    ClearChildren();
-    ClearHandle();
-  }
+  ~NLVObject() {}
 
   virtual void ClearHandle() {
     if (handle_ != NULL) {

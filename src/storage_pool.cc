@@ -9,7 +9,7 @@
 #include "storage_pool.h"
 //FIXME default params, default flags
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<FunctionTemplate> StoragePool::constructor_template;
 Persistent<Function> StoragePool::constructor;
@@ -450,4 +450,4 @@ NLV_WORKER_EXECUTE(StoragePool, Refresh)
   data_ = true;
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

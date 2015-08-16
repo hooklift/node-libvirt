@@ -3,7 +3,7 @@
 #include "hypervisor.h"
 #include "interface.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Interface::constructor;
 void Interface::Initialize(Handle<Object> exports)
@@ -194,4 +194,4 @@ NLV_WORKER_EXECUTE(Interface, ToXml)
   free(result);
 }
 
-}   // namespace NodeLibvirt
+}   // namespace NLV

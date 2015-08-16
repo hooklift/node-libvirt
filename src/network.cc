@@ -3,7 +3,7 @@
 #include "hypervisor.h"
 #include "network.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Network::constructor;
 void Network::Initialize(Handle<Object> exports)
@@ -270,4 +270,4 @@ NLV_WORKER_EXECUTE(Network, GetBridgeName)
   data_ = result;
 }
 
-}   // namespace NodeLibvirt
+}   // namespace NLV

@@ -4,7 +4,7 @@
 #include "hypervisor.h"
 #include "domain.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<FunctionTemplate> Domain::constructor_template;
 Persistent<Function> Domain::constructor;
@@ -2193,4 +2193,4 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
   return 0;
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

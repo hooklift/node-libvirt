@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_HYPERVISOR_H_
-#define SRC_HYPERVISOR_H_
+#ifndef HYPERVISOR_H
+#define HYPERVISOR_H
 
 #include <string>
 
@@ -8,7 +8,7 @@
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct HypervisorCleanupHandler {
   static int cleanup(virConnectPtr handle) {
@@ -252,6 +252,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_HYPERVISOR_H_
+#endif  // HYPERVISOR_H

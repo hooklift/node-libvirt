@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include "event_impl.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 class nodeEventHandle
 {
@@ -372,4 +372,4 @@ int EventImpl::EventFromUV(int event)
   return ret;
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

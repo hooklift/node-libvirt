@@ -1,7 +1,7 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
 #include "error.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Error::constructor;
 void Error::Initialize(Handle<Object> exports)
@@ -190,5 +190,5 @@ NAN_GETTER(Error::Getter)
   NanReturnUndefined();
 }
 
-} // namespace NodeLibvirt
+} // namespace NLV
 

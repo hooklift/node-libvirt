@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> NodeDevice::constructor;
 void NodeDevice::Initialize(Handle<Object> exports)
@@ -220,4 +220,4 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
   free(names);
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

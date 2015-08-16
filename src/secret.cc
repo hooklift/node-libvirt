@@ -3,7 +3,7 @@
 #include "hypervisor.h"
 #include "secret.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Secret::constructor;
 void Secret::Initialize(Handle<Object> exports)
@@ -235,4 +235,4 @@ NLV_WORKER_EXECUTE(Secret, ToXml)
   free(result);
 }
 
-} // namespace NodeLibvirt
+} // namespace NLV

@@ -8,7 +8,7 @@
 #include "storage_pool.h"
 #include "storage_volume.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<FunctionTemplate> StorageVolume::constructor_template;
 Persistent<Function> StorageVolume::constructor;
@@ -317,4 +317,4 @@ NLV_WORKER_EXECUTE(StorageVolume, Clone)
   }
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

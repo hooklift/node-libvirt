@@ -14,7 +14,7 @@
 #include "interface.h"
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Hypervisor::constructor;
 Persistent<FunctionTemplate> Hypervisor::constructor_template;
@@ -929,4 +929,4 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)
   free(results);
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

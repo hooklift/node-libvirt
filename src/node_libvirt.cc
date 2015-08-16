@@ -16,7 +16,7 @@
 #include "node_libvirt.h"
 
 using namespace v8;
-using namespace NodeLibvirt;
+using namespace NLV;
 
 void InitAll(Handle<Object> exports)
 {

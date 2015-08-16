@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_INTERFACE_H_
-#define SRC_INTERFACE_H_
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
@@ -8,7 +8,7 @@
 
 #include "hypervisor.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 struct InterfaceCleanupHandler {
   static int cleanup(virInterfacePtr handle) {
@@ -61,6 +61,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_INTERFACE_H_
+#endif  // INTERFACE_H
