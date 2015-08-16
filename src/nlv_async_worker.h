@@ -6,6 +6,7 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
+#include <vector>
 
 /**
  * Base class for all workers in node-libvirt

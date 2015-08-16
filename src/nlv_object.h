@@ -35,7 +35,7 @@ public:
 
   virtual void ClearChildren() {
     std::vector<NLVObjectBase*>::const_iterator it;
-    for (it = children_.cbegin(); it != children_.cend(); ++it) {
+    for (it = children_.begin(); it != children_.end(); ++it) {
       (*it)->ClearChildren();
       (*it)->ClearHandle();
     }
