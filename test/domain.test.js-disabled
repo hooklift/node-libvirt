@@ -168,7 +168,6 @@ describe('Domain', function() {
       });
     });
 
-
     it('should dump the core of a domain on a given file for analysis', function(done) {
       var path = '/tmp/dumpcore-test.txt';
       test.domain.coreDump(path, function(err, result) {
@@ -261,29 +260,29 @@ describe('Domain', function() {
       });
     });
 
-    it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
-      var hypervisor2 = new libvirt.Hypervisor('test:///default');
-      var flags = [
-        test.domain.VIR_MIGRATE_LIVE,
-        test.domain.VIR_MIGRATE_PEER2PEER,
-        test.domain.VIR_MIGRATE_PAUSED,
-        test.domain.VIR_MIGRATE_PERSIST_DEST
-      ];
+    // it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
+    //   var hypervisor2 = new libvirt.Hypervisor('test:///default');
+    //   var flags = [
+    //     test.domain.VIR_MIGRATE_LIVE,
+    //     test.domain.VIR_MIGRATE_PEER2PEER,
+    //     test.domain.VIR_MIGRATE_PAUSED,
+    //     test.domain.VIR_MIGRATE_PERSIST_DEST
+    //   ];
 
-      hypervisor2.connect(function(err) {
-        expect(err).to.not.exist;
-        test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
-          expect(err).to.exist;
-          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+    //   hypervisor2.connect(function(err) {
+    //     expect(err).to.not.exist;
+    //     test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
+    //       expect(err).to.exist;
+    //       expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
 
-          // NOTE: not supported by test driver
-          // expect(err).to.not.exist;
-          // expect(domain).to.exist;
+    //       // NOTE: not supported by test driver
+    //       // expect(err).to.not.exist;
+    //       // expect(domain).to.exist;
 
-          done();
-        });
-      });
-    });
+    //       done();
+    //     });
+    //   });
+    // });
 
     it('should migrate a domain to another hypervisor through an uri', function(done) {
       var flags = [
@@ -379,39 +378,39 @@ describe('Domain', function() {
       });
     });
 
-    /*
-    it('should register, test and unregister a domain event', function(done) {
-      libvirt.setupEvent();
-      var events = [];
-      var callbackid;
 
-      test.hypervisor.registerDomainEvent({
-        evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-        callback: function(hv, dom, data) {
-          events.push(data.evtype);
+    // it('should register, test and unregister a domain event', function(done) {
+    //   libvirt.setupEvent();
+    //   var events = [];
+    //   var callbackid;
 
-          if (events.length === 2) {
-            expect(events).to.eql([5, 2]);
-            test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
-              expect(err).to.not.exist;
-              expect(result).to.be.true;
-              done();
-            });
-          }
-        }
-      }, function(err, result) {
-        expect(err).to.not.exist;
-        callbackid = result;
+    //   test.hypervisor.registerDomainEvent({
+    //     evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+    //     callback: function(hv, dom, data) {
+    //       events.push(data.evtype);
 
-        test.domain.shutdown(function(err, result) {
-          expect(err).to.not.exist;
-          test.domain.start(function(err, result) {
-            expect(err).to.not.exist;
-          });
-        });
-      });
-    });
-    */
+    //       if (events.length === 2) {
+    //         expect(events).to.eql([5, 2]);
+    //         test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
+    //           expect(err).to.not.exist;
+    //           expect(result).to.be.true;
+    //           done();
+    //         });
+    //       }
+    //     }
+    //   }, function(err, result) {
+    //     expect(err).to.not.exist;
+    //     callbackid = result;
+
+    //     test.domain.shutdown(function(err, result) {
+    //       expect(err).to.not.exist;
+    //       test.domain.start(function(err, result) {
+    //         expect(err).to.not.exist;
+    //       });
+    //     });
+    //   });
+    // });
+
 
   });
 
@@ -801,8 +800,8 @@ describe('Domain', function() {
         });
       });
     });
-
   });
+
 });
 
 /*
