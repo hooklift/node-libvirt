@@ -36,6 +36,8 @@ public:
       (*it)->ClearChildren();
       (*it)->ClearHandle();
     }
+
+    children_.clear();
   }
 
   std::vector<NLVObjectBase*> children_;
