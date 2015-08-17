@@ -1,6 +1,11 @@
-# Node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
+node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
+=============
+
+[![Build Status](https://secure.travis-ci.org/hooklift/node-libvirt.svg?branch=master)](https://travis-ci.org/hooklift/node-libvirt)
+[![Dependency Status](https://david-dm.org/hooklift/node-libvirt.svg)](https://david-dm.org/hooklift/node-libvirt)
+[![npm version](https://badge.fury.io/js/libvirt.svg)](http://badge.fury.io/js/libvirt)
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/hooklift/node-libvirt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-</a> [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=339079)](https://www.bountysource.com/trackers/339079-node-libvirt?utm_source=339079&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=339079)](https://www.bountysource.com/trackers/339079-node-libvirt?utm_source=339079&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
 Libvirt is a toolkit to interact with virtualization capabilities
 of recent versions of GNU/Linux (and other OSes). (reference: [Libvirt][libvirt_home])
@@ -33,24 +38,14 @@ Node-Libvirt is a set of bindings to Libvirt API, which allows to use it from Ja
 You must have [NodeJS][nodejs_dev] and [Libvirt][libvirt_dev] already installed to be able to build node-libvirt.
 
 ### Get and Install node-libvirt
-    $ git clone git://github.com/c4milo/node-libvirt.git
+    $ sudo apt-get install libvirt-dev
+    $ git clone git://github.com/hooklift/node-libvirt.git
     $ cd node-libvirt
-    $ node-gyp configure
-    $ node-gyp build
-
-### Use node-libvirt in your project
-From `node-libvirt`'s folder:
-
-    $ npm link
-
-From your app's folder:
-
-    $ npm link libvirt
-
+    $ npm install OR ( node-gyp configure && node-gyp build )
 
 ## Example of use
 For now please take a look at the tests.
-    
+
 ## API
 Work in progress at [docs page][docs_link]
 
