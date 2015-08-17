@@ -3,7 +3,7 @@
 #include "hypervisor.h"
 #include "secret.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Secret::constructor;
 void Secret::Initialize(Handle<Object> exports)
@@ -24,31 +24,25 @@ void Secret::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Secret"), t->GetFunction());
 }
 
-Local<Object> Secret::NewInstance(const LibVirtHandle &handle)
+Secret::Secret(virSecretPtr handle) : NLVObject(handle) {}
+Local<Object> Secret::NewInstance(virSecretPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Secret *secret = new Secret(handle.ToSecret());
+  Secret *secret = new Secret(handle);
   secret->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Secret::~Secret()
-{
-  if (handle_ != NULL)
-    virSecretFree(handle_);
-  handle_ = 0;
 }
 
 NLV_WORKER_METHOD_DEFINE(Secret)
 NLV_WORKER_EXECUTE(Secret, Define)
 {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virSecretDefineXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToSecret() == NULL) {
+  lookupHandle_ = virSecretDefineXML(parent_->handle_, value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -58,15 +52,10 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, Undefine)
 NLV_WORKER_EXECUTE(Secret, Undefine)
 {
   NLV_WORKER_ASSERT_SECRET();
-
-  int result = virSecretUndefine(Handle().ToSecret());
+  int result = virSecretUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
-  }
-
-  if (Handle().ToSecret() != NULL) {
-    Handle().Clear();
   }
 
   data_ = true;
@@ -105,15 +94,15 @@ NAN_METHOD(Secret::LookupByUsage)
   int usageType = args[0]->Int32Value();
   std::string usageId(*NanUtf8String(args[1]->ToString()));
   NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv->handle_, usageId, usageType));
+  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv, usageId, usageType));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
-  lookupHandle_ =
-    virSecretLookupByUsage(Handle().ToConnection(), usageType_, value_.c_str());
-  if (lookupHandle_.ToSecret() == NULL) {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virSecretLookupByUsage(parent_->handle_, usageType_, value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -137,7 +126,7 @@ NAN_METHOD(Secret::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
@@ -145,9 +134,8 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
 NLV_WORKER_EXECUTE(Secret, GetUUID)
 {
   NLV_WORKER_ASSERT_SECRET();
-
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virSecretGetUUIDString(Handle().ToSecret(), uuid);
+  int result = virSecretGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -162,8 +150,7 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageId)
 NLV_WORKER_EXECUTE(Secret, GetUsageId)
 {
   NLV_WORKER_ASSERT_SECRET();
-
-  const char *result = virSecretGetUsageID(Handle().ToSecret());
+  const char *result = virSecretGetUsageID(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -176,9 +163,8 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, GetUsageType)
 NLV_WORKER_EXECUTE(Secret, GetUsageType)
 {
   NLV_WORKER_ASSERT_SECRET();
-
   // int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
-  int result = virSecretGetUsageType(Handle().ToSecret());
+  int result = virSecretGetUsageType(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -191,10 +177,9 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, GetValue)
 NLV_WORKER_EXECUTE(Secret, GetValue)
 {
   NLV_WORKER_ASSERT_SECRET();
-
   size_t size;
   unsigned int flags = 0;
-  unsigned char *result = virSecretGetValue(Handle().ToSecret(), &size, flags);
+  unsigned char *result = virSecretGetValue(Handle(), &size, flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -224,9 +209,8 @@ NAN_METHOD(Secret::SetValue)
 NLV_WORKER_EXECUTE(Secret, SetValue)
 {
   NLV_WORKER_ASSERT_SECRET();
-
   unsigned int flags = 0;
-  int result = virSecretSetValue(Handle().ToSecret(),
+  int result = virSecretSetValue(Handle(),
       reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
@@ -240,9 +224,8 @@ NLV_WORKER_METHOD_NO_ARGS(Secret, ToXml)
 NLV_WORKER_EXECUTE(Secret, ToXml)
 {
   NLV_WORKER_ASSERT_SECRET();
-
   unsigned int flags = 0;
-  char *result = virSecretGetXMLDesc(Handle().ToSecret(), flags);
+  char *result = virSecretGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -252,4 +235,4 @@ NLV_WORKER_EXECUTE(Secret, ToXml)
   free(result);
 }
 
-} // namespace NodeLibvirt
+} // namespace NLV

@@ -1,26 +1,30 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NETWORK_H_
-#define SRC_NETWORK_H_
+#ifndef NETWORK_H
+#define NETWORK_H
 
-#include "node_libvirt.h"
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
 
-class Network : public ObjectWrap
+namespace NLV {
+
+struct NetworkCleanupHandler {
+  static int cleanup(virNetworkPtr handle) {
+    return virNetworkFree(handle);
+  }
+};
+
+class Network : public NLVObject<virNetworkPtr, NetworkCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~Network();
+  static Local<Object> NewInstance(virNetworkPtr handle);
 
 private:
-  explicit Network(virNetworkPtr handle) : handle_(handle) {}
+  explicit Network(virNetworkPtr handle);
   static Persistent<Function> constructor;
-  virNetworkPtr handle_;
-
   friend class Hypervisor;
 
 protected:
@@ -47,29 +51,29 @@ protected:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, Define);
-  NLV_LOOKUP_BY_VALUE_WORKER(Network, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, Network, Hypervisor, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Network, Hypervisor, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Network, Hypervisor, virNetworkPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, Network, Hypervisor, virNetworkPtr);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNetworkPtr, bool);
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, virNetworkPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virNetworkPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNetworkPtr, std::string);
 
-  class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
+  class SetAutostartWorker : public NLVPrimitiveReturnWorker<virNetworkPtr, bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
-      : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {} \
+    SetAutostartWorker(NanCallback *callback, virNetworkPtr handle, bool autoStart)
+      : NLVPrimitiveReturnWorker<virNetworkPtr, bool>(callback, handle), autoStart_(autoStart) {} \
     void Execute();
   private:
     bool autoStart_;
@@ -77,6 +81,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_NETWORK_H_
+#endif  // NETWORK_H

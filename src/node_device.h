@@ -1,26 +1,30 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NODE_DEVICE_H_
-#define SRC_NODE_DEVICE_H_
+#ifndef NODE_DEVICE_H
+#define NODE_DEVICE_H
 
-#include "node_libvirt.h"
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
 
-class NodeDevice : public ObjectWrap
+namespace NLV {
+
+struct NodeDeviceCleanupHandler {
+  static int cleanup(virNodeDevicePtr handle) {
+    return virNodeDeviceFree(handle);
+  }
+};
+
+class NodeDevice : public NLVObject<virNodeDevicePtr, NodeDeviceCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~NodeDevice();
+  static Local<Object> NewInstance(virNodeDevicePtr handle);
 
 private:
-  explicit NodeDevice(virNodeDevicePtr handle) : handle_(handle) {}
+  explicit NodeDevice(virNodeDevicePtr handle);
   static Persistent<Function> constructor;
-  virNodeDevicePtr handle_;
-
   friend class Hypervisor;
 
 private:
@@ -42,23 +46,23 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(NodeDevice, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NodeDevice, Hypervisor, virNodeDevicePtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, NodeDevice, Hypervisor, virNodeDevicePtr);
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Destroy, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Detach, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reattach, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Reset, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Destroy, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Detach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reattach, virNodeDevicePtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Reset, virNodeDevicePtr, bool);
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-  NLV_LIST_RETURN_WORKER(GetCapabilities, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, virNodeDevicePtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNodeDevicePtr, std::string);
+  NLV_LIST_RETURN_WORKER(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_NODE_DEVICE_H
+#endif  // NODE_DEVICE_H

@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> NodeDevice::constructor;
 void NodeDevice::Initialize(Handle<Object> exports)
@@ -28,22 +28,16 @@ void NodeDevice::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NodeDevice"), t->GetFunction());
 }
 
-Local<Object> NodeDevice::NewInstance(const LibVirtHandle &handle)
+NodeDevice::NodeDevice(virNodeDevicePtr handle) : NLVObject(handle) {}
+Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  NodeDevice *nodeDevice = new NodeDevice(handle.ToNodeDevice());
+  NodeDevice *nodeDevice = new NodeDevice(handle);
   nodeDevice->Wrap(object);
   return NanEscapeScope(object);
-}
-
-NodeDevice::~NodeDevice()
-{
-  if (handle_ != NULL)
-    virNodeDeviceFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
@@ -64,7 +58,7 @@ NAN_METHOD(NodeDevice::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -85,35 +79,29 @@ NAN_METHOD(NodeDevice::Create)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string xmlData(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, hv->handle_, xmlData));
+  NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));
   NanReturnUndefined();
 }
 
 NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ =
-    virNodeDeviceCreateXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToNodeDevice() == NULL) {
+  lookupHandle_ = virNodeDeviceCreateXML(parent_->handle_, value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
 }
 
-//Really neccesary call destroy from javascript ???
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Destroy)
 NLV_WORKER_EXECUTE(NodeDevice, Destroy)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceDestroy(Handle().ToNodeDevice());
+  int result = virNodeDeviceDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
-  }
-
-  if (Handle().ToNodeDevice() != NULL) {
-    Handle().Clear();
   }
 
   data_ = true;
@@ -123,8 +111,7 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Detach)
 NLV_WORKER_EXECUTE(NodeDevice, Detach)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceDettach(Handle().ToNodeDevice());
+  int result = virNodeDeviceDettach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -137,8 +124,7 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reattach)
 NLV_WORKER_EXECUTE(NodeDevice, Reattach)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceReAttach(Handle().ToNodeDevice());
+  int result = virNodeDeviceReAttach(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -151,8 +137,7 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, Reset)
 NLV_WORKER_EXECUTE(NodeDevice, Reset)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  int result = virNodeDeviceReset(Handle().ToNodeDevice());
+  int result = virNodeDeviceReset(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -165,8 +150,7 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetName)
 NLV_WORKER_EXECUTE(NodeDevice, GetName)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  const char *result = virNodeDeviceGetName(Handle().ToNodeDevice());
+  const char *result = virNodeDeviceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -179,8 +163,7 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetParentName)
 NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
-  const char *result = virNodeDeviceGetParent(Handle().ToNodeDevice());
+  const char *result = virNodeDeviceGetParent(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -193,9 +176,8 @@ NLV_WORKER_METHOD_NO_ARGS(NodeDevice, ToXml)
 NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
-
   unsigned int flags = 0;
-  char *result = virNodeDeviceGetXMLDesc(Handle().ToNodeDevice(), flags);
+  char *result = virNodeDeviceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -208,8 +190,10 @@ NLV_WORKER_EXECUTE(NodeDevice, ToXml)
 NLV_WORKER_METHOD_NO_ARGS(NodeDevice, GetCapabilities)
 NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
 {
+  NLV_WORKER_ASSERT_NODEDEVICE();
+
   NanScope();
-  int num_caps = virNodeDeviceNumOfCaps(Handle().ToNodeDevice());
+  int num_caps = virNodeDeviceNumOfCaps(Handle());
   if (num_caps == -1) {
     SetVirError(virGetLastError());
     return;
@@ -221,7 +205,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
     return;
   }
 
-  num_caps = virNodeDeviceListCaps(Handle().ToNodeDevice(), names, num_caps);
+  num_caps = virNodeDeviceListCaps(Handle(), names, num_caps);
   if (num_caps == -1) {
     free(names);
     SetVirError(virGetLastError());
@@ -236,4 +220,4 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
   free(names);
 }
 
-} //namespace NodeLibvirt
+} //namespace NLV

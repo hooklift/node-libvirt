@@ -1,26 +1,30 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_NETWORK_FILTER_H_
-#define SRC_NETWORK_FILTER_H_
+#ifndef NETWORK_FILTER_H
+#define NETWORK_FILTER_H
 
-#include <nan.h>
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
 
-class NetworkFilter : public ObjectWrap
+namespace NLV {
+
+struct NetworkFilterCleanupHandler {
+  static int cleanup(virNWFilterPtr handle) {
+    return virNWFilterFree(handle);
+  }
+};
+
+class NetworkFilter : public NLVObject<virNWFilterPtr, NetworkFilterCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~NetworkFilter();
+  static Local<Object> NewInstance(virNWFilterPtr handle);
 
 private:
-  explicit NetworkFilter(virNWFilterPtr handle) : handle_(handle) {}
+  explicit NetworkFilter(virNWFilterPtr handle);
   static Persistent<Function> constructor;
-  virNWFilterPtr handle_;
-
   friend class Hypervisor;
 
 protected:
@@ -37,18 +41,18 @@ protected:
 
 private:
   // HYPERVISOR WORKER METHODS
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(NetworkFilter, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, NetworkFilter, Hypervisor, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, NetworkFilter, Hypervisor, virNWFilterPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, NetworkFilter, Hypervisor, virNWFilterPtr);
 
   // WORKER METHODS
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNWFilterPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNWFilterPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNWFilterPtr, std::string);
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_NETWORK_FILTER_H_
+#endif  // NETWORK_FILTER_H

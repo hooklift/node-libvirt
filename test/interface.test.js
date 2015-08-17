@@ -1,6 +1,6 @@
 'use strict';
 
-var libvirt = require('../build/Release/libvirt'),
+var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
     fixture = require('./lib/helper').fixture,
@@ -43,13 +43,19 @@ describe('Interface', function() {
     });
 
     it('should undefine the interface', function(done) {
-      test.hypervisor.lookupInterfaceByName('eth2', function(err, iface) {
+      var xml = fixture('interface.xml');
+      test.hypervisor.defineInterface(xml, function(err, iface) {
         expect(err).to.not.exist;
         expect(iface).to.exist;
-        iface.undefine(function(err, result) {
+
+        test.hypervisor.lookupInterfaceByName('eth2', function(err, iface) {
           expect(err).to.not.exist;
-          expect(result).to.be.true;
-          done();
+          expect(iface).to.exist;
+          iface.undefine(function(err, result) {
+            expect(err).to.not.exist;
+            expect(result).to.be.true;
+            done();
+          });
         });
       });
     });
@@ -125,10 +131,7 @@ describe('Interface', function() {
     it('should indicate if is active and running', function(done) {
       test.interface.isActive(function(err, result) {
         expect(err).to.not.exist;
-
-        // FIXME: test driver seems to depend on order of operation,
-        //        this should be equal to true
-        expect(result).to.be.false;
+        expect(result).to.be.true;
         done();
       });
     });

@@ -4,20 +4,19 @@
       'target_name': 'libvirt',
       'product_prefix': 'lib',
       'sources': [
-        'src/node_libvirt.cc',
-        'src/hypervisor.cc',
+        'src/domain.cc',
         'src/error.cc',
-        'src/worker.cc',
+        'src/event_impl.cc',
+        'src/hypervisor.cc',
         'src/interface.cc',
         'src/network.cc',
         'src/network_filter.cc',
+        'src/nlv_async_worker.cc',
         'src/node_device.cc',
+        'src/node_libvirt.cc',
         'src/secret.cc',
         'src/storage_pool.cc',
         'src/storage_volume.cc',
-        'src/domain.cc',
-        'src/libvirt_handle.cc',
-        'src/event_impl.cc'
       ],
       'include_dirs' : [
         "<!(node -e \"require('nan')\")"
@@ -30,7 +29,6 @@
             ]
           },
           'cflags': [
-            '-std=c++11',
             '<!@(pkg-config --cflags libvirt)'
           ],
         }],

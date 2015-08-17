@@ -1,27 +1,32 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_STORAGE_VOLUME_H_
-#define SRC_STORAGE_VOLUME_H_
+#ifndef STORAGE_VOLUME_H
+#define STORAGE_VOLUME_H
 
-#include "node_libvirt.h"
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
+#include "storage_pool.h"
 
-class StorageVolume : public ObjectWrap
+namespace NLV {
+
+struct StorageVolumeCleanupHandler {
+  static int cleanup(virStorageVolPtr handle) {
+    return virStorageVolFree(handle);
+  }
+};
+
+class StorageVolume : public NLVObject<virStorageVolPtr, StorageVolumeCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~StorageVolume();
+  static Local<Object> NewInstance(virStorageVolPtr handle);
 
 private:
-  explicit StorageVolume(virStorageVolPtr handle) : handle_(handle) {}
+  explicit StorageVolume(virStorageVolPtr handle);
   static Persistent<FunctionTemplate> constructor_template;
   static Persistent<Function> constructor;
-  virStorageVolPtr handle_;
-
   friend class StoragePool;
   friend class Hypervisor;
 
@@ -48,35 +53,35 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByKey);
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByPath);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByKey, StorageVolume, Hypervisor, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByPath, StorageVolume, Hypervisor, virStorageVolPtr);
 
   // STORAGEPOOL METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(StorageVolume, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StorageVolume, StoragePool, virStorageVolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StorageVolume, StoragePool, virStorageVolPtr);
 
-  class CloneWorker : public LookupInstanceByValueWorker<StorageVolume> {
+  class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr> {
   public:
-    CloneWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value, virStorageVolPtr cloneHandle)
-      : LookupInstanceByValueWorker<StorageVolume>(callback, handle, value), cloneHandle_(cloneHandle) {}
+    CloneWorker(NanCallback *callback, StoragePool *parent, const std::string &value, virStorageVolPtr cloneHandle)
+      : NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr>(callback, parent, value), cloneHandle_(cloneHandle) {}
     void Execute();
   private:
     virStorageVolPtr cloneHandle_;
   };
 
   // ACTION METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Wipe, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Delete, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Wipe, virStorageVolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Delete, virStorageVolPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetKey, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetPath, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolInfo);
+  NLV_PRIMITIVE_RETURN_WORKER(GetKey, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetPath, virStorageVolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStorageVolPtr, std::string);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolPtr, virStorageVolInfo);
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_STORAGE_VOLUME_H
+#endif  // STORAGE_VOLUME_H

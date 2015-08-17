@@ -3,7 +3,7 @@
 #include "hypervisor.h"
 #include "network.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Network::constructor;
 void Network::Initialize(Handle<Object> exports)
@@ -28,22 +28,16 @@ void Network::Initialize(Handle<Object> exports)
   exports->Set(NanNew("Network"), t->GetFunction());
 }
 
-Local<Object> Network::NewInstance(const LibVirtHandle &handle)
+Network::Network(virNetworkPtr handle) : NLVObject(handle) {}
+Local<Object> Network::NewInstance(virNetworkPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Network *network = new Network(handle.ToNetwork());
+  Network *network = new Network(handle);
   network->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Network::~Network()
-{
-  if (handle_ != NULL)
-    virNetworkFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)
@@ -64,7 +58,7 @@ NAN_METHOD(Network::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -86,16 +80,16 @@ NAN_METHOD(Network::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
 NLV_WORKER_METHOD_CREATE(Network)
 NLV_WORKER_EXECUTE(Network, Create)
 {
-  lookupHandle_ =
-    virNetworkCreateXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetwork() == NULL) {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virNetworkCreateXML(parent_->handle_, value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -104,9 +98,9 @@ NLV_WORKER_EXECUTE(Network, Create)
 NLV_WORKER_METHOD_DEFINE(Network)
 NLV_WORKER_EXECUTE(Network, Define)
 {
-  lookupHandle_ =
-    virNetworkDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetwork() == NULL) {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virNetworkDefineXML(parent_->handle_, value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -116,8 +110,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, Start)
 NLV_WORKER_EXECUTE(Network, Start)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkCreate(Handle().ToNetwork());
+  int result = virNetworkCreate(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -130,8 +123,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, GetName)
 NLV_WORKER_EXECUTE(Network, GetName)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  const char *result = virNetworkGetName(Handle().ToNetwork());
+  const char *result = virNetworkGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -144,9 +136,8 @@ NLV_WORKER_METHOD_NO_ARGS(Network, GetUUID)
 NLV_WORKER_EXECUTE(Network, GetUUID)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virNetworkGetUUIDString(Handle().ToNetwork(), uuid);
+  int result = virNetworkGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -161,9 +152,8 @@ NLV_WORKER_METHOD_NO_ARGS(Network, GetAutostart)
 NLV_WORKER_EXECUTE(Network, GetAutostart)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
   int autostart;
-  int result = virNetworkGetAutostart(Handle().ToNetwork(), &autostart);
+  int result = virNetworkGetAutostart(Handle(), &autostart);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -191,8 +181,7 @@ NAN_METHOD(Network::SetAutostart)
 NLV_WORKER_EXECUTE(Network, SetAutostart)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkSetAutostart(Handle().ToNetwork(), autoStart_ ? 1 : 0);
+  int result = virNetworkSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -205,8 +194,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, IsActive)
 NLV_WORKER_EXECUTE(Network, IsActive)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkIsActive(Handle().ToNetwork());
+  int result = virNetworkIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -219,8 +207,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, IsPersistent)
 NLV_WORKER_EXECUTE(Network, IsPersistent)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkIsPersistent(Handle().ToNetwork());
+  int result = virNetworkIsPersistent(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -233,8 +220,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, Undefine)
 NLV_WORKER_EXECUTE(Network, Undefine)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkUndefine(Handle().ToNetwork());
+  int result = virNetworkUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -247,15 +233,10 @@ NLV_WORKER_METHOD_NO_ARGS(Network, Destroy)
 NLV_WORKER_EXECUTE(Network, Destroy)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  int result = virNetworkDestroy(Handle().ToNetwork());
+  int result = virNetworkDestroy(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
-  }
-
-  if (Handle().ToNetwork() != NULL) {
-    Handle().Clear();
   }
 
   data_ = true;
@@ -265,9 +246,8 @@ NLV_WORKER_METHOD_NO_ARGS(Network, ToXml)
 NLV_WORKER_EXECUTE(Network, ToXml)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
   unsigned int flags = 0;
-  char *result = virNetworkGetXMLDesc(Handle().ToNetwork(), flags);
+  char *result = virNetworkGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -281,8 +261,7 @@ NLV_WORKER_METHOD_NO_ARGS(Network, GetBridgeName)
 NLV_WORKER_EXECUTE(Network, GetBridgeName)
 {
   NLV_WORKER_ASSERT_NETWORK();
-
-  const char *result = virNetworkGetBridgeName(Handle().ToNetwork());
+  const char *result = virNetworkGetBridgeName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -291,4 +270,4 @@ NLV_WORKER_EXECUTE(Network, GetBridgeName)
   data_ = result;
 }
 
-}   // namespace NodeLibvirt
+}   // namespace NLV

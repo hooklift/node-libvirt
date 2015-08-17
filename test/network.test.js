@@ -1,6 +1,6 @@
 'use strict';
 
-var libvirt = require('../build/Release/libvirt'),
+var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
     fixture = require('./lib/helper').fixture,
@@ -204,18 +204,24 @@ describe('Network', function() {
     });
 
     it('should undefine a network', function(done) {
-      test.hypervisor.lookupNetworkByName('test', function(err, network) {
+      var xml = fixture('network.xml');
+      test.hypervisor.defineNetwork(xml, function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
 
-        network.destroy(function(err, result) {
+        test.hypervisor.lookupNetworkByName('test', function(err, network) {
           expect(err).to.not.exist;
-          expect(result).to.be.true;
+          expect(network).to.exist;
 
-          network.undefine(function(err, result) {
+          network.destroy(function(err, result) {
             expect(err).to.not.exist;
             expect(result).to.be.true;
-            done();
+
+            network.undefine(function(err, result) {
+              expect(err).to.not.exist;
+              expect(result).to.be.true;
+              done();
+            });
           });
         });
       });

@@ -1,9 +1,9 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
+
 #include "hypervisor.h"
-#include "worker_macros.h"
 #include "interface.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> Interface::constructor;
 void Interface::Initialize(Handle<Object> exports)
@@ -28,27 +28,16 @@ void Interface::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_INTERFACE_XML_INACTIVE);
 }
 
-Local<Object> Interface::NewInstance(const LibVirtHandle &handle)
+Interface::Interface(virInterfacePtr handle) : NLVObject(handle) {}
+Local<Object> Interface::NewInstance(virInterfacePtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  Interface *interface = new Interface(handle.ToInterface());
+  Interface *interface = new Interface(handle);
   interface->Wrap(object);
   return NanEscapeScope(object);
-}
-
-Interface::~Interface()
-{
-  if (handle_ != NULL)
-    virInterfaceFree(handle_);
-  handle_ = 0;
-}
-
-virInterfacePtr Interface::GetInterface() const
-{
-  return handle_;
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
@@ -57,7 +46,7 @@ NLV_WORKER_EXECUTE(Interface, Start)
   NLV_WORKER_ASSERT_INTERFACE();
 
   unsigned int flags = 0;
-  int result = virInterfaceCreate(Handle().ToInterface(), flags);
+  int result = virInterfaceCreate(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -72,14 +61,10 @@ NLV_WORKER_EXECUTE(Interface, Stop)
   NLV_WORKER_ASSERT_INTERFACE();
 
   unsigned int flags = 0;
-  int result = virInterfaceDestroy(Handle().ToInterface(), flags);
+  int result = virInterfaceDestroy(Handle(), flags);
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
-  }
-
-  if (Handle().ToInterface() != NULL) {
-    Handle().Clear();
   }
 
   data_ = static_cast<bool>(result);
@@ -89,9 +74,8 @@ NLV_WORKER_METHOD_DEFINE(Interface)
 NLV_WORKER_EXECUTE(Interface, Define)
 {
   unsigned int flags = 0;
-  lookupHandle_ =
-    virInterfaceDefineXML(Handle().ToConnection(), value_.c_str(), flags);
-  if (lookupHandle_.ToInterface() == NULL) {
+  lookupHandle_ = virInterfaceDefineXML(parent_->handle_, value_.c_str(), flags);
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -101,7 +85,7 @@ NLV_WORKER_METHOD_NO_ARGS(Interface, Undefine)
 NLV_WORKER_EXECUTE(Interface, Undefine)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-  int result = virInterfaceUndefine(Handle().ToInterface());
+  int result = virInterfaceUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -126,10 +110,10 @@ NAN_METHOD(Interface::LookupByName)
     NanReturnUndefined();
   }
 
-  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, unwrapped->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -149,10 +133,10 @@ NAN_METHOD(Interface::LookupByMacAddress)
     NanReturnUndefined();
   }
 
-  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, unwrapped->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
@@ -160,8 +144,7 @@ NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
 NLV_WORKER_EXECUTE(Interface, GetName)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virInterfaceGetName(Handle().ToInterface());
+  const char *result = virInterfaceGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -174,8 +157,7 @@ NLV_WORKER_METHOD_NO_ARGS(Interface, GetMacAddress)
 NLV_WORKER_EXECUTE(Interface, GetMacAddress)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virInterfaceGetMACString(Handle().ToInterface());
+  const char *result = virInterfaceGetMACString(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -188,8 +170,7 @@ NLV_WORKER_METHOD_NO_ARGS(Interface, IsActive)
 NLV_WORKER_EXECUTE(Interface, IsActive)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
-  int result = virInterfaceIsActive(Handle().ToInterface());
+  int result = virInterfaceIsActive(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -202,9 +183,8 @@ NLV_WORKER_METHOD_NO_ARGS(Interface, ToXml)
 NLV_WORKER_EXECUTE(Interface, ToXml)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
   unsigned int flags = 0;
-  char *result = virInterfaceGetXMLDesc(Handle().ToInterface(), flags);
+  char *result = virInterfaceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -214,4 +194,4 @@ NLV_WORKER_EXECUTE(Interface, ToXml)
   free(result);
 }
 
-}   // namespace NodeLibvirt
+}   // namespace NLV

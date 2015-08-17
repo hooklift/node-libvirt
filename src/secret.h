@@ -1,26 +1,30 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_SECRET_H_
-#define SRC_SECRET_H_
+#ifndef SECRET_H
+#define SECRET_H
 
-#include "node_libvirt.h"
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
 
-class Secret : public ObjectWrap
+namespace NLV {
+
+struct SecretCleanupHandler {
+  static int cleanup(virSecretPtr handle) {
+    return virSecretFree(handle);
+  }
+};
+
+class Secret : public NLVObject<virSecretPtr, SecretCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~Secret();
+  static Local<Object> NewInstance(virSecretPtr handle);
 
 private:
-  explicit Secret(virSecretPtr handle) : handle_(handle) {}
+  explicit Secret(virSecretPtr handle);
   static Persistent<Function> constructor;
-  virSecretPtr handle_;
-
   friend class Hypervisor;
 
 private:
@@ -42,32 +46,32 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(Secret, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(Secret, Define);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, Secret, Hypervisor, virSecretPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, Secret, Hypervisor, virSecretPtr);
 
-  class LookupByUsageWorker : public LookupInstanceByValueWorker<Secret> {
+  class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr> {
   public:
-    LookupByUsageWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &usageId, int usageType) \
-      : LookupInstanceByValueWorker<Secret>(callback, handle, usageId), usageType_(usageType) {}
+    LookupByUsageWorker(NanCallback *callback, Hypervisor *parent, const std::string &usageId, int usageType) \
+      : NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr>(callback, parent, usageId), usageType_(usageType) {}
     void Execute();
   private:
     int usageType_;
   };
 
   // ACTION WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virSecretPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetValue, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, virSecretPtr, int);
+  NLV_PRIMITIVE_RETURN_WORKER(GetValue, virSecretPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virSecretPtr, std::string);
 
-  class SetValueWorker : public PrimitiveReturnWorker<bool> {
+  class SetValueWorker : public NLVPrimitiveReturnWorker<virSecretPtr, bool> {
   public:
-    SetValueWorker(NanCallback *callback, const LibVirtHandle &handle, const std::string &value)
-      : PrimitiveReturnWorker<bool>(callback, handle), value_(value) {} \
+    SetValueWorker(NanCallback *callback, virSecretPtr handle, const std::string &value)
+      : NLVPrimitiveReturnWorker<virSecretPtr, bool>(callback, handle), value_(value) {} \
     void Execute();
   private:
     std::string value_;
@@ -75,6 +79,6 @@ private:
 
 };
 
-}  // namespace NodeLibvirt
+}  // namespace NLV
 
-#endif  // SRC_SECRET_H_
+#endif  // SECRET_H

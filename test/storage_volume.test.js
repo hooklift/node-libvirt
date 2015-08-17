@@ -1,6 +1,6 @@
 'use strict';
 
-var libvirt = require('../build/Release/libvirt'),
+var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
     fixture = require('./lib/helper').fixture,
@@ -22,7 +22,16 @@ describe('Storage Volume', function() {
           expect(err).to.not.exist;
           expect(pool).to.exist;
           test.pool = pool;
-          done();
+
+          test.pool.isActive(function(err, active) {
+            expect(err).to.not.exist;
+            if (active) return done();
+
+            test.pool.start(function(err, started) {
+              expect(err).to.not.exist;
+              done();
+            });
+          });
         });
       });
     });
@@ -39,6 +48,8 @@ describe('Storage Volume', function() {
     it('should be created', function(done) {
       var xml = fixture('storage_volume.xml');
       test.pool.createVolume(xml, function(err, volume) {
+        if (!!err) { console.log('\n\n\nERROR:\n'); console.log(err); console.log('\n\n\n'); }
+
         expect(err).to.not.exist;
 
         volume.getName(function(err, name) {
@@ -140,8 +151,12 @@ describe('Storage Volume', function() {
     it('should return volume information', function(done) {
       test.volume.getInfo(function(err, info) {
         expect(err).to.not.exist;
+
+        // @todo: find better way to store these constants
+        // var storageVolumeFile = test.volume.VIR_STORAGE_VOL_FILE;
+        var storageVolumeFile = 0;
         expect(info).to.eql({
-          type: test.volume.VIR_STORAGE_VOL_FILE,
+          type: storageVolumeFile,
           capacity: 5368709120,
           allocation: 0
         });

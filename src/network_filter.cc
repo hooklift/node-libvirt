@@ -4,7 +4,7 @@
 #include "hypervisor.h"
 #include "network_filter.h"
 
-namespace NodeLibvirt {
+namespace NLV {
 
 Persistent<Function> NetworkFilter::constructor;
 void NetworkFilter::Initialize(Handle<Object> exports)
@@ -22,22 +22,16 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   exports->Set(NanNew("NetworkFilter"), t->GetFunction());
 }
 
-Local<Object> NetworkFilter::NewInstance(const LibVirtHandle &handle)
+NetworkFilter::NetworkFilter(virNWFilterPtr handle) : NLVObject(handle) {}
+Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
 {
   NanEscapableScope();
   Local<Function> ctor = NanNew<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
-  NetworkFilter *filter = new NetworkFilter(handle.ToNetworkFilter());
+  NetworkFilter *filter = new NetworkFilter(handle);
   filter->Wrap(object);
   return NanEscapeScope(object);
-}
-
-NetworkFilter::~NetworkFilter()
-{
-  if (handle_ != NULL)
-    virNWFilterFree(handle_);
-  handle_ = 0;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
@@ -56,10 +50,10 @@ NAN_METHOD(NetworkFilter::LookupByName)
     NanReturnUndefined();
   }
 
-  Hypervisor *unwrapped = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string name(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, unwrapped->handle_, name));
+  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
   NanReturnUndefined();
 }
 
@@ -81,16 +75,16 @@ NAN_METHOD(NetworkFilter::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
   std::string uuid(*NanUtf8String(args[0]->ToString()));
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv->handle_, uuid));
+  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
   NanReturnUndefined();
 }
 
 NLV_WORKER_METHOD_DEFINE(NetworkFilter)
 NLV_WORKER_EXECUTE(NetworkFilter, Define)
 {
-  lookupHandle_ =
-    virNWFilterDefineXML(Handle().ToConnection(), value_.c_str());
-  if (lookupHandle_.ToNetworkFilter() == NULL) {
+  NLV_WORKER_ASSERT_PARENT_HANDLE();
+  lookupHandle_ = virNWFilterDefineXML(parent_->handle_, value_.c_str());
+  if (lookupHandle_ == NULL) {
     SetVirError(virGetLastError());
     return;
   }
@@ -100,8 +94,7 @@ NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetName)
 NLV_WORKER_EXECUTE(NetworkFilter, GetName)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
-  const char *result = virNWFilterGetName(Handle().ToNetworkFilter());
+  const char *result = virNWFilterGetName(Handle());
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -114,9 +107,8 @@ NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, GetUUID)
 NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virNWFilterGetUUIDString(Handle().ToNetworkFilter(), uuid);
+  int result = virNWFilterGetUUIDString(Handle(), uuid);
   if (result == -1) {
     SetVirError(virGetLastError());
     delete[] uuid;
@@ -131,7 +123,7 @@ NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, Undefine)
 NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-  int result = virNWFilterUndefine(Handle().ToNetworkFilter());
+  int result = virNWFilterUndefine(Handle());
   if (result == -1) {
     SetVirError(virGetLastError());
     return;
@@ -144,9 +136,8 @@ NLV_WORKER_METHOD_NO_ARGS(NetworkFilter, ToXml)
 NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
 {
   NLV_WORKER_ASSERT_INTERFACE();
-
   unsigned int flags = 0;
-  char *result = virNWFilterGetXMLDesc(Handle().ToNetworkFilter(), flags);
+  char *result = virNWFilterGetXMLDesc(Handle(), flags);
   if (result == NULL) {
     SetVirError(virGetLastError());
     return;
@@ -156,4 +147,4 @@ NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
   free(result);
 }
 
-}   // namespce NodeLibvirt
+}   // namespce NLV

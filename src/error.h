@@ -1,6 +1,6 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_ERROR_H_
-#define SRC_ERROR_H_
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <nan.h>
 
@@ -10,7 +10,7 @@
 using namespace v8;
 using namespace node;
 
-namespace NodeLibvirt {
+namespace NLV {
 
 class Error : public ObjectWrap
 {
@@ -28,6 +28,6 @@ private:
 
 };
 
-} //namespace NodeLibvirt
+} //namespace NLV
 
-#endif // SRC_ERROR_H_
+#endif // ERROR_H

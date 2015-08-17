@@ -1,6 +1,6 @@
 'use strict';
 
-var libvirt = require('../build/Release/libvirt'),
+var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
     fixture = require('./lib/helper').fixture,
@@ -45,8 +45,8 @@ describe('Secret', function() {
     });
 
     it('should be located through its usage', function(done)  {
-      var usageType = test.hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME;
-      test.hypervisor.lookupSecretByUsage(usageType, 'usage-id', function(err, secret) {
+      // var usageType = test.hypervisor.VIR_SECRET_USAGE_TYPE_VOLUME;
+      test.hypervisor.lookupSecretByUsage(1, 'usage-id', function(err, secret) {
         expect(err).to.exist;
         done();
 

@@ -1,15 +1,20 @@
 'use strict';
 
-var libvirt = require('../build/Release/libvirt'),
+var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
-    fixture = require('./lib/helper').fixture,
+    h = require('./lib/helper'),
+    semver = require('semver'),
     expect = require('chai').expect;
 
 var test = {};
 describe('Domain', function() {
   before(function() {
     SegfaultHandler.registerHandler();
+    return h.getLibVirtVersion()
+      .then(function(version) {
+        test.version = version;
+      });
   });
 
   describe('hypervisor methods', function() {
@@ -37,7 +42,7 @@ describe('Domain', function() {
     });
 
     it('should create a persistent Domain from its XML Description', function(done) {
-      var xml = fixture('domain.xml');
+      var xml = h.fixture('domain.xml');
       test.hypervisor.createDomain(xml, function(err, domain) {
         expect(err).to.not.exist;
         expect(domain).to.exist;
@@ -60,7 +65,7 @@ describe('Domain', function() {
     });
 
     it('should {,un}define a persistent Domain', function(done) {
-      var xml = fixture('domain.xml');
+      var xml = h.fixture('domain.xml');
       test.hypervisor.defineDomain(xml, function(err, domain) {
         expect(err).to.not.exist;
         expect(domain).to.exist;
@@ -168,7 +173,6 @@ describe('Domain', function() {
       });
     });
 
-
     it('should dump the core of a domain on a given file for analysis', function(done) {
       var path = '/tmp/dumpcore-test.txt';
       test.domain.coreDump(path, function(err, result) {
@@ -179,7 +183,9 @@ describe('Domain', function() {
     });
 
     it('should save a managed image of the domain', function(done) {
-      // NOTE: test driver doesn't support these functions
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
+      // NOTE: test driver doesn't support these functions in 0.9.x
       test.domain.managedSave(function(err, saved) {
         expect(err).to.not.exist;
         expect(saved).to.be.true;
@@ -193,6 +199,8 @@ describe('Domain', function() {
     });
 
     it('should remove a managed image of the domain', function(done) {
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
       test.domain.managedSave(function(err, saved) {
         expect(err).to.not.exist;
         expect(saved).to.be.true;
@@ -222,7 +230,7 @@ describe('Domain', function() {
     });
 
     it('should attach a device', function(done) {
-      var xml = fixture('device.xml');
+      var xml = h.fixture('device.xml');
       test.domain.attachDevice(xml, function(err, result) {
         expect(err).to.exist;
 
@@ -235,7 +243,7 @@ describe('Domain', function() {
     });
 
     it('should detach a device', function(done) {
-      var xml = fixture('device.xml');
+      var xml = h.fixture('device.xml');
       test.domain.detachDevice(xml, function(err, result) {
         expect(err).to.exist;
 
@@ -248,7 +256,7 @@ describe('Domain', function() {
     });
 
     it('should update a device', function(done) {
-      var xml = fixture('device_update.xml');
+      var xml = h.fixture('device_update.xml');
       var flags = [libvirt.VIR_DOMAIN_DEVICE_MODIFY_CONFIG];
       test.domain.updateDevice(xml, flags, function(err, result) {
         expect(err).to.exist;
@@ -261,29 +269,29 @@ describe('Domain', function() {
       });
     });
 
-    it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
-      var hypervisor2 = new libvirt.Hypervisor('test:///default');
-      var flags = [
-        test.domain.VIR_MIGRATE_LIVE,
-        test.domain.VIR_MIGRATE_PEER2PEER,
-        test.domain.VIR_MIGRATE_PAUSED,
-        test.domain.VIR_MIGRATE_PERSIST_DEST
-      ];
+    // it('should migrate a domain to another hypervisor through a hypervisor connection', function(done) {
+    //   var hypervisor2 = new libvirt.Hypervisor('test:///default');
+    //   var flags = [
+    //     test.domain.VIR_MIGRATE_LIVE,
+    //     test.domain.VIR_MIGRATE_PEER2PEER,
+    //     test.domain.VIR_MIGRATE_PAUSED,
+    //     test.domain.VIR_MIGRATE_PERSIST_DEST
+    //   ];
 
-      hypervisor2.connect(function(err) {
-        expect(err).to.not.exist;
-        test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
-          expect(err).to.exist;
-          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+    //   hypervisor2.connect(function(err) {
+    //     expect(err).to.not.exist;
+    //     test.domain.migrate({ dest_hypervisor: hypervisor2, dest_name: 'test2', dest_uri: '', bandwidth: 100, flags: flags }, function(err, domain) {
+    //       expect(err).to.exist;
+    //       expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
 
-          // NOTE: not supported by test driver
-          // expect(err).to.not.exist;
-          // expect(domain).to.exist;
+    //       // NOTE: not supported by test driver
+    //       // expect(err).to.not.exist;
+    //       // expect(domain).to.exist;
 
-          done();
-        });
-      });
-    });
+    //       done();
+    //     });
+    //   });
+    // });
 
     it('should migrate a domain to another hypervisor through an uri', function(done) {
       var flags = [
@@ -359,7 +367,9 @@ describe('Domain', function() {
     });
 
     it('should take, lookup, revert and delete a domain snapshot', function(done) {
-      var xml = fixture('snapshot.xml');
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
+      var xml = h.fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {
         expect(err).to.not.exist;
 
@@ -379,37 +389,39 @@ describe('Domain', function() {
       });
     });
 
-    it('should register, test and unregister a domain event', function(done) {
-      libvirt.setupEvent();
-      var events = [];
-      var callbackid;
 
-      test.hypervisor.registerDomainEvent({
-        evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-        callback: function(hv, dom, data) {
-          events.push(data.evtype);
+    // it('should register, test and unregister a domain event', function(done) {
+    //   libvirt.setupEvent();
+    //   var events = [];
+    //   var callbackid;
 
-          if (events.length === 2) {
-            expect(events).to.eql([5, 2]);
-            test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
-              expect(err).to.not.exist;
-              expect(result).to.be.true;
-              done();
-            });
-          }
-        }
-      }, function(err, result) {
-        expect(err).to.not.exist;
-        callbackid = result;
+    //   test.hypervisor.registerDomainEvent({
+    //     evtype: test.hypervisor.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+    //     callback: function(hv, dom, data) {
+    //       events.push(data.evtype);
 
-        test.domain.shutdown(function(err, result) {
-          expect(err).to.not.exist;
-          test.domain.start(function(err, result) {
-            expect(err).to.not.exist;
-          });
-        });
-      });
-    });
+    //       if (events.length === 2) {
+    //         expect(events).to.eql([5, 2]);
+    //         test.hypervisor.unregisterDomainEvent(callbackid, function(err, result) {
+    //           expect(err).to.not.exist;
+    //           expect(result).to.be.true;
+    //           done();
+    //         });
+    //       }
+    //     }
+    //   }, function(err, result) {
+    //     expect(err).to.not.exist;
+    //     callbackid = result;
+
+    //     test.domain.shutdown(function(err, result) {
+    //       expect(err).to.not.exist;
+    //       test.domain.start(function(err, result) {
+    //         expect(err).to.not.exist;
+    //       });
+    //     });
+    //   });
+    // });
+
 
   });
 
@@ -460,9 +472,9 @@ describe('Domain', function() {
     });
 
     it('should return the uuid', function(done) {
-      test.domain.getUUID(function(err, domain) {
+      test.domain.getUUID(function(err, uuid) {
         expect(err).to.not.exist;
-        expect(domain).to.equal('6695eb01-f6a4-8304-79aa-97f2502e193f');
+        expect(uuid).to.exist;
         done();
       });
     });
@@ -644,6 +656,8 @@ describe('Domain', function() {
     });
 
     it('should return whether the domain has a managed save image', function(done) {
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
       test.domain.hasManagedSaveImage(function(err, result) {
         expect(err).to.not.exist;
         expect(result).to.be.false;
@@ -738,6 +752,8 @@ describe('Domain', function() {
     });
 
     it('should show if the domain has a current snapshot', function(done) {
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
       test.domain.hasCurrentSnapshot(function(err, res) {
         expect(err).to.not.exist;
         expect(res).to.be.false;
@@ -746,7 +762,9 @@ describe('Domain', function() {
     });
 
     it('should return information about the current domain snapshot', function(done) {
-      var xml = fixture('snapshot.xml');
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
+      var xml = h.fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {
         expect(err).to.not.exist;
 
@@ -782,7 +800,9 @@ describe('Domain', function() {
     });
 
     it('should return all the domain snapshots', function(done) {
-      var xml = fixture('snapshot.xml');
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
+      var xml = h.fixture('snapshot.xml');
       test.domain.takeSnapshot(xml, [], function(err) {
         expect(err).to.not.exist;
 
@@ -799,8 +819,8 @@ describe('Domain', function() {
         });
       });
     });
-
   });
+
 });
 
 /*

@@ -1,27 +1,31 @@
 // Copyright 2010, Camilo Aguilar. Cloudescape, LLC.
-#ifndef SRC_STORAGE_POOL_H_
-#define SRC_STORAGE_POOL_H_
+#ifndef STORAGE_POOL_H
+#define STORAGE_POOL_H
 
-#include "node_libvirt.h"
-
-#include "worker.h"
+#include "nlv_object.h"
+#include "nlv_async_worker.h"
 #include "worker_macros.h"
 
-namespace NodeLibvirt {
+#include "hypervisor.h"
 
-class StoragePool : public ObjectWrap
+namespace NLV {
+
+struct StoragePoolCleanupHandler {
+  static int cleanup(virStoragePoolPtr handle) {
+    return virStoragePoolFree(handle);
+  }
+};
+
+class StoragePool : public NLVObject<virStoragePoolPtr, StoragePoolCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(const LibVirtHandle &handle);
-  virtual ~StoragePool();
+  static Local<Object> NewInstance(virStoragePoolPtr handle);
 
 private:
-  explicit StoragePool(virStoragePoolPtr handle) : handle_(handle) {}
+  explicit StoragePool(virStoragePoolPtr handle);
   static Persistent<FunctionTemplate> constructor_template;
   static Persistent<Function> constructor;
-  virStoragePoolPtr handle_;
-
   friend class StorageVolume;
   friend class Hypervisor;
 
@@ -54,41 +58,41 @@ private:
 
 private:
   // HYPERVISOR METHOD WORKERS
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, LookupByName);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, LookupByUUID);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, Define);
-  NLV_LOOKUP_BY_VALUE_WORKER(StoragePool, Create);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(LookupByUUID, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Define, StoragePool, Hypervisor, virStoragePoolPtr);
+  NLV_LOOKUP_BY_VALUE_WORKER(Create, StoragePool, Hypervisor, virStoragePoolPtr);
 
   // METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(Build, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Start, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Stop, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Refresh, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Build, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Start, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Stop, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(Refresh, virStoragePoolPtr, bool);
 
-  class EraseWorker : public PrimitiveReturnWorker<bool> {
+  class EraseWorker : public NLVPrimitiveReturnWorker<virStoragePoolPtr, bool> {
   public:
-    EraseWorker(NanCallback *callback, const LibVirtHandle &handle, unsigned int flags)
-      : PrimitiveReturnWorker<bool>(callback, handle), flags_(flags) {}
+    EraseWorker(NanCallback *callback, virStoragePoolPtr handle, unsigned int flags)
+      : NLVPrimitiveReturnWorker<virStoragePoolPtr, bool>(callback, handle), flags_(flags) {}
     void Execute();
   private:
     unsigned int flags_;
   };
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(IsActive, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, bool);
-  NLV_OBJECT_RETURN_WORKER(GetInfo, virStoragePoolInfo);
-  NLV_LIST_RETURN_WORKER(GetVolumes, std::string, v8::String);
+  NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStoragePoolPtr, std::string);
+  NLV_PRIMITIVE_RETURN_WORKER(IsActive, virStoragePoolPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virStoragePoolPtr, bool);
+  NLV_OBJECT_RETURN_WORKER(GetInfo, virStoragePoolPtr, virStoragePoolInfo);
+  NLV_LIST_RETURN_WORKER(GetVolumes, virStoragePoolPtr, std::string, v8::String);
 
-  class SetAutostartWorker : public PrimitiveReturnWorker<bool> {
+  class SetAutostartWorker : public NLVPrimitiveReturnWorker<virStoragePoolPtr, bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, const LibVirtHandle &handle, bool autoStart)
-      : PrimitiveReturnWorker<bool>(callback, handle), autoStart_(autoStart) {}
+    SetAutostartWorker(NanCallback *callback, virStoragePoolPtr handle, bool autoStart)
+      : NLVPrimitiveReturnWorker<virStoragePoolPtr, bool>(callback, handle), autoStart_(autoStart) {}
     void Execute();
   private:
     bool autoStart_;
@@ -96,6 +100,6 @@ private:
 
 };
 
-}  //namespace NodeLibvirt
+}  //namespace NLV
 
-#endif  // SRC_STORAGE_POOL_H
+#endif  // STORAGE_POOL_H
