@@ -3,13 +3,18 @@
 var libvirt = require('../lib'),
     Hypervisor = libvirt.Hypervisor,
     SegfaultHandler = require('segfault-handler'),
-    fixture = require('./lib/helper').fixture,
+    h = require('./lib/helper'),
+    semver = require('semver'),
     expect = require('chai').expect;
 
 var test = {};
 describe('Hypervisor', function() {
   before(function() {
     SegfaultHandler.registerHandler();
+    return h.getLibVirtVersion()
+      .then(function(version) {
+        test.version = version;
+      });
   });
 
   describe('construction', function() {
@@ -193,9 +198,11 @@ describe('Hypervisor', function() {
     });
 
     it('should compute the most feature-rich CPU', function(done) {
-      var cpu1 = fixture('cpu1.xml');
-      var cpu2 = fixture('cpu2.xml');
-      var computed_cpu = fixture('match_bt_cpu1_and_cpu2.xml');
+      if (semver.lt(test.version, '1.0.0')) { return done(); }
+
+      var cpu1 = h.fixture('cpu1.xml');
+      var cpu2 = h.fixture('cpu2.xml');
+      var computed_cpu = h.fixture('match_bt_cpu1_and_cpu2.xml');
       var xmlCPUs = [cpu1, cpu2];
 
       test.hypervisor.getBaselineCPU(xmlCPUs, function(err, cpu) {
@@ -206,7 +213,7 @@ describe('Hypervisor', function() {
     });
 
     it('should compare given cpu description with host CPU', function(done) {
-      var cpu = fixture('cpu1.xml');
+      var cpu = h.fixture('cpu1.xml');
 
       // NOTE: not supported by test driver
       test.hypervisor.compareCPU(cpu, function(err, result) {
