@@ -599,7 +599,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
       SetVirError(virGetLastError()); \
       return; \
     } \
-    char **names = (char **)malloc(sizeof(*names) * count); \
+    char **names = new char*[count]; \
     if (names == NULL) {  \
       SetErrorMessage("could not allocate memory"); \
       return; \
@@ -625,7 +625,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
       SetVirError(virGetLastError()); \
       return; \
     } \
-    int *elements = (int *)malloc(sizeof(*elements) * count); \
+    int *elements = new int[count]; \
     if (elements == NULL) {  \
       SetErrorMessage("could not allocate memory"); \
       delete [] elements; \
@@ -748,7 +748,7 @@ NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
     return;
   }
 
-  char **names = (char **) malloc(sizeof(*names) * num_devices);
+  char **names = new char*[num_devices];
   if (names == NULL) {
     SetErrorMessage("unable to allocate memory");
     return;
