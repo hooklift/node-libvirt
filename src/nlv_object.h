@@ -8,19 +8,51 @@
 using namespace node;
 using namespace v8;
 
+class NLVObjectBase;
+
+// hold a reference to a "child" object in a way that can be safely invalidated
+// if the child is destroyed by the GC before the parent.
+class NLVObjectBasePtr
+{
+public:
+  NLVObjectBasePtr(NLVObjectBase *ref) : ref_(ref), valid_(true) {}
+  bool IsValid() const { return valid_; }
+  NLVObjectBase* GetPointer() const {
+      if (!valid_) {
+         //Nan::ThrowReferenceError("attempt to access invalid NLVObjectBase pointer");
+	 return NULL;
+      }
+      return ref_;
+  }
+  void SetInvalid() {
+      ref_ = NULL;
+      valid_ = false;
+  }
+protected:
+  NLVObjectBase *ref_;
+  bool valid_;
+};
+
 class NLVObjectBase : public node::ObjectWrap
 {
 public:
   virtual void ClearHandle() = 0;
   virtual void ClearChildren() = 0;
+  virtual void SetParentReference(NLVObjectBasePtr *parentReference) = 0;
 };
 
 template <typename HandleType, typename CleanupHandler>
 class NLVObject : public NLVObjectBase
 {
 public:
-  NLVObject(HandleType handle) : handle_(handle) {}
-  ~NLVObject() {}
+  NLVObject(HandleType handle) : handle_(handle), parentReference_(NULL) {}
+  ~NLVObject() {
+      // calling virtual ClearHandle() will break if overridden by subclasses
+      ClearHandle();
+      if (parentReference_ != NULL) {
+	  parentReference_->SetInvalid();
+      }
+  }
 
   virtual void ClearHandle() {
     if (handle_ != NULL) {
@@ -31,20 +63,30 @@ public:
   }
 
   virtual void ClearChildren() {
-    std::vector<NLVObjectBase*>::const_iterator it;
+    std::vector<NLVObjectBasePtr*>::const_iterator it;
     for (it = children_.begin(); it != children_.end(); ++it) {
-      (*it)->ClearChildren();
-      (*it)->ClearHandle();
+      NLVObjectBasePtr *ptr = *it;
+      if (ptr->IsValid()) {
+        NLVObjectBase *obj = ptr->GetPointer();
+        obj->ClearChildren();
+        obj->ClearHandle();
+        obj->SetParentReference(NULL);
+        delete ptr;
+      }
     }
 
     children_.clear();
   }
 
-  std::vector<NLVObjectBase*> children_;
+  virtual void SetParentReference(NLVObjectBasePtr *parentReference) {
+      parentReference_ = parentReference;
+  }
+
+  std::vector<NLVObjectBasePtr*> children_;
 
 protected:
   HandleType handle_;
-
+  NLVObjectBasePtr* parentReference_;
 };
 
 #endif  // NLV_OBJECT_H

@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#include "nlv_object.h"
+
 /**
  * Base class for all workers in node-libvirt
  */
@@ -220,7 +222,9 @@ protected:
     NanScope();
     Local<Object> childObject = InstanceClass::NewInstance(lookupHandle_);
     InstanceClass *child = ObjectWrap::Unwrap<InstanceClass>(childObject);
-    parent_->children_.push_back(child);
+    NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
+    child->SetParentReference(childPtr);
+    parent_->children_.push_back(childPtr);
     v8::Local<v8::Value> argv[] = { NanNull(), childObject };
     callback->Call(2, argv);
   }
