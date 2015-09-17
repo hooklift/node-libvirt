@@ -93,6 +93,8 @@ private:
   static NAN_METHOD(GetVcpus);
   static NAN_METHOD(SetVcpus);
   static NAN_METHOD(ToXml);
+  static NAN_METHOD(GetMetadata);
+  static NAN_METHOD(SetMetadata);
   static NAN_METHOD(GetCurrentSnapshot);
   static NAN_METHOD(SetMigrationMaxDowntime);
   static NAN_METHOD(HasCurrentSnapshot);
@@ -340,6 +342,37 @@ private:
         : NLVPrimitiveReturnWorker<virDomainPtr, std::string>(callback, handle), flags_(flags) {}
       void Execute();
     private:
+      unsigned int flags_;
+  };
+
+  class GetMetadataWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
+    public:
+      GetMetadataWorker(NanCallback *callback, virDomainPtr handle, int type, const std::string &namespace_uri, unsigned int flags)
+        : NLVPrimitiveReturnWorker<virDomainPtr, std::string>(callback, handle), type_(type), namespace_uri_(namespace_uri), flags_(flags) {}
+      void Execute();
+    private:
+      int type_;
+      std::string namespace_uri_;
+      unsigned int flags_;
+  };
+
+  class SetMetadataWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
+    public:
+      SetMetadataWorker(NanCallback *callback, virDomainPtr handle,
+	      int type, bool null_metadata,
+	      const std::string &metadata, const std::string &namespace_key,
+	      const std::string &namespace_uri, unsigned int flags)
+        : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle),
+	  type_(type), null_metadata_(null_metadata),
+	  metadata_(metadata), namespace_key_(namespace_key),
+	  namespace_uri_(namespace_uri), flags_(flags) {}
+      void Execute();
+    private:
+      int type_;
+      bool null_metadata_;
+      std::string metadata_;
+      std::string namespace_key_;
+      std::string namespace_uri_;
       unsigned int flags_;
   };
 

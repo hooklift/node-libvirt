@@ -56,6 +56,8 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",            IsPersistent);
   NODE_SET_PROTOTYPE_METHOD(t, "isUpdated",               IsUpdated);
   NODE_SET_PROTOTYPE_METHOD(t, "toXml",                   ToXml);
+  NODE_SET_PROTOTYPE_METHOD(t, "getMetadata",             GetMetadata);
+  NODE_SET_PROTOTYPE_METHOD(t, "setMetadata",             SetMetadata);
   NODE_SET_PROTOTYPE_METHOD(t, "getBlockInfo",            GetBlockInfo);
   NODE_SET_PROTOTYPE_METHOD(t, "getBlockStats",           GetBlockStats);
   NODE_SET_PROTOTYPE_METHOD(t, "getSchedulerType",        GetSchedulerType);
@@ -107,6 +109,14 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
 
+  //virDomainMetadataType
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_DESCRIPTION);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_TITLE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_ELEMENT);
+#ifdef VIR_DOMAIN_METADATA_LAST
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_LAST);
+#endif
+
   //virDomainMigrateFlags
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_PEER2PEER);
@@ -116,6 +126,13 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_PAUSED);
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_DISK);
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_INC);
+
+  //virDomainModificationImpact
+#ifdef VIR_DOMAIN_AFFECT_CURRENT
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CURRENT);
+#endif
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_LIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CONFIG);
 
   //virDomainXMLFlags
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_SECURE);
@@ -791,6 +808,105 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
 
   data_ = result;
   free(result);
+}
+
+NAN_METHOD(Domain::GetMetadata)
+{
+  NanScope();
+  int type;
+  std::string namespace_uri;
+  unsigned int flags;
+  NanCallback *callback;
+  if (args.Length() == 4
+	  && args[0]->IsNumber()
+	  && (args[1]->IsString() || args[1]->IsNull())
+	  && args[2]->IsNumber()
+	  && args[3]->IsFunction())
+  {
+    type = args[0]->IntegerValue();
+    if (!args[1]->IsNull()) {
+	namespace_uri = *NanUtf8String(args[1]->ToString());
+    }
+    flags = args[2]->IntegerValue();
+    callback = new NanCallback(args[3].As<Function>());
+  } else {
+    NanThrowTypeError("signature is type, namespace_uri, flags, callback");
+    NanReturnUndefined();
+  }
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  NanAsyncQueueWorker(new GetMetadataWorker(callback, domain->handle_, type, namespace_uri, flags));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Domain, GetMetadata)
+{
+  NLV_WORKER_ASSERT_DOMAIN();
+  const char *namespace_uri = (type_ == VIR_DOMAIN_METADATA_ELEMENT)
+	  ? namespace_uri_.c_str() : NULL;
+  char *result = virDomainGetMetadata(Handle(), type_, namespace_uri, flags_);
+  if (result == NULL) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = result;
+  free(result);
+}
+
+NAN_METHOD(Domain::SetMetadata)
+{
+  NanScope();
+  int type;
+  bool null_metadata;
+  std::string metadata;
+  std::string namespace_key;
+  std::string namespace_uri;
+  unsigned int flags;
+  NanCallback *callback;
+  if (args.Length() == 6
+	  && args[0]->IsNumber()
+	  && (args[1]->IsString() || args[1]->IsNull())
+	  && (args[2]->IsString() || args[2]->IsNull())
+	  && (args[3]->IsString() || args[3]->IsNull())
+	  && args[4]->IsNumber()
+	  && args[5]->IsFunction())
+  {
+    type = args[0]->IntegerValue();
+    if (args[1]->IsNull()) {
+	null_metadata = true;
+    } else {
+	metadata = *NanUtf8String(args[1]->ToString());
+    }
+    if (!args[2]->IsNull())
+	namespace_key = *NanUtf8String(args[2]->ToString());
+    if (!args[3]->IsNull())
+	namespace_uri = *NanUtf8String(args[3]->ToString());
+    flags = args[4]->IntegerValue();
+    callback = new NanCallback(args[5].As<Function>());
+  } else {
+    NanThrowTypeError("signature is type, metadata, namespace_key, namespace_uri, flags, callback");
+    NanReturnUndefined();
+  }
+  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  NanAsyncQueueWorker(new SetMetadataWorker(callback, domain->handle_, type, null_metadata, metadata, namespace_key, namespace_uri, flags));
+  NanReturnUndefined();
+}
+
+NLV_WORKER_EXECUTE(Domain, SetMetadata)
+{
+  NLV_WORKER_ASSERT_DOMAIN();
+  const char *metadata = null_metadata_ ? NULL : metadata_.c_str();
+  const char *namespace_key = (type_ == VIR_DOMAIN_METADATA_ELEMENT)
+	  ? namespace_key_.c_str() : NULL;
+  const char *namespace_uri = (type_ == VIR_DOMAIN_METADATA_ELEMENT)
+	  ? namespace_uri_.c_str() : NULL;
+  int result = virDomainSetMetadata(Handle(), type_, metadata, namespace_key, namespace_uri, flags_);
+  if (result == -1) {
+    SetVirError(virGetLastError());
+    return;
+  }
+
+  data_ = static_cast<bool>(result);
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetInfo)
