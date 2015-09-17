@@ -6,6 +6,12 @@
 
 namespace NLV {
 
+#ifdef LIBVIR_CHECK_VERSION
+#if LIBVIR_CHECK_VERSION(0,9,10)
+#define _HAVE_DOMAIN_METADATA_API 1
+#endif
+#endif
+
 Persistent<FunctionTemplate> Domain::constructor_template;
 Persistent<Function> Domain::constructor;
 void Domain::Initialize(Handle<Object> exports)
@@ -109,12 +115,11 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_CONFIG);
 
+#ifdef _HAVE_DOMAIN_METADATA_API
   //virDomainMetadataType
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_DESCRIPTION);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_TITLE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_ELEMENT);
-#ifdef VIR_DOMAIN_METADATA_LAST
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_METADATA_LAST);
 #endif
 
   //virDomainMigrateFlags
@@ -128,9 +133,7 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_INC);
 
   //virDomainModificationImpact
-#ifdef VIR_DOMAIN_AFFECT_CURRENT
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CURRENT);
-#endif
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CONFIG);
 
@@ -813,6 +816,10 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
 NAN_METHOD(Domain::GetMetadata)
 {
   NanScope();
+#ifndef _HAVE_DOMAIN_METADATA_API
+  NanThrowTypeError("metadata api not supported in this libvirt version");
+  NanReturnUndefined();
+#else
   int type;
   std::string namespace_uri;
   unsigned int flags;
@@ -836,8 +843,10 @@ NAN_METHOD(Domain::GetMetadata)
   Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
   NanAsyncQueueWorker(new GetMetadataWorker(callback, domain->handle_, type, namespace_uri, flags));
   NanReturnUndefined();
+#endif
 }
 
+#ifdef _HAVE_DOMAIN_METADATA_API
 NLV_WORKER_EXECUTE(Domain, GetMetadata)
 {
   NLV_WORKER_ASSERT_DOMAIN();
@@ -852,10 +861,15 @@ NLV_WORKER_EXECUTE(Domain, GetMetadata)
   data_ = result;
   free(result);
 }
+#endif
 
 NAN_METHOD(Domain::SetMetadata)
 {
   NanScope();
+#ifndef _HAVE_DOMAIN_METADATA_API
+  NanThrowTypeError("metadata api not supported in this libvirt version");
+  NanReturnUndefined();
+#else
   int type;
   bool null_metadata;
   std::string metadata;
@@ -890,8 +904,10 @@ NAN_METHOD(Domain::SetMetadata)
   Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
   NanAsyncQueueWorker(new SetMetadataWorker(callback, domain->handle_, type, null_metadata, metadata, namespace_key, namespace_uri, flags));
   NanReturnUndefined();
+#endif
 }
 
+#ifdef _HAVE_DOMAIN_METADATA_API
 NLV_WORKER_EXECUTE(Domain, SetMetadata)
 {
   NLV_WORKER_ASSERT_DOMAIN();
@@ -908,6 +924,7 @@ NLV_WORKER_EXECUTE(Domain, SetMetadata)
 
   data_ = static_cast<bool>(result);
 }
+#endif
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetInfo)
 NLV_WORKER_EXECUTE(Domain, GetInfo)

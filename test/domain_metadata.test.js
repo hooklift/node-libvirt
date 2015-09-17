@@ -107,6 +107,7 @@ describe('Domain', function() {
         });
 
         it('should set domain element metadata', function(done) {
+            if (semver.lt(test.version, '0.9.10')) { return done(); }
             var metadata1 = h.fixture("metadata1.xml");
             metadata1 = metadata1.trim();
             var metadata1_ns = h.fixture("metadata1_ns.xml");
@@ -120,6 +121,7 @@ describe('Domain', function() {
         });
         
         it('should rewrite domain element metadata', function(done) {
+            if (semver.lt(test.version, '0.9.10')) { return done(); }
             var metadata2 = h.fixture("metadata2.xml");
             metadata2 = metadata2.trim();
             var metadata2_ns = h.fixture("metadata2_ns.xml");
@@ -133,6 +135,7 @@ describe('Domain', function() {
         });
 
         it('should erase domain element metadata', function(done) {
+            if (semver.lt(test.version, '0.9.10')) { return done(); }
             test.domain.setMetadata(libvirt.VIR_DOMAIN_METADATA_ELEMENT, null, "", "http://herp.derp/", 0,
                 function(err) {
                     expect(err).to.not.exist;
@@ -153,6 +156,7 @@ describe('Domain', function() {
 
         titleTests.forEach(function(tt) {
             it('should manipulate the title test#'+tt[0], function(done) {
+                if (semver.lt(test.version, '0.9.10')) { return done(); }
                 testText(test, libvirt.VIR_DOMAIN_METADATA_TITLE, tt[1], tt[2], done);
             });
         });
@@ -169,6 +173,7 @@ describe('Domain', function() {
 
         descriptionTests.forEach(function(tt) {
             it('should manipulate the description test#'+tt[0], function(done) {
+                if (semver.lt(test.version, '0.9.10')) { return done(); }
                 testText(test, libvirt.VIR_DOMAIN_METADATA_DESCRIPTION, tt[1], true, done);
             });
         });
