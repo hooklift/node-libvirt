@@ -1,0 +1,5 @@
+<derp xmlns:foobar='http://foo.bar/'>
+  <bar>foobar</bar>
+  <foo fooish='blurb'>foofoo</foo>
+  <foobar:baz>zomg</foobar:baz>
+</derp>

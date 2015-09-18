@@ -1,0 +1,5 @@
+<herp:derp xmlns:foobar='http://foo.bar/' xmlns:herp='http://herp.derp/'>
+  <herp:bar>foobar</herp:bar>
+  <herp:foo fooish='blurb'>foofoo</herp:foo>
+  <foobar:baz>zomg</foobar:baz>
+</herp:derp>
