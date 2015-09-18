@@ -8,6 +8,12 @@
 
 #include "hypervisor.h"
 
+#ifdef LIBVIR_CHECK_VERSION
+#if LIBVIR_CHECK_VERSION(0,9,10)
+#define _HAVE_DOMAIN_METADATA_API 1
+#endif
+#endif
+
 namespace NLV {
 
 struct DomainCleanupHandler {
@@ -345,6 +351,7 @@ private:
       unsigned int flags_;
   };
 
+#ifdef _HAVE_DOMAIN_METADATA_API
   class GetMetadataWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
     public:
       GetMetadataWorker(NanCallback *callback, virDomainPtr handle, int type, const std::string &namespace_uri, unsigned int flags)
@@ -375,6 +382,7 @@ private:
       std::string namespace_uri_;
       unsigned int flags_;
   };
+#endif
 
   class SetAutostartWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:

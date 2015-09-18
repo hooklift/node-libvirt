@@ -6,12 +6,6 @@
 
 namespace NLV {
 
-#ifdef LIBVIR_CHECK_VERSION
-#if LIBVIR_CHECK_VERSION(0,9,10)
-#define _HAVE_DOMAIN_METADATA_API 1
-#endif
-#endif
-
 Persistent<FunctionTemplate> Domain::constructor_template;
 Persistent<Function> Domain::constructor;
 void Domain::Initialize(Handle<Object> exports)
