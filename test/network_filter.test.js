@@ -31,7 +31,7 @@ describe('Network Filter', function() {
     // NOTE: test driver does not provide mechanisms to test this function
     var xml = fixture('network_filter.xml');
     test.hypervisor.defineNetworkFilter(xml, function(err, filter) {
-      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      expect(err.code).to.equal(libvirt.VIR_ERR_NO_SUPPORT);
       // expect(err).to.not.exist;
       // expect(filter).to.exist;
       done();
@@ -56,7 +56,7 @@ describe('Network Filter', function() {
   it('should look up the network filter based in its name', function(done) {
     // NOTE: test driver does not provide mechanisms to test this function
     test.hypervisor.lookupNetworkFilterByName('test-eth0', function(err, filter) {
-      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      expect(err.code).to.equal(libvirt.VIR_ERR_NO_SUPPORT);
       done();
 
       // expect(err).to.not.exist;
@@ -72,7 +72,7 @@ describe('Network Filter', function() {
   it('should look up the network filter based in its UUID', function(done) {
     // NOTE: test driver does not provide mechanisms to test this function
     test.hypervisor.lookupNetworkFilterByName('test-eth0', function(err, filter1) {
-      expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+      expect(err.code).to.equal(libvirt.VIR_ERR_NO_SUPPORT);
       done();
 
       // expect(err).to.not.exist;

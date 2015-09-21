@@ -167,23 +167,23 @@ NAN_GETTER(Error::Getter)
   Error *error = ObjectWrap::Unwrap<Error>(args.This());
   virErrorPtr error_ = error->error_;
 
-  if (property == NanNew("code")) {
+  if (property->Equals(NanNew("code"))) {
     NanReturnValue(NanNew(error_->code));
-  } else if (property == NanNew("domain")) {
+  } else if (property->Equals(NanNew("domain"))) {
     NanReturnValue(NanNew(error_->domain));
-  } else if (property == NanNew("message")) {
+  } else if (property->Equals(NanNew("message"))) {
     NanReturnValue(NanNew(error_->message));
-  } else if (property == NanNew("level")) {
+  } else if (property->Equals(NanNew("level"))) {
     NanReturnValue(NanNew(error_->level));
-  } else if (property == NanNew("str1")) {
+  } else if (property->Equals(NanNew("str1"))) {
     NanReturnValue(NanNew(error_->str1 != NULL ? error_->str1 : ""));
-  } else if (property == NanNew("str2")) {
+  } else if (property->Equals(NanNew("str2"))) {
     NanReturnValue(NanNew(error_->str2 != NULL ? error_->str2 : ""));
-  } else if (property == NanNew("str3")) {
+  } else if (property->Equals(NanNew("str3"))) {
     NanReturnValue(NanNew(error_->str3 != NULL ? error_->str3 : ""));
-  } else if (property == NanNew("int1")) {
+  } else if (property->Equals(NanNew("int1"))) {
     NanReturnValue(NanNew(error_->int1));
-  } else if (property == NanNew("int2")) {
+  } else if (property->Equals(NanNew("int2"))) {
     NanReturnValue(NanNew(error_->int2));
   }
 

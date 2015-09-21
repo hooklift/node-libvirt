@@ -303,7 +303,9 @@ describe('Domain', function() {
 
       test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
         expect(err).to.exist;
-        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+        // some libvirt versions report different error codes. 
+        var expected = err.code === libvirt.VIR_ERR_OPERATION_INVALID ? libvirt.VIR_ERR_OPERATION_INVALID : libvirt.VIR_ERR_NO_SUPPORT;
+        expect(err.code).to.be.equal(expected);
 
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;
@@ -334,7 +336,7 @@ describe('Domain', function() {
 
       test.domain.memoryPeek(0, 1024, physical, function(err, res) {
         expect(err).to.exist;
-        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+        expect(err.code).to.be.equal(libvirt.VIR_ERR_INVALID_ARG);
 
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;
@@ -342,7 +344,7 @@ describe('Domain', function() {
 
         test.domain.memoryPeek(0, 1024, virtual, function(err, res) {
           expect(err).to.exist;
-          expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+          expect(err.code).to.be.equal(libvirt.VIR_ERR_INVALID_ARG);
 
           // NOTE: not supported by test driver
           //expect(err).to.not.exist;
@@ -356,7 +358,7 @@ describe('Domain', function() {
     it('should allow to read the content of a domain\'s disk device and return it in a Buffer object', function(done) {
       test.domain.blockPeek('/dev/sda', 0, 1024, [], function(err, res) {
         expect(err).to.exist;
-        expect(err.code).to.be.equal(err.VIR_ERR_NO_SUPPORT);
+        expect(err.code).to.be.equal(libvirt.VIR_ERR_NO_SUPPORT);
 
         // NOTE: not supported by test driver
         //expect(err).to.not.exist;
@@ -793,7 +795,7 @@ describe('Domain', function() {
       //test driver doesn't support this function
       //Milliseconds
       test.domain.setMigrationMaxDowntime(100000, function(err, result) {
-        expect(err.code).to.equal(err.VIR_ERR_NO_SUPPORT);
+        expect(err.code).to.equal(libvirt.VIR_ERR_NO_SUPPORT);
 
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;

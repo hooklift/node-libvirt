@@ -883,6 +883,7 @@ NAN_METHOD(Domain::SetMetadata)
     if (args[1]->IsNull()) {
 	null_metadata = true;
     } else {
+	null_metadata = false;
 	metadata = *NanUtf8String(args[1]->ToString());
     }
     if (!args[2]->IsNull())
