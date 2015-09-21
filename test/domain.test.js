@@ -303,7 +303,9 @@ describe('Domain', function() {
 
       test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
         expect(err).to.exist;
-        expect(err.code).to.be.equal(libvirt.VIR_ERR_OPERATION_INVALID);
+        // some libvirt versions report different error codes. 
+        var expected = err.code === libvirt.VIR_ERR_OPERATION_INVALID ? libvirt.VIR_ERR_OPERATION_INVALID : libvirt.VIR_ERR_NO_SUPPORT;
+        expect(err.code).to.be.equal(expected);
 
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;
