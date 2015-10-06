@@ -24,7 +24,7 @@ public:
 
 private:
   explicit Secret(virSecretPtr handle);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   friend class Hypervisor;
 
 private:
@@ -51,7 +51,7 @@ private:
 
   class LookupByUsageWorker : public NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr> {
   public:
-    LookupByUsageWorker(NanCallback *callback, Hypervisor *parent, const std::string &usageId, int usageType) \
+    LookupByUsageWorker(Nan::Callback *callback, Hypervisor *parent, const std::string &usageId, int usageType) \
       : NLVLookupInstanceByValueWorker<Secret, Hypervisor, virSecretPtr>(callback, parent, usageId), usageType_(usageType) {}
     void Execute();
   private:
@@ -62,15 +62,15 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(Undefine, virSecretPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetUUID, virSecretPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetUsageId, virSecretPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetUsageType, virSecretPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetValue, virSecretPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virSecretPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetValue, virSecretPtr, std::string);
+  NLV_STRING_RETURN_WORKER(ToXml, virSecretPtr, std::string);
 
   class SetValueWorker : public NLVPrimitiveReturnWorker<virSecretPtr, bool> {
   public:
-    SetValueWorker(NanCallback *callback, virSecretPtr handle, const std::string &value)
+    SetValueWorker(Nan::Callback *callback, virSecretPtr handle, const std::string &value)
       : NLVPrimitiveReturnWorker<virSecretPtr, bool>(callback, handle), value_(value) {} \
     void Execute();
   private:

@@ -33,7 +33,7 @@ protected:
   bool valid_;
 };
 
-class NLVObjectBase : public node::ObjectWrap
+class NLVObjectBase : public Nan::ObjectWrap
 {
 public:
   virtual void ClearHandle() = 0;

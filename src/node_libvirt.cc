@@ -33,8 +33,8 @@ void InitAll(Handle<Object> exports)
   StorageVolume::Initialize(exports);
   EventImpl::Initialize(exports);
 
-  exports->Set(NanNew("version"), NanNew(NODE_LIBVIRT_VERSION));
-  exports->Set(NanNew("libvirt_version"), NanNew(LIBVIR_VERSION_NUMBER));
+  exports->Set(Nan::New("version").ToLocalChecked(), Nan::New(NODE_LIBVIRT_VERSION).ToLocalChecked());
+  exports->Set(Nan::New("libvirt_version").ToLocalChecked(), Nan::New(LIBVIR_VERSION_NUMBER));
 }
 
 NODE_MODULE(libvirt, InitAll)

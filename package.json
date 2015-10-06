@@ -1,6 +1,6 @@
 {
   "name": "libvirt",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Camilo Aguilar",
     "email": "camilo@cloudescape.com",
@@ -25,6 +25,11 @@
     {
       "name": "Michael Maier",
       "url": "https://github.com/binBASH"
+    },
+    {
+      "name": "Damian Kaczmarek",
+      "email": "rush@virtkick.com",
+      "url": "https://github.com/Rush"
     }
   ],
   "description": "Native libvirt C++ bindings for node.js",
@@ -51,13 +56,13 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "bluebird": "^2.9.34",
-    "nan": "^1.9.0"
+    "nan": "^2.0.9"
   },
   "devDependencies": {
     "chai": "^3.2.0",
     "jshint": "^2.8.0",
     "mocha": "^2.2.5",
-    "segfault-handler": "^0.2.4",
+    "segfault-handler": "^0.2.5",
     "semver": "^5.0.1",
     "xpath": "~0.0.9",
     "xmldom": "~0.1.19"

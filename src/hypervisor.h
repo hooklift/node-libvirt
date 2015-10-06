@@ -23,8 +23,8 @@ public:
 
 private:
   explicit Hypervisor(std::string uri, std::string user, std::string pass, bool readOnly);
-  static Persistent<Function> constructor;
-  static Persistent<FunctionTemplate> constructor_template;
+  static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
 
   std::string uri_;
   std::string username_;
@@ -98,7 +98,7 @@ private:
   // ACTION WORKERS
   class ConnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
-    ConnectWorker(NanCallback *callback, Hypervisor *hypervisor)
+    ConnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)
       : NLVAsyncWorker(callback, NULL), hypervisor_(hypervisor) {}
 
     void Execute();
@@ -109,7 +109,7 @@ private:
 
   class DisconnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
-    DisconnectWorker(NanCallback *callback, Hypervisor *hypervisor)
+    DisconnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)
       : NLVAsyncWorker(callback, hypervisor->handle_), hypervisor_(hypervisor) {}
     void Execute();
   private:
@@ -118,7 +118,7 @@ private:
 
   class CompareCPUWorker : public NLVPrimitiveReturnWorker<virConnectPtr, int> {
   public:
-    CompareCPUWorker(NanCallback *callback, virConnectPtr handle, const std::string &cpu, int flags)
+    CompareCPUWorker(Nan::Callback *callback, virConnectPtr handle, const std::string &cpu, int flags)
       : NLVPrimitiveReturnWorker(callback, handle),
         cpu_(cpu), flags_(flags) {}
     void Execute();
@@ -128,28 +128,28 @@ private:
   };
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetCapabilities, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetHostname, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetSysInfo, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetType, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetConnectionUri, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetVersion, virConnectPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetLibVirtVersion, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetCapabilities, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetHostname, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetSysInfo, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetType, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetConnectionUri, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetVersion, virConnectPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetLibVirtVersion, virConnectPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(IsConnectionEncrypted, virConnectPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(IsConnectionSecure, virConnectPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(IsConnectionAlive, virConnectPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpusWorker, virConnectPtr, int);
 
-  NLV_LIST_RETURN_WORKER(ListDefinedDomains, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedNetworks, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedStoragePools, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListDefinedInterfaces, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListDefinedDomains, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListDefinedNetworks, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListDefinedStoragePools, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListDefinedInterfaces, virConnectPtr, std::string, v8::String);
   NLV_LIST_RETURN_WORKER(ListActiveDomains, virConnectPtr, int, v8::Integer);
-  NLV_LIST_RETURN_WORKER(ListActiveInterfaces, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListNetworkFilters, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListActiveNetworks, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListSecrets, virConnectPtr, std::string, v8::String);
-  NLV_LIST_RETURN_WORKER(ListActiveStoragePools, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListActiveInterfaces, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListNetworkFilters, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListActiveNetworks, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListSecrets, virConnectPtr, std::string, v8::String);
+  NLV_STRING_LIST_RETURN_WORKER(ListActiveStoragePools, virConnectPtr, std::string, v8::String);
 
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedDomains, virConnectPtr, int);
   NLV_PRIMITIVE_RETURN_WORKER(GetNumberOfDefinedInterfaces, virConnectPtr, int);
@@ -166,7 +166,7 @@ private:
 
   class GetNodeCellsFreeMemoryWorker : public NLVListReturnWorker<virConnectPtr, double, v8::Number> {
   public:
-    GetNodeCellsFreeMemoryWorker(NanCallback *callback, virConnectPtr handle, int startCell, int maxCells)
+    GetNodeCellsFreeMemoryWorker(Nan::Callback *callback, virConnectPtr handle, int startCell, int maxCells)
       : NLVListReturnWorker(callback, handle), startCell_(startCell), maxCells_(maxCells) {}
     void Execute();
   private:
@@ -176,17 +176,17 @@ private:
 
   class GetMaxVcpusWorker : public NLVPrimitiveReturnWorker<virConnectPtr, int> {
   public:
-    GetMaxVcpusWorker(NanCallback *callback, virConnectPtr handle, const std::string &type)
+    GetMaxVcpusWorker(Nan::Callback *callback, virConnectPtr handle, const std::string &type)
       : NLVPrimitiveReturnWorker(callback, handle), type_(type) {}
     void Execute();
   private:
     std::string type_;
   };
 
-  class ListNodeDevicesWorker : public NLVListReturnWorker<virConnectPtr, std::string, v8::String> {
+  class ListNodeDevicesWorker : public NLVStringListReturnWorker<virConnectPtr, std::string, v8::String> {
   public:
-    ListNodeDevicesWorker(NanCallback *callback, virConnectPtr handle, const std::string &cap)
-      : NLVListReturnWorker(callback, handle), capability_(cap) {}
+    ListNodeDevicesWorker(Nan::Callback *callback, virConnectPtr handle, const std::string &cap)
+      : NLVStringListReturnWorker(callback, handle), capability_(cap) {}
     void Execute();
   private:
     std::string capability_;
@@ -194,7 +194,7 @@ private:
 
   class SetKeepAliveWorker : public NLVPrimitiveReturnWorker<virConnectPtr, bool> {
   public:
-    SetKeepAliveWorker(NanCallback *callback, virConnectPtr handle, int interval, unsigned int count)
+    SetKeepAliveWorker(Nan::Callback *callback, virConnectPtr handle, int interval, unsigned int count)
       : NLVPrimitiveReturnWorker(callback, handle), interval_(interval), count_(count) {}
     void Execute();
   private:
@@ -202,10 +202,10 @@ private:
     unsigned int count_;
   };
 
-  class GetBaselineCPUWorker : public NLVPrimitiveReturnWorker<virConnectPtr, std::string> {
+  class GetBaselineCPUWorker : public NLVStringReturnWorker<virConnectPtr, std::string> {
   public:
-    GetBaselineCPUWorker(NanCallback *callback, virConnectPtr handle, char **cpus, int count, int flags)
-      : NLVPrimitiveReturnWorker(callback, handle),
+    GetBaselineCPUWorker(Nan::Callback *callback, virConnectPtr handle, char **cpus, int count, int flags)
+      : NLVStringReturnWorker(callback, handle),
         cpus_(cpus), count_(count), flags_(flags) {}
     void Execute();
   private:
@@ -216,7 +216,7 @@ private:
 
   class GetNodeSecurityModelWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
-    GetNodeSecurityModelWorker(NanCallback *callback, virConnectPtr handle)
+    GetNodeSecurityModelWorker(Nan::Callback *callback, virConnectPtr handle)
       : NLVAsyncWorker(callback, handle) {}
     void Execute();
   protected:
@@ -228,7 +228,7 @@ private:
   class GetNodeMemoryStatsWorker : public NLVListReturnWorker<virConnectPtr, double, v8::Number> {
     using NLVAsyncWorker<virConnectPtr>::callback;
   public:
-    GetNodeMemoryStatsWorker(NanCallback *callback, virConnectPtr handle, int numCell, int flags)
+    GetNodeMemoryStatsWorker(Nan::Callback *callback, virConnectPtr handle, int numCell, int flags)
       : NLVListReturnWorker(callback, handle), cellNum_(numCell), flags_(flags) {}
     void Execute();
   protected:
@@ -241,7 +241,7 @@ private:
 
   class GetNodeInfoWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
-    GetNodeInfoWorker(NanCallback *callback, virConnectPtr handle)
+    GetNodeInfoWorker(Nan::Callback *callback, virConnectPtr handle)
       : NLVAsyncWorker(callback, handle) {}
     void Execute();
   protected:

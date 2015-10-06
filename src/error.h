@@ -12,7 +12,7 @@ using namespace node;
 
 namespace NLV {
 
-class Error : public ObjectWrap
+class Error : public Nan::ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
@@ -20,7 +20,7 @@ public:
 
 private:
   explicit Error(virErrorPtr error);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
 
   static NAN_GETTER(Getter);
 

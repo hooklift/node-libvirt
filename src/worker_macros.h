@@ -41,53 +41,53 @@
 // METHOD HELPERS
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \
   NAN_METHOD(Class::Method) {  \
-    NanScope(); \
-    if (args.Length() == 1 && !args[0]->IsFunction()) { \
-      NanThrowTypeError("You must specify a function as first argument"); \
-      NanReturnUndefined(); \
+    Nan::HandleScope scope; \
+    if (info.Length() == 1 && !info[0]->IsFunction()) { \
+      Nan::ThrowTypeError("You must specify a function as first argument"); \
+      return; \
     } \
-    NanCallback *callback = new NanCallback(args[0].As<Function>());  \
-    Class *object = ObjectWrap::Unwrap<Class>(args.This()); \
-    NanAsyncQueueWorker(new Method##Worker(callback, object->handle_));  \
-    NanReturnUndefined(); \
+    Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());  \
+    Class *object = Nan::ObjectWrap::Unwrap<Class>(info.This()); \
+    Nan::AsyncQueueWorker(new Method##Worker(callback, object->handle_));  \
+    return; \
   }
 
 #define NLV_WORKER_METHOD_DEFINE(Class) \
   NAN_METHOD(Class::Define) { \
-    NanScope(); \
-    if (args.Length() < 2 ||  \
-      (!args[0]->IsString() && !args[1]->IsFunction())) { \
-      NanThrowTypeError("You must specify a string and callback");  \
-      NanReturnUndefined(); \
+    Nan::HandleScope scope; \
+    if (info.Length() < 2 ||  \
+      (!info[0]->IsString() && !info[1]->IsFunction())) { \
+      Nan::ThrowTypeError("You must specify a string and callback");  \
+      return; \
     } \
-    if (!NanHasInstance(Hypervisor::constructor_template, args.This())) { \
-      NanThrowTypeError("You must specify a Hypervisor instance");  \
-      NanReturnUndefined(); \
+    if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) { \
+      Nan::ThrowTypeError("You must specify a Hypervisor instance");  \
+      return; \
     } \
-    Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This()); \
-    std::string xmlData(*NanUtf8String(args[0]->ToString())); \
-    NanCallback *callback = new NanCallback(args[1].As<Function>());  \
-    NanAsyncQueueWorker(new DefineWorker(callback, hv, xmlData));  \
-    NanReturnUndefined(); \
+    Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
+    std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
+    Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
+    Nan::AsyncQueueWorker(new DefineWorker(callback, hv, xmlData));  \
+    return; \
   }
 
 #define NLV_WORKER_METHOD_CREATE(Class) \
   NAN_METHOD(Class::Create) { \
-    NanScope(); \
-    if (args.Length() < 2 ||  \
-        (!args[0]->IsString() && !args[1]->IsFunction())) { \
-      NanThrowTypeError("You must specify a string and callback");  \
-      NanReturnUndefined(); \
+    Nan::HandleScope scope; \
+    if (info.Length() < 2 ||  \
+        (!info[0]->IsString() && !info[1]->IsFunction())) { \
+      Nan::ThrowTypeError("You must specify a string and callback");  \
+      return; \
     } \
-    if (!NanHasInstance(Hypervisor::constructor_template, args.This())) { \
-      NanThrowTypeError("You must specify a Hypervisor instance");  \
-      NanReturnUndefined(); \
+    if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) { \
+      Nan::ThrowTypeError("You must specify a Hypervisor instance");  \
+      return; \
     } \
-    Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This()); \
-    std::string xmlData(*NanUtf8String(args[0]->ToString())); \
-    NanCallback *callback = new NanCallback(args[1].As<Function>());  \
-    NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));  \
-    NanReturnUndefined(); \
+    Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
+    std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
+    Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
+    Nan::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData));  \
+    return; \
   }
 
 // EXECUTE HELPERS

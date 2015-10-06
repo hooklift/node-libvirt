@@ -24,7 +24,7 @@ public:
 
 private:
   explicit NodeDevice(virNodeDevicePtr handle);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   friend class Hypervisor;
 
 private:
@@ -56,10 +56,10 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(Reset, virNodeDevicePtr, bool);
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetParentName, virNodeDevicePtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNodeDevicePtr, std::string);
-  NLV_LIST_RETURN_WORKER(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
+  NLV_STRING_RETURN_WORKER(GetName, virNodeDevicePtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetParentName, virNodeDevicePtr, std::string);
+  NLV_STRING_RETURN_WORKER(ToXml, virNodeDevicePtr, std::string);
+  NLV_STRING_LIST_RETURN_WORKER(GetCapabilities, virNodeDevicePtr, std::string, v8::String);
 
 };
 

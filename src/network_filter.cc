@@ -6,77 +6,77 @@
 
 namespace NLV {
 
-Persistent<Function> NetworkFilter::constructor;
+Nan::Persistent<Function> NetworkFilter::constructor;
 void NetworkFilter::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("NetworkFilter"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("NetworkFilter").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "getName", NetworkFilter::GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID", NetworkFilter::GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine", NetworkFilter::Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml", NetworkFilter::ToXml);
+  Nan::SetPrototypeMethod(t, "getName", NetworkFilter::GetName);
+  Nan::SetPrototypeMethod(t, "getUUID", NetworkFilter::GetUUID);
+  Nan::SetPrototypeMethod(t, "undefine", NetworkFilter::Undefine);
+  Nan::SetPrototypeMethod(t, "toXml", NetworkFilter::ToXml);
 
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("NetworkFilter"), t->GetFunction());
+  constructor.Reset(t->GetFunction());
+  exports->Set(Nan::New("NetworkFilter").ToLocalChecked(), t->GetFunction());
 }
 
 NetworkFilter::NetworkFilter(virNWFilterPtr handle) : NLVObject(handle) {}
 Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   NetworkFilter *filter = new NetworkFilter(handle);
   filter->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid network filter name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid network filter name and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
-  NanReturnUndefined();
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByUUID, virNWFilterLookupByUUIDString)
 NAN_METHOD(NetworkFilter::LookupByUUID)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid network filter uuid and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid network filter uuid and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string uuid(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
+  return;
 }
 
 NLV_WORKER_METHOD_DEFINE(NetworkFilter)

@@ -16,108 +16,108 @@
 
 namespace NLV {
 
-Persistent<Function> Hypervisor::constructor;
-Persistent<FunctionTemplate> Hypervisor::constructor_template;
+Nan::Persistent<Function> Hypervisor::constructor;
+Nan::Persistent<FunctionTemplate> Hypervisor::constructor_template;
 void Hypervisor::Initialize(Handle<Object> exports)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
-  t->SetClassName(NanNew("Hypervisor"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
+  t->SetClassName(Nan::New("Hypervisor").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   // methods
-  NODE_SET_PROTOTYPE_METHOD(t, "connect",                 Connect);
-  NODE_SET_PROTOTYPE_METHOD(t, "disconnect",              Disconnect);
+  Nan::SetPrototypeMethod(t, "connect",                 Connect);
+  Nan::SetPrototypeMethod(t, "disconnect",              Disconnect);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",         GetCapabilities);
-  NODE_SET_PROTOTYPE_METHOD(t, "getHostname",             GetHostname);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSysInfo",              GetSysInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getType",                 GetType);
-  NODE_SET_PROTOTYPE_METHOD(t, "getConnectionUri",        GetConnectionUri);
-  NODE_SET_PROTOTYPE_METHOD(t, "getVersion",              GetVersion);
-  NODE_SET_PROTOTYPE_METHOD(t, "getLibVirtVersion",       GetLibVirtVersion);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionEncrypted",   IsConnectionEncrypted);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionSecure",      IsConnectionSecure);
-  NODE_SET_PROTOTYPE_METHOD(t, "isConnectionAlive",       IsConnectionAlive);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",             GetMaxVcpus);
-  NODE_SET_PROTOTYPE_METHOD(t, "setKeepAlive",            SetKeepAlive);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBaselineCPU",          GetBaselineCPU);
-  NODE_SET_PROTOTYPE_METHOD(t, "compareCPU",              CompareCPU);
+  Nan::SetPrototypeMethod(t, "getCapabilities",         GetCapabilities);
+  Nan::SetPrototypeMethod(t, "getHostname",             GetHostname);
+  Nan::SetPrototypeMethod(t, "getSysInfo",              GetSysInfo);
+  Nan::SetPrototypeMethod(t, "getType",                 GetType);
+  Nan::SetPrototypeMethod(t, "getConnectionUri",        GetConnectionUri);
+  Nan::SetPrototypeMethod(t, "getVersion",              GetVersion);
+  Nan::SetPrototypeMethod(t, "getLibVirtVersion",       GetLibVirtVersion);
+  Nan::SetPrototypeMethod(t, "isConnectionEncrypted",   IsConnectionEncrypted);
+  Nan::SetPrototypeMethod(t, "isConnectionSecure",      IsConnectionSecure);
+  Nan::SetPrototypeMethod(t, "isConnectionAlive",       IsConnectionAlive);
+  Nan::SetPrototypeMethod(t, "getMaxVcpus",             GetMaxVcpus);
+  Nan::SetPrototypeMethod(t, "setKeepAlive",            SetKeepAlive);
+  Nan::SetPrototypeMethod(t, "getBaselineCPU",          GetBaselineCPU);
+  Nan::SetPrototypeMethod(t, "compareCPU",              CompareCPU);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedDomains",      ListDefinedDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedNetworks",     ListDefinedNetworks);
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedStoragePools", ListDefinedStoragePools);
-  NODE_SET_PROTOTYPE_METHOD(t, "listDefinedInterfaces",   ListDefinedInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveDomains",       ListActiveDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveInterfaces",    ListActiveInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveNetworks",      ListActiveNetworks);
-  NODE_SET_PROTOTYPE_METHOD(t, "listActiveStoragePools",  ListActiveStoragePools);
-  NODE_SET_PROTOTYPE_METHOD(t, "listNetworkFilters",      ListNetworkFilters);
-  NODE_SET_PROTOTYPE_METHOD(t, "listSecrets",             ListSecrets);
+  Nan::SetPrototypeMethod(t, "listDefinedDomains",      ListDefinedDomains);
+  Nan::SetPrototypeMethod(t, "listDefinedNetworks",     ListDefinedNetworks);
+  Nan::SetPrototypeMethod(t, "listDefinedStoragePools", ListDefinedStoragePools);
+  Nan::SetPrototypeMethod(t, "listDefinedInterfaces",   ListDefinedInterfaces);
+  Nan::SetPrototypeMethod(t, "listActiveDomains",       ListActiveDomains);
+  Nan::SetPrototypeMethod(t, "listActiveInterfaces",    ListActiveInterfaces);
+  Nan::SetPrototypeMethod(t, "listActiveNetworks",      ListActiveNetworks);
+  Nan::SetPrototypeMethod(t, "listActiveStoragePools",  ListActiveStoragePools);
+  Nan::SetPrototypeMethod(t, "listNetworkFilters",      ListNetworkFilters);
+  Nan::SetPrototypeMethod(t, "listSecrets",             ListSecrets);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedDomains", GetNumberOfDefinedDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedInterfaces", GetNumberOfDefinedInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedNetworks", GetNumberOfDefinedNetworks);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfDefinedStoragePools", GetNumberOfDefinedStoragePools);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveDomains", GetNumberOfActiveDomains);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveInterfaces", GetNumberOfActiveInterfaces);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveNetworks", GetNumberOfActiveNetworks);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfNetworkFilters", GetNumberOfNetworkFilters);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfSecrets", GetNumberOfSecrets);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNumberOfActiveStoragePools", GetNumberOfActiveStoragePools);
+  Nan::SetPrototypeMethod(t, "getNumberOfDefinedDomains", GetNumberOfDefinedDomains);
+  Nan::SetPrototypeMethod(t, "getNumberOfDefinedInterfaces", GetNumberOfDefinedInterfaces);
+  Nan::SetPrototypeMethod(t, "getNumberOfDefinedNetworks", GetNumberOfDefinedNetworks);
+  Nan::SetPrototypeMethod(t, "getNumberOfDefinedStoragePools", GetNumberOfDefinedStoragePools);
+  Nan::SetPrototypeMethod(t, "getNumberOfActiveDomains", GetNumberOfActiveDomains);
+  Nan::SetPrototypeMethod(t, "getNumberOfActiveInterfaces", GetNumberOfActiveInterfaces);
+  Nan::SetPrototypeMethod(t, "getNumberOfActiveNetworks", GetNumberOfActiveNetworks);
+  Nan::SetPrototypeMethod(t, "getNumberOfNetworkFilters", GetNumberOfNetworkFilters);
+  Nan::SetPrototypeMethod(t, "getNumberOfSecrets", GetNumberOfSecrets);
+  Nan::SetPrototypeMethod(t, "getNumberOfActiveStoragePools", GetNumberOfActiveStoragePools);
 
   // NODE
-  NODE_SET_PROTOTYPE_METHOD(t, "listNodeDevices",             ListNodeDevices);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeSecurityModel",        GetNodeSecurityModel);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeInfo",                 GetNodeInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeFreeMemory",           GetNodeFreeMemory);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeMemoryStats",          GetNodeMemoryStats);
-  NODE_SET_PROTOTYPE_METHOD(t, "getNodeCellsFreeMemory",      GetNodeCellsFreeMemory);
+  Nan::SetPrototypeMethod(t, "listNodeDevices",             ListNodeDevices);
+  Nan::SetPrototypeMethod(t, "getNodeSecurityModel",        GetNodeSecurityModel);
+  Nan::SetPrototypeMethod(t, "getNodeInfo",                 GetNodeInfo);
+  Nan::SetPrototypeMethod(t, "getNodeFreeMemory",           GetNodeFreeMemory);
+  Nan::SetPrototypeMethod(t, "getNodeMemoryStats",          GetNodeMemoryStats);
+  Nan::SetPrototypeMethod(t, "getNodeCellsFreeMemory",      GetNodeCellsFreeMemory);
 
   // INTERFACE
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByName",       Interface::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupInterfaceByMacAddress", Interface::LookupByMacAddress);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineInterface",             Interface::Define);
+  Nan::SetPrototypeMethod(t, "lookupInterfaceByName",       Interface::LookupByName);
+  Nan::SetPrototypeMethod(t, "lookupInterfaceByMacAddress", Interface::LookupByMacAddress);
+  Nan::SetPrototypeMethod(t, "defineInterface",             Interface::Define);
 
   // NETWORK
-  NODE_SET_PROTOTYPE_METHOD(t, "createNetwork",               Network::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByName",         Network::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkByUUID",         Network::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineNetwork",               Network::Define);
+  Nan::SetPrototypeMethod(t, "createNetwork",               Network::Create);
+  Nan::SetPrototypeMethod(t, "lookupNetworkByName",         Network::LookupByName);
+  Nan::SetPrototypeMethod(t, "lookupNetworkByUUID",         Network::LookupByUUID);
+  Nan::SetPrototypeMethod(t, "defineNetwork",               Network::Define);
 
   // NETWORK FILTER
-  NODE_SET_PROTOTYPE_METHOD(t, "defineNetworkFilter",         NetworkFilter::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByName",   NetworkFilter::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNetworkFilterByUUID",   NetworkFilter::LookupByUUID);
+  Nan::SetPrototypeMethod(t, "defineNetworkFilter",         NetworkFilter::Define);
+  Nan::SetPrototypeMethod(t, "lookupNetworkFilterByName",   NetworkFilter::LookupByName);
+  Nan::SetPrototypeMethod(t, "lookupNetworkFilterByUUID",   NetworkFilter::LookupByUUID);
 
   // STORAGE POOL
-  NODE_SET_PROTOTYPE_METHOD(t, "createStoragePool",           StoragePool::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineStoragePool",           StoragePool::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByName",     StoragePool::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByUUID",     StoragePool::LookupByUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStoragePoolByVolume",   StoragePool::LookupByVolume);
+  Nan::SetPrototypeMethod(t, "createStoragePool",           StoragePool::Create);
+  Nan::SetPrototypeMethod(t, "defineStoragePool",           StoragePool::Define);
+  Nan::SetPrototypeMethod(t, "lookupStoragePoolByName",     StoragePool::LookupByName);
+  Nan::SetPrototypeMethod(t, "lookupStoragePoolByUUID",     StoragePool::LookupByUUID);
+  Nan::SetPrototypeMethod(t, "lookupStoragePoolByVolume",   StoragePool::LookupByVolume);
 
   // STORAGE VOLUME
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByKey",    StorageVolume::LookupByKey);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupStorageVolumeByPath",   StorageVolume::LookupByPath);
+  Nan::SetPrototypeMethod(t, "lookupStorageVolumeByKey",    StorageVolume::LookupByKey);
+  Nan::SetPrototypeMethod(t, "lookupStorageVolumeByPath",   StorageVolume::LookupByPath);
 
   // SECRET
-  NODE_SET_PROTOTYPE_METHOD(t, "defineSecret",                Secret::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUsage",         Secret::LookupByUsage);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupSecretByUUID",          Secret::LookupByUUID);
+  Nan::SetPrototypeMethod(t, "defineSecret",                Secret::Define);
+  Nan::SetPrototypeMethod(t, "lookupSecretByUsage",         Secret::LookupByUsage);
+  Nan::SetPrototypeMethod(t, "lookupSecretByUUID",          Secret::LookupByUUID);
 
   // NODE
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupNodeDeviceByName",      NodeDevice::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "createNodeDevice",            NodeDevice::Create);
+  Nan::SetPrototypeMethod(t, "lookupNodeDeviceByName",      NodeDevice::LookupByName);
+  Nan::SetPrototypeMethod(t, "createNodeDevice",            NodeDevice::Create);
 
   // DOMAIN
-  NODE_SET_PROTOTYPE_METHOD(t, "createDomain",                Domain::Create);
-  NODE_SET_PROTOTYPE_METHOD(t, "defineDomain",                Domain::Define);
-  NODE_SET_PROTOTYPE_METHOD(t, "restoreDomain",               Domain::Restore);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainById",            Domain::LookupById);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByName",          Domain::LookupByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupDomainByUUID",          Domain::LookupByUUID);
+  Nan::SetPrototypeMethod(t, "createDomain",                Domain::Create);
+  Nan::SetPrototypeMethod(t, "defineDomain",                Domain::Define);
+  Nan::SetPrototypeMethod(t, "restoreDomain",               Domain::Restore);
+  Nan::SetPrototypeMethod(t, "lookupDomainById",            Domain::LookupById);
+  Nan::SetPrototypeMethod(t, "lookupDomainByName",          Domain::LookupByName);
+  Nan::SetPrototypeMethod(t, "lookupDomainByUUID",          Domain::LookupByUUID);
 
   //Constants initialization
   // virConnectCredentialType
@@ -157,10 +157,10 @@ void Hypervisor::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LAST);
 #endif
 
-  t->SetClassName(NanNew("Hypervisor"));
-  NanAssignPersistent(constructor_template, t);
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("Hypervisor"), t->GetFunction());
+  t->SetClassName(Nan::New("Hypervisor").ToLocalChecked());
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
+  exports->Set(Nan::New("Hypervisor").ToLocalChecked(), t->GetFunction());
 }
 
 Hypervisor::Hypervisor(std::string uri, std::string username, std::string password, bool readonly)
@@ -174,59 +174,59 @@ Hypervisor::Hypervisor(std::string uri, std::string username, std::string passwo
 
 NAN_METHOD(Hypervisor::New)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (!args.IsConstructCall()) {
+  if (!info.IsConstructCall()) {
     // Invoked as plain function `MyObject(...)`, turn into construct call.
     const int argc = 1;
-    Local<Value> argv[argc] = { args[0] };
-    Local<Function> cons = NanNew<Function>(constructor);
-    NanReturnValue(cons->NewInstance(argc, argv));
+    Local<Value> argv[argc] = { info[0] };
+    Local<Function> cons = Nan::New<Function>(constructor);
+    return info.GetReturnValue().Set(cons->NewInstance(argc, argv));
   }
 
-  int argsLen = args.Length();
-  if (argsLen == 0) {
-    NanThrowTypeError("You must specify a connection URI as first argument");
-    NanReturnUndefined();
+  int infoLen = info.Length();
+  if (infoLen == 0) {
+    Nan::ThrowTypeError("You must specify a connection URI as first argument");
+    return;
   }
 
-  if (argsLen == 1 && !args[0]->IsString()) {
-    NanThrowTypeError("You must specify a string as connection URI");
-    NanReturnUndefined();
+  if (infoLen == 1 && !info[0]->IsString()) {
+    Nan::ThrowTypeError("You must specify a string as connection URI");
+    return;
   }
 
   bool readOnly = false;
   std::string username;
   std::string password;
-  std::string uri = *NanUtf8String(args[0]);
+  std::string uri = *Nan::Utf8String(info[0]);
 
-  if (argsLen >= 2) {
-    if (args[1]->IsBoolean()) {
-      readOnly = args[1]->IsTrue();
-    } else if (args[1]->IsObject()) {
-      Local<Object> options = args[1].As<Object>();
+  if (infoLen >= 2) {
+    if (info[1]->IsBoolean()) {
+      readOnly = info[1]->IsTrue();
+    } else if (info[1]->IsObject()) {
+      Local<Object> options = info[1].As<Object>();
 
-      if (options->Has(NanNew("readOnly")))
-        readOnly = options->Get(NanNew("readOnly"))->BooleanValue();
+      if (options->Has(Nan::New("readOnly").ToLocalChecked()))
+        readOnly = options->Get(Nan::New("readOnly").ToLocalChecked())->BooleanValue();
 
-      if (options->Has(NanNew("username")))
-        username = *NanUtf8String(options->Get(NanNew("username")));
+      if (options->Has(Nan::New("username").ToLocalChecked()))
+        username = *Nan::Utf8String(options->Get(Nan::New("username").ToLocalChecked()));
 
-      if (options->Has(NanNew("password")))
-        password = *NanUtf8String(options->Get(NanNew("password")));
+      if (options->Has(Nan::New("password").ToLocalChecked()))
+        password = *Nan::Utf8String(options->Get(Nan::New("password").ToLocalChecked()));
     }
   }
 
   Hypervisor *hypervisor = new Hypervisor(uri, username, password, readOnly);
-  hypervisor->Wrap(args.This());
+  hypervisor->Wrap(info.This());
 
   // add values to instance object
-  args.This()->Set(NanNew("uri"), NanNew(uri));
-  args.This()->Set(NanNew("username"), NanNew(username));
-  args.This()->Set(NanNew("password"), NanNew(password));
-  args.This()->Set(NanNew("readOnly"), NanNew(readOnly));
+  info.This()->Set(Nan::New("uri").ToLocalChecked(), Nan::New(uri).ToLocalChecked());
+  info.This()->Set(Nan::New("username").ToLocalChecked(), Nan::New(username).ToLocalChecked());
+  info.This()->Set(Nan::New("password").ToLocalChecked(), Nan::New(password).ToLocalChecked());
+  info.This()->Set(Nan::New("readOnly").ToLocalChecked(), Nan::New(readOnly));
 
-  NanReturnValue(args.This());
+  return info.GetReturnValue().Set(info.This());
 }
 
 int Hypervisor::ConnectWorker::auth_callback(virConnectCredentialPtr cred,
@@ -257,16 +257,16 @@ int Hypervisor::ConnectWorker::auth_callback(virConnectCredentialPtr cred,
 
 NAN_METHOD(Hypervisor::Connect)
 {
-  NanScope();
-  if (args.Length() == 1 && !args[0]->IsFunction()) {
-    NanThrowTypeError("You must specify a function as first argument");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() == 1 && !info[0]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a function as first argument");
+    return;
   }
 
-  NanCallback *callback = new NanCallback(args[0].As<Function>());
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new ConnectWorker(callback, hv));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new ConnectWorker(callback, hv));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, Connect)
@@ -291,16 +291,16 @@ NLV_WORKER_EXECUTE(Hypervisor, Connect)
 
 NAN_METHOD(Hypervisor::Disconnect)
 {
-  NanScope();
-  if (args.Length() == 1 && !args[0]->IsFunction()) {
-    NanThrowTypeError("You must specify a function as first argument");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() == 1 && !info[0]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a function as first argument");
+    return;
   }
 
-  NanCallback *callback = new NanCallback(args[0].As<Function>());
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new DisconnectWorker(callback, hv));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new DisconnectWorker(callback, hv));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
@@ -435,28 +435,28 @@ NLV_BOOL_RETURN_EXECUTE_IMPL(Hypervisor, IsConnectionAlive, virConnectIsAlive)
 
 NAN_METHOD(Hypervisor::GetMaxVcpus)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() < 2) {
-    NanThrowTypeError("You must specify a type and callback");
-    NanReturnUndefined();
+  if (info.Length() < 2) {
+    Nan::ThrowTypeError("You must specify a type and callback");
+    return;
   }
 
-  if (!args[0]->IsString()) {
-    NanThrowTypeError("Type must be a string");
-    NanReturnUndefined();
+  if (!info[0]->IsString()) {
+    Nan::ThrowTypeError("Type must be a string");
+    return;
   }
 
-  if (!args[1]->IsFunction()) {
-    NanThrowTypeError("Second argument must be a callback");
-    NanReturnUndefined();
+  if (!info[1]->IsFunction()) {
+    Nan::ThrowTypeError("Second argument must be a callback");
+    return;
   }
 
-  std::string type(*NanAsciiString(args[0]));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetMaxVcpusWorker(callback, hypervisor->handle_, type));
-  NanReturnUndefined();
+  std::string type(*Nan::Utf8String(info[0]));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new GetMaxVcpusWorker(callback, hypervisor->handle_, type));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, GetMaxVcpus)
@@ -473,35 +473,35 @@ NLV_WORKER_EXECUTE(Hypervisor, GetMaxVcpus)
 
 NAN_METHOD(Hypervisor::SetKeepAlive)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() < 3) {
-    NanThrowTypeError("You must specify an interval, count and callback");
-    NanReturnUndefined();
+  if (info.Length() < 3) {
+    Nan::ThrowTypeError("You must specify an interval, count and callback");
+    return;
   }
 
-  if (!args[0]->IsNumber()) {
-    NanThrowTypeError("interval must be a number");
-    NanReturnUndefined();
+  if (!info[0]->IsNumber()) {
+    Nan::ThrowTypeError("interval must be a number");
+    return;
   }
 
-  if (!args[1]->IsNumber()) {
-    NanThrowTypeError("count must be a number");
-    NanReturnUndefined();
+  if (!info[1]->IsNumber()) {
+    Nan::ThrowTypeError("count must be a number");
+    return;
   }
 
-  if (!args[2]->IsFunction()) {
-    NanThrowTypeError("third argument must be callback");
-    NanReturnUndefined();
+  if (!info[2]->IsFunction()) {
+    Nan::ThrowTypeError("third argument must be callback");
+    return;
   }
 
-  std::string type(*NanAsciiString(args[0]));
-  int interval = args[0]->IntegerValue();
-  unsigned int count = args[1]->IntegerValue();
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new SetKeepAliveWorker(callback, hypervisor->handle_, interval, count));
-  NanReturnUndefined();
+  std::string type(*Nan::Utf8String(info[0]));
+  int interval = info[0]->IntegerValue();
+  unsigned int count = info[1]->IntegerValue();
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new SetKeepAliveWorker(callback, hypervisor->handle_, interval, count));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, SetKeepAlive)
@@ -519,28 +519,28 @@ NLV_WORKER_EXECUTE(Hypervisor, SetKeepAlive)
 
 NAN_METHOD(Hypervisor::GetBaselineCPU)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() == 0 ||
-      (args.Length() < 2 && (!args[0]->IsArray() && !args[1]->IsFunction()))) {
-    NanThrowTypeError("You must specify an array with two cpu descriptions and a callback");
-    NanReturnUndefined();
+  if (info.Length() == 0 ||
+      (info.Length() < 2 && (!info[0]->IsArray() && !info[1]->IsFunction()))) {
+    Nan::ThrowTypeError("You must specify an array with two cpu descriptions and a callback");
+    return;
   }
 
-  Local<Array> cpusArguments = args[0].As<Array>();
+  Local<Array> cpusArguments = info[0].As<Array>();
 
   int flags = 0;
   int count = cpusArguments->Length();
   char **cpus = new char*[count + 1];
   cpus[count] = NULL;
   for (int i = 0; i < count; ++i) {
-    cpus[i] = strdup(*NanUtf8String(cpusArguments->Get(NanNew(i))->ToString()));
+    cpus[i] = strdup(*Nan::Utf8String(cpusArguments->Get(Nan::New(i))->ToString()));
   }
 
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetBaselineCPUWorker(callback, hypervisor->handle_, cpus, count, flags));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new GetBaselineCPUWorker(callback, hypervisor->handle_, cpus, count, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, GetBaselineCPU)
@@ -563,20 +563,20 @@ NLV_WORKER_EXECUTE(Hypervisor, GetBaselineCPU)
 
 NAN_METHOD(Hypervisor::CompareCPU)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() == 0 ||
-      (args.Length() < 2 && (!args[0]->IsString() && !args[1]->IsFunction()))) {
-    NanThrowTypeError("You must specify a cpu description and a callback");
-    NanReturnUndefined();
+  if (info.Length() == 0 ||
+      (info.Length() < 2 && (!info[0]->IsString() && !info[1]->IsFunction()))) {
+    Nan::ThrowTypeError("You must specify a cpu description and a callback");
+    return;
   }
 
   int flags = 0;
-  std::string cpu(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new CompareCPUWorker(callback, hypervisor->handle_, cpu, flags));
-  NanReturnUndefined();
+  std::string cpu(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new CompareCPUWorker(callback, hypervisor->handle_, cpu, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
@@ -714,26 +714,26 @@ HYPERVISOR_INT_RETURN_EXECUTE(GetNumberOfSecrets, virConnectNumOfSecrets)
 
 NAN_METHOD(Hypervisor::ListNodeDevices)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() < 1 ||
-      (args.Length() == 1 && args[0]->IsString())) {
-    NanThrowTypeError("You must specify a capability and/or a callback");
-    NanReturnUndefined();
+  if (info.Length() < 1 ||
+      (info.Length() == 1 && info[0]->IsString())) {
+    Nan::ThrowTypeError("You must specify a capability and/or a callback");
+    return;
   }
 
-  NanCallback *callback;
+  Nan::Callback *callback;
   std::string capability;
-  if (args.Length() == 2) {
-    capability = *NanAsciiString(args[0]);
-    callback = new NanCallback(args[1].As<Function>());
+  if (info.Length() == 2) {
+    capability = *Nan::Utf8String(info[0]);
+    callback = new Nan::Callback(info[1].As<Function>());
   } else {
-    callback = new NanCallback(args[0].As<Function>());
+    callback = new Nan::Callback(info[0].As<Function>());
   }
 
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new ListNodeDevicesWorker(callback, hypervisor->handle_, capability));
-  NanReturnUndefined();
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new ListNodeDevicesWorker(callback, hypervisor->handle_, capability));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
@@ -783,14 +783,14 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeSecurityModel)
 
 NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeSecurityModel)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("model"), NanNew(securityModel_.model));
-  result->Set(NanNew("doi"), NanNew(securityModel_.doi));
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("model").ToLocalChecked(), Nan::New(securityModel_.model).ToLocalChecked());
+  result->Set(Nan::New("doi").ToLocalChecked(), Nan::New(securityModel_.doi).ToLocalChecked());
 
   v8::Local<v8::Value> argv[] = {
-    NanNull(),
+    Nan::Null(),
     result
   };
 
@@ -810,19 +810,19 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeInfo)
 
 NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeInfo)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("model"), NanNew(info_.model));
-  result->Set(NanNew("memory"), NanNew<Number>(info_.memory));
-  result->Set(NanNew("cpus"), NanNew<Integer>(info_.cpus));
-  result->Set(NanNew("mhz"), NanNew<Integer>(info_.mhz));
-  result->Set(NanNew("nodes"), NanNew<Integer>(info_.nodes));
-  result->Set(NanNew("sockets"), NanNew<Integer>(info_.sockets));
-  result->Set(NanNew("cores"), NanNew<Integer>(info_.cores));
-  result->Set(NanNew("threads"), NanNew<Integer>(info_.threads));
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("model").ToLocalChecked(), Nan::New(info_.model).ToLocalChecked());
+  result->Set(Nan::New("memory").ToLocalChecked(), Nan::New<Number>(info_.memory));
+  result->Set(Nan::New("cpus").ToLocalChecked(), Nan::New<Integer>(info_.cpus));
+  result->Set(Nan::New("mhz").ToLocalChecked(), Nan::New<Integer>(info_.mhz));
+  result->Set(Nan::New("nodes").ToLocalChecked(), Nan::New<Integer>(info_.nodes));
+  result->Set(Nan::New("sockets").ToLocalChecked(), Nan::New<Integer>(info_.sockets));
+  result->Set(Nan::New("cores").ToLocalChecked(), Nan::New<Integer>(info_.cores));
+  result->Set(Nan::New("threads").ToLocalChecked(), Nan::New<Integer>(info_.threads));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  v8::Local<v8::Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
@@ -841,18 +841,18 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeFreeMemory)
 
 NAN_METHOD(Hypervisor::GetNodeMemoryStats)
 {
-  NanScope();
-  if (args.Length() < 3 ||
-      (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsFunction())) {
-    NanThrowTypeError("signature is numCell, flags, callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 3 ||
+      (!info[0]->IsNumber() && !info[1]->IsNumber() && !info[2]->IsFunction())) {
+    Nan::ThrowTypeError("signature is numCell, flags, callback");
+    return;
   }
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  int numCells = args[0]->IntegerValue();
-  int flags = args[1]->IntegerValue();
-  NanAsyncQueueWorker(new GetNodeMemoryStatsWorker(callback, hypervisor->handle_, numCells, flags));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  int numCells = info[0]->IntegerValue();
+  int flags = info[1]->IntegerValue();
+  Nan::AsyncQueueWorker(new GetNodeMemoryStatsWorker(callback, hypervisor->handle_, numCells, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeMemoryStats)
@@ -872,35 +872,35 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeMemoryStats)
 
 NLV_WORKER_OKCALLBACK(Hypervisor, GetNodeMemoryStats)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Local<Object> result = NanNew<Object>();
+  Local<Object> result = Nan::New<Object>();
   for(unsigned int i = 0;i < info_.size();++i) {
-    result->Set(NanNew(info_[i].field), NanNew<Number>(info_[i].value));
+    result->Set(Nan::New(info_[i].field).ToLocalChecked(), Nan::New<Number>(info_[i].value));
   }
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  v8::Local<v8::Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Hypervisor::GetNodeCellsFreeMemory)
 {
-  if (args.Length() < 3 ||
-      (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsFunction())) {
-    NanThrowTypeError("signature is startCell, maxCells, callback");
-    NanReturnUndefined();
+  if (info.Length() < 3 ||
+      (!info[0]->IsNumber() && !info[1]->IsNumber() && !info[2]->IsFunction())) {
+    Nan::ThrowTypeError("signature is startCell, maxCells, callback");
+    return;
   }
 
-  int startCell = args[0]->IntegerValue();
-  int maxCells = args[1]->IntegerValue();
+  int startCell = info[0]->IntegerValue();
+  int maxCells = info[1]->IntegerValue();
   if ((startCell < 0) || (maxCells <= 0) || (startCell + maxCells > 10000)) {
-    NanThrowTypeError("invalid cell bounds");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("invalid cell bounds");
+    return;
   }
 
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  NanAsyncQueueWorker(new GetNodeCellsFreeMemoryWorker(callback, hypervisor->handle_, startCell, maxCells));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Nan::AsyncQueueWorker(new GetNodeCellsFreeMemoryWorker(callback, hypervisor->handle_, startCell, maxCells));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)

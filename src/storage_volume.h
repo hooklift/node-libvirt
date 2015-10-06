@@ -25,8 +25,8 @@ public:
 
 private:
   explicit StorageVolume(virStorageVolPtr handle);
-  static Persistent<FunctionTemplate> constructor_template;
-  static Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
+  static Nan::Persistent<Function> constructor;
   friend class StoragePool;
   friend class Hypervisor;
 
@@ -62,7 +62,7 @@ private:
 
   class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr> {
   public:
-    CloneWorker(NanCallback *callback, StoragePool *parent, const std::string &value, virStorageVolPtr cloneHandle)
+    CloneWorker(Nan::Callback *callback, StoragePool *parent, const std::string &value, virStorageVolPtr cloneHandle)
       : NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr>(callback, parent, value), cloneHandle_(cloneHandle) {}
     void Execute();
   private:
@@ -74,10 +74,10 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(Delete, virStorageVolPtr, bool);
 
   // ACCESSOR/MUTATOR WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetKey, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetPath, virStorageVolPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virStorageVolPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetKey, virStorageVolPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetName, virStorageVolPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetPath, virStorageVolPtr, std::string);
+  NLV_STRING_RETURN_WORKER(ToXml, virStorageVolPtr, std::string);
   NLV_OBJECT_RETURN_WORKER(GetInfo, virStorageVolPtr, virStorageVolInfo);
 
 };

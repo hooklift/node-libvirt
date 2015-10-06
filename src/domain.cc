@@ -6,88 +6,88 @@
 
 namespace NLV {
 
-Persistent<FunctionTemplate> Domain::constructor_template;
-Persistent<Function> Domain::constructor;
+Nan::Persistent<FunctionTemplate> Domain::constructor_template;
+Nan::Persistent<Function> Domain::constructor;
 void Domain::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("Domain"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("Domain").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
   // ACTIONS
-  NODE_SET_PROTOTYPE_METHOD(t, "destroy",                 Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "start",                   Start);
-  NODE_SET_PROTOTYPE_METHOD(t, "reboot",                  Reboot);
-  NODE_SET_PROTOTYPE_METHOD(t, "shutdown",                Shutdown);
-  NODE_SET_PROTOTYPE_METHOD(t, "reset",                   Reset);
-  NODE_SET_PROTOTYPE_METHOD(t, "resume",                  Resume);
-  NODE_SET_PROTOTYPE_METHOD(t, "suspend",                 Suspend);
-  NODE_SET_PROTOTYPE_METHOD(t, "save",                    Save);
-  NODE_SET_PROTOTYPE_METHOD(t, "managedSave",             ManagedSave);
-  NODE_SET_PROTOTYPE_METHOD(t, "managedSaveRemove",       ManagedSaveRemove);
-  NODE_SET_PROTOTYPE_METHOD(t, "abortCurrentJob",         AbortCurrentJob);
-  NODE_SET_PROTOTYPE_METHOD(t, "coreDump",                CoreDump);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine",                Undefine);
+  Nan::SetPrototypeMethod(t, "destroy",                 Destroy);
+  Nan::SetPrototypeMethod(t, "start",                   Start);
+  Nan::SetPrototypeMethod(t, "reboot",                  Reboot);
+  Nan::SetPrototypeMethod(t, "shutdown",                Shutdown);
+  Nan::SetPrototypeMethod(t, "reset",                   Reset);
+  Nan::SetPrototypeMethod(t, "resume",                  Resume);
+  Nan::SetPrototypeMethod(t, "suspend",                 Suspend);
+  Nan::SetPrototypeMethod(t, "save",                    Save);
+  Nan::SetPrototypeMethod(t, "managedSave",             ManagedSave);
+  Nan::SetPrototypeMethod(t, "managedSaveRemove",       ManagedSaveRemove);
+  Nan::SetPrototypeMethod(t, "abortCurrentJob",         AbortCurrentJob);
+  Nan::SetPrototypeMethod(t, "coreDump",                CoreDump);
+  Nan::SetPrototypeMethod(t, "undefine",                Undefine);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "attachDevice",            AttachDevice);
-  NODE_SET_PROTOTYPE_METHOD(t, "detachDevice",            DetachDevice);
-  NODE_SET_PROTOTYPE_METHOD(t, "updateDevice",            UpdateDevice);
-  NODE_SET_PROTOTYPE_METHOD(t, "sendKeys",                SendKeys);
+  Nan::SetPrototypeMethod(t, "attachDevice",            AttachDevice);
+  Nan::SetPrototypeMethod(t, "detachDevice",            DetachDevice);
+  Nan::SetPrototypeMethod(t, "updateDevice",            UpdateDevice);
+  Nan::SetPrototypeMethod(t, "sendKeys",                SendKeys);
 
   // UNFINISHED SYNC ACTIONS
-  NODE_SET_PROTOTYPE_METHOD(t, "memoryPeek",              MemoryPeek);
-  NODE_SET_PROTOTYPE_METHOD(t, "blockPeek",               BlockPeek);
-  NODE_SET_PROTOTYPE_METHOD(t, "migrate",                 Migrate);
-  NODE_SET_PROTOTYPE_METHOD(t, "pinVcpu",                 PinVcpu);
+  Nan::SetPrototypeMethod(t, "memoryPeek",              MemoryPeek);
+  Nan::SetPrototypeMethod(t, "blockPeek",               BlockPeek);
+  Nan::SetPrototypeMethod(t, "migrate",                 Migrate);
+  Nan::SetPrototypeMethod(t, "pinVcpu",                 PinVcpu);
 
   // ACCESSORS/MUTATORS
-  NODE_SET_PROTOTYPE_METHOD(t, "getName",                 GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getInfo",                 GetInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getId",                   GetId);
-  NODE_SET_PROTOTYPE_METHOD(t, "getOSType",               GetOSType);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID",                 GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "getAutostart",            GetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "setAutostart",            SetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMaxMemory",            GetMaxMemory);
-  NODE_SET_PROTOTYPE_METHOD(t, "setMaxMemory",            SetMaxMemory);
-  NODE_SET_PROTOTYPE_METHOD(t, "setMemory",               SetMemory);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMaxVcpus",             GetMaxVcpus);
-  NODE_SET_PROTOTYPE_METHOD(t, "isActive",                IsActive);
-  NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",            IsPersistent);
-  NODE_SET_PROTOTYPE_METHOD(t, "isUpdated",               IsUpdated);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",                   ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMetadata",             GetMetadata);
-  NODE_SET_PROTOTYPE_METHOD(t, "setMetadata",             SetMetadata);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBlockInfo",            GetBlockInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBlockStats",           GetBlockStats);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSchedulerType",        GetSchedulerType);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSchedulerParameters",  GetSchedulerParameters);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSecurityLabel",        GetSecurityLabel);
-  NODE_SET_PROTOTYPE_METHOD(t, "hasManagedSaveImage",     HasManagedSaveImage);
-  NODE_SET_PROTOTYPE_METHOD(t, "getInterfaceStats",       GetInterfaceStats);
-  NODE_SET_PROTOTYPE_METHOD(t, "getJobInfo",              GetJobInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMemoryStats",          GetMemoryStats);
-  NODE_SET_PROTOTYPE_METHOD(t, "getVcpus",                GetVcpus);
-  NODE_SET_PROTOTYPE_METHOD(t, "setVcpus",                SetVcpus);
+  Nan::SetPrototypeMethod(t, "getName",                 GetName);
+  Nan::SetPrototypeMethod(t, "getInfo",                 GetInfo);
+  Nan::SetPrototypeMethod(t, "getId",                   GetId);
+  Nan::SetPrototypeMethod(t, "getOSType",               GetOSType);
+  Nan::SetPrototypeMethod(t, "getUUID",                 GetUUID);
+  Nan::SetPrototypeMethod(t, "getAutostart",            GetAutostart);
+  Nan::SetPrototypeMethod(t, "setAutostart",            SetAutostart);
+  Nan::SetPrototypeMethod(t, "getMaxMemory",            GetMaxMemory);
+  Nan::SetPrototypeMethod(t, "setMaxMemory",            SetMaxMemory);
+  Nan::SetPrototypeMethod(t, "setMemory",               SetMemory);
+  Nan::SetPrototypeMethod(t, "getMaxVcpus",             GetMaxVcpus);
+  Nan::SetPrototypeMethod(t, "isActive",                IsActive);
+  Nan::SetPrototypeMethod(t, "isPersistent",            IsPersistent);
+  Nan::SetPrototypeMethod(t, "isUpdated",               IsUpdated);
+  Nan::SetPrototypeMethod(t, "toXml",                   ToXml);
+  Nan::SetPrototypeMethod(t, "getMetadata",             GetMetadata);
+  Nan::SetPrototypeMethod(t, "setMetadata",             SetMetadata);
+  Nan::SetPrototypeMethod(t, "getBlockInfo",            GetBlockInfo);
+  Nan::SetPrototypeMethod(t, "getBlockStats",           GetBlockStats);
+  Nan::SetPrototypeMethod(t, "getSchedulerType",        GetSchedulerType);
+  Nan::SetPrototypeMethod(t, "getSchedulerParameters",  GetSchedulerParameters);
+  Nan::SetPrototypeMethod(t, "getSecurityLabel",        GetSecurityLabel);
+  Nan::SetPrototypeMethod(t, "hasManagedSaveImage",     HasManagedSaveImage);
+  Nan::SetPrototypeMethod(t, "getInterfaceStats",       GetInterfaceStats);
+  Nan::SetPrototypeMethod(t, "getJobInfo",              GetJobInfo);
+  Nan::SetPrototypeMethod(t, "getMemoryStats",          GetMemoryStats);
+  Nan::SetPrototypeMethod(t, "getVcpus",                GetVcpus);
+  Nan::SetPrototypeMethod(t, "setVcpus",                SetVcpus);
 
   // UNFINISHED SYNC ACCESSORS/MUTATORS
-  NODE_SET_PROTOTYPE_METHOD(t, "setSchedulerParameters",  SetSchedulerParameters);
-  NODE_SET_PROTOTYPE_METHOD(t, "setMigrationMaxDowntime", SetMigrationMaxDowntime);
-  NODE_SET_PROTOTYPE_METHOD(t, "hasCurrentSnapshot",      HasCurrentSnapshot);
-  NODE_SET_PROTOTYPE_METHOD(t, "revertToSnapshot",        RevertToSnapshot);
-  NODE_SET_PROTOTYPE_METHOD(t, "takeSnapshot",            TakeSnapshot);
-  NODE_SET_PROTOTYPE_METHOD(t, "getCurrentSnapshot",      GetCurrentSnapshot);
-  NODE_SET_PROTOTYPE_METHOD(t, "deleteSnapshot",          DeleteSnapshot);
-  NODE_SET_PROTOTYPE_METHOD(t, "lookupSnapshotByName",    LookupSnapshotByName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getSnapshots",            GetSnapshots);
+  Nan::SetPrototypeMethod(t, "setSchedulerParameters",  SetSchedulerParameters);
+  Nan::SetPrototypeMethod(t, "setMigrationMaxDowntime", SetMigrationMaxDowntime);
+  Nan::SetPrototypeMethod(t, "hasCurrentSnapshot",      HasCurrentSnapshot);
+  Nan::SetPrototypeMethod(t, "revertToSnapshot",        RevertToSnapshot);
+  Nan::SetPrototypeMethod(t, "takeSnapshot",            TakeSnapshot);
+  Nan::SetPrototypeMethod(t, "getCurrentSnapshot",      GetCurrentSnapshot);
+  Nan::SetPrototypeMethod(t, "deleteSnapshot",          DeleteSnapshot);
+  Nan::SetPrototypeMethod(t, "lookupSnapshotByName",    LookupSnapshotByName);
+  Nan::SetPrototypeMethod(t, "getSnapshots",            GetSnapshots);
 
   // Events
-  NODE_SET_PROTOTYPE_METHOD(t, "registerEvent",           RegisterEvent);
-  NODE_SET_PROTOTYPE_METHOD(t, "unregisterEvent",         UnregisterEvent);
+  Nan::SetPrototypeMethod(t, "registerEvent",           RegisterEvent);
+  Nan::SetPrototypeMethod(t, "unregisterEvent",         UnregisterEvent);
 
-  NanAssignPersistent(constructor_template, t);
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("Domain"), t->GetFunction());
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
+  exports->Set(Nan::New("Domain").ToLocalChecked(), t->GetFunction());
 
   //Constants initialization
   //virDomainState
@@ -206,78 +206,78 @@ void Domain::Initialize(Handle<Object> exports)
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
 Local<Object> Domain::NewInstance(virDomainPtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   Domain *domain = new Domain(handle);
   domain->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByName, virDomainLookupByName)
 NAN_METHOD(Domain::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid domain name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid domain name and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
-  NanReturnUndefined();
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByUUID, virDomainLookupByUUIDString)
 NAN_METHOD(Domain::LookupByUUID)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid domain uuid and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid domain uuid and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string uuid(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
-  NanReturnUndefined();
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
+  return;
 }
 
 NAN_METHOD(Domain::LookupById)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsInt32() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid domain id and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsInt32() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid domain id and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  int id = args[0]->IntegerValue();
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByIdWorker(callback, hv, id));
-  NanReturnUndefined();
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  int id = info[0]->IntegerValue();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByIdWorker(callback, hv, id));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, LookupById)
@@ -315,18 +315,18 @@ NLV_WORKER_EXECUTE(Domain, Define)
 
 NAN_METHOD(Domain::Save)
 {
-  NanScope();
-  if (args.Length() != 2 &&
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a path and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() != 2 &&
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a path and callback");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new SaveWorker(callback, domain->handle_, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new SaveWorker(callback, domain->handle_, path));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, Save)
@@ -343,24 +343,24 @@ NLV_WORKER_EXECUTE(Domain, Save)
 
 NAN_METHOD(Domain::Restore)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a path and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a path and callback");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  NanAsyncQueueWorker(new RestoreWorker(callback, hv->handle_, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
+  Nan::AsyncQueueWorker(new RestoreWorker(callback, hv->handle_, path));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, Restore)
@@ -377,18 +377,18 @@ NLV_WORKER_EXECUTE(Domain, Restore)
 
 NAN_METHOD(Domain::CoreDump)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a path and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a path and callback");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new CoreDumpWorker(callback, domain->handle_, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new CoreDumpWorker(callback, domain->handle_, path));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, CoreDump)
@@ -690,18 +690,18 @@ NLV_WORKER_EXECUTE(Domain, HasManagedSaveImage)
 
 NAN_METHOD(Domain::SetAutostart)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a bool and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a bool and callback");
+    return;
   }
 
-  bool autoStart = args[0]->IsTrue();
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new SetAutostartWorker(callback, domain->handle_, autoStart));
-  NanReturnUndefined();
+  bool autoStart = info[0]->IsTrue();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, domain->handle_, autoStart));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SetAutostart)
@@ -718,19 +718,19 @@ NLV_WORKER_EXECUTE(Domain, SetAutostart)
 
 NAN_METHOD(Domain::SetMaxMemory)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsNumber() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a bool and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsNumber() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a bool and callback");
+    return;
   }
 
-  unsigned long maxMemory = static_cast<unsigned long>(args[0]->NumberValue());
+  unsigned long maxMemory = static_cast<unsigned long>(info[0]->NumberValue());
   // @todo this unsafe, also needs bounds checking!
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new SetMaxMemoryWorker(callback, domain->handle_, maxMemory));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new SetMaxMemoryWorker(callback, domain->handle_, maxMemory));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SetMaxMemory)
@@ -747,19 +747,19 @@ NLV_WORKER_EXECUTE(Domain, SetMaxMemory)
 
 NAN_METHOD(Domain::SetMemory)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsNumber() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a bool and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsNumber() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a bool and callback");
+    return;
   }
 
-  unsigned long memory = static_cast<unsigned long>(args[0]->NumberValue());
+  unsigned long memory = static_cast<unsigned long>(info[0]->NumberValue());
   // @todo this unsafe, also needs bounds checking!
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new SetMemoryWorker(callback, domain->handle_, memory));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new SetMemoryWorker(callback, domain->handle_, memory));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SetMemory)
@@ -776,22 +776,22 @@ NLV_WORKER_EXECUTE(Domain, SetMemory)
 
 NAN_METHOD(Domain::ToXml)
 {
-  NanScope();
+  Nan::HandleScope scope;
   unsigned int flags = 0;
-  NanCallback *callback;
-  if (args.Length() > 1 && args[1]->IsFunction())
+  Nan::Callback *callback;
+  if (info.Length() > 1 && info[1]->IsFunction())
   {
-    callback = new NanCallback(args[1].As<Function>());
-    flags = args[0]->IntegerValue();
-  } else if (args.Length() == 1 && args[0]->IsFunction()) {
-    callback = new NanCallback(args[0].As<Function>());
+    callback = new Nan::Callback(info[1].As<Function>());
+    flags = info[0]->IntegerValue();
+  } else if (info.Length() == 1 && info[0]->IsFunction()) {
+    callback = new Nan::Callback(info[0].As<Function>());
   } else {
-    NanThrowTypeError("signature is callback or flags, callback");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("signature is callback or flags, callback");
+    return;
   }
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new ToXmlWorker(callback, domain->handle_, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new ToXmlWorker(callback, domain->handle_, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, ToXml)
@@ -809,34 +809,34 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
 
 NAN_METHOD(Domain::GetMetadata)
 {
-  NanScope();
+  Nan::HandleScope scope;
 #ifndef _HAVE_DOMAIN_METADATA_API
-  NanThrowTypeError("metadata api not supported in this libvirt version");
-  NanReturnUndefined();
+  Nan::ThrowTypeError("metadata api not supported in this libvirt version");
+  return;
 #else
   int type;
   std::string namespace_uri;
   unsigned int flags;
-  NanCallback *callback;
-  if (args.Length() == 4
-	  && args[0]->IsNumber()
-	  && (args[1]->IsString() || args[1]->IsNull())
-	  && args[2]->IsNumber()
-	  && args[3]->IsFunction())
+  Nan::Callback *callback;
+  if (info.Length() == 4
+	  && info[0]->IsNumber()
+	  && (info[1]->IsString() || info[1]->IsNull())
+	  && info[2]->IsNumber()
+	  && info[3]->IsFunction())
   {
-    type = args[0]->IntegerValue();
-    if (!args[1]->IsNull()) {
-	namespace_uri = *NanUtf8String(args[1]->ToString());
+    type = info[0]->IntegerValue();
+    if (!info[1]->IsNull()) {
+	namespace_uri = *Nan::Utf8String(info[1]->ToString());
     }
-    flags = args[2]->IntegerValue();
-    callback = new NanCallback(args[3].As<Function>());
+    flags = info[2]->IntegerValue();
+    callback = new Nan::Callback(info[3].As<Function>());
   } else {
-    NanThrowTypeError("signature is type, namespace_uri, flags, callback");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("signature is type, namespace_uri, flags, callback");
+    return;
   }
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new GetMetadataWorker(callback, domain->handle_, type, namespace_uri, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new GetMetadataWorker(callback, domain->handle_, type, namespace_uri, flags));
+  return;
 #endif
 }
 
@@ -859,10 +859,10 @@ NLV_WORKER_EXECUTE(Domain, GetMetadata)
 
 NAN_METHOD(Domain::SetMetadata)
 {
-  NanScope();
+  Nan::HandleScope scope;
 #ifndef _HAVE_DOMAIN_METADATA_API
-  NanThrowTypeError("metadata api not supported in this libvirt version");
-  NanReturnUndefined();
+  Nan::ThrowTypeError("metadata api not supported in this libvirt version");
+  return;
 #else
   int type;
   bool null_metadata;
@@ -870,35 +870,35 @@ NAN_METHOD(Domain::SetMetadata)
   std::string namespace_key;
   std::string namespace_uri;
   unsigned int flags;
-  NanCallback *callback;
-  if (args.Length() == 6
-	  && args[0]->IsNumber()
-	  && (args[1]->IsString() || args[1]->IsNull())
-	  && (args[2]->IsString() || args[2]->IsNull())
-	  && (args[3]->IsString() || args[3]->IsNull())
-	  && args[4]->IsNumber()
-	  && args[5]->IsFunction())
+  Nan::Callback *callback;
+  if (info.Length() == 6
+	  && info[0]->IsNumber()
+	  && (info[1]->IsString() || info[1]->IsNull())
+	  && (info[2]->IsString() || info[2]->IsNull())
+	  && (info[3]->IsString() || info[3]->IsNull())
+	  && info[4]->IsNumber()
+	  && info[5]->IsFunction())
   {
-    type = args[0]->IntegerValue();
-    if (args[1]->IsNull()) {
+    type = info[0]->IntegerValue();
+    if (info[1]->IsNull()) {
 	null_metadata = true;
     } else {
 	null_metadata = false;
-	metadata = *NanUtf8String(args[1]->ToString());
+	metadata = *Nan::Utf8String(info[1]->ToString());
     }
-    if (!args[2]->IsNull())
-	namespace_key = *NanUtf8String(args[2]->ToString());
-    if (!args[3]->IsNull())
-	namespace_uri = *NanUtf8String(args[3]->ToString());
-    flags = args[4]->IntegerValue();
-    callback = new NanCallback(args[5].As<Function>());
+    if (!info[2]->IsNull())
+	namespace_key = *Nan::Utf8String(info[2]->ToString());
+    if (!info[3]->IsNull())
+	namespace_uri = *Nan::Utf8String(info[3]->ToString());
+    flags = info[4]->IntegerValue();
+    callback = new Nan::Callback(info[5].As<Function>());
   } else {
-    NanThrowTypeError("signature is type, metadata, namespace_key, namespace_uri, flags, callback");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("signature is type, metadata, namespace_key, namespace_uri, flags, callback");
+    return;
   }
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new SetMetadataWorker(callback, domain->handle_, type, null_metadata, metadata, namespace_key, namespace_uri, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new SetMetadataWorker(callback, domain->handle_, type, null_metadata, metadata, namespace_key, namespace_uri, flags));
+  return;
 #endif
 }
 
@@ -934,32 +934,32 @@ NLV_WORKER_EXECUTE(Domain, GetInfo)
 
 NLV_WORKER_OKCALLBACK(Domain, GetInfo)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("state"), NanNew<Integer>(info_.state));
-  result->Set(NanNew("maxMemory"), NanNew<Number>(info_.maxMem));
-  result->Set(NanNew("memory"), NanNew<Number>(info_.memory));
-  result->Set(NanNew("vcpus"), NanNew<Integer>(info_.nrVirtCpu));
-  result->Set(NanNew("cpuTime"), NanNew<Number>(info_.cpuTime));
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(info_.state));
+  result->Set(Nan::New("maxMemory").ToLocalChecked(), Nan::New<Number>(info_.maxMem));
+  result->Set(Nan::New("memory").ToLocalChecked(), Nan::New<Number>(info_.memory));
+  result->Set(Nan::New("vcpus").ToLocalChecked(), Nan::New<Integer>(info_.nrVirtCpu));
+  result->Set(Nan::New("cpuTime").ToLocalChecked(), Nan::New<Number>(info_.cpuTime));
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::GetBlockInfo)
 {
-  NanScope();
-  if (args.Length() != 2 &&
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a path and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() != 2 &&
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a path and callback");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new GetBlockInfoWorker(callback, domain->handle_, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new GetBlockInfoWorker(callback, domain->handle_, path));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, GetBlockInfo)
@@ -975,30 +975,30 @@ NLV_WORKER_EXECUTE(Domain, GetBlockInfo)
 
 NLV_WORKER_OKCALLBACK(Domain, GetBlockInfo)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("capacity"), NanNew<Number>(info_.capacity));
-  result->Set(NanNew("allocation"), NanNew<Number>(info_.allocation));
-  result->Set(NanNew("physical"), NanNew<Number>(info_.physical));
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("capacity").ToLocalChecked(), Nan::New<Number>(info_.capacity));
+  result->Set(Nan::New("allocation").ToLocalChecked(), Nan::New<Number>(info_.allocation));
+  result->Set(Nan::New("physical").ToLocalChecked(), Nan::New<Number>(info_.physical));
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::GetBlockStats)
 {
-  NanScope();
-  if (args.Length() != 2 &&
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a path and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() != 2 &&
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a path and callback");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new GetBlockStatsWorker(callback, domain->handle_, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new GetBlockStatsWorker(callback, domain->handle_, path));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, GetBlockStats)
@@ -1014,15 +1014,15 @@ NLV_WORKER_EXECUTE(Domain, GetBlockStats)
 
 NLV_WORKER_OKCALLBACK(Domain, GetBlockStats)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("readRequests"), NanNew<Number>(stats_.rd_req));
-  result->Set(NanNew("readBytes"), NanNew<Number>(stats_.rd_bytes));
-  result->Set(NanNew("writeRequests"), NanNew<Number>(stats_.wr_req));
-  result->Set(NanNew("writeBytes"), NanNew<Number>(stats_.wr_bytes));
-  result->Set(NanNew("errors"), NanNew<Number>(stats_.errs));
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("readRequests").ToLocalChecked(), Nan::New<Number>(stats_.rd_req));
+  result->Set(Nan::New("readBytes").ToLocalChecked(), Nan::New<Number>(stats_.rd_bytes));
+  result->Set(Nan::New("writeRequests").ToLocalChecked(), Nan::New<Number>(stats_.wr_req));
+  result->Set(Nan::New("writeBytes").ToLocalChecked(), Nan::New<Number>(stats_.wr_bytes));
+  result->Set(Nan::New("errors").ToLocalChecked(), Nan::New<Number>(stats_.errs));
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
@@ -1074,29 +1074,29 @@ NLV_WORKER_EXECUTE(Domain, GetSecurityLabel)
 
 NLV_WORKER_OKCALLBACK(Domain, GetSecurityLabel)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("label"), NanNew<String>(info_.label));
-  result->Set(NanNew("enforcing"), NanNew<Boolean>(info_.enforcing));
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("label").ToLocalChecked(), Nan::New<String>(info_.label).ToLocalChecked());
+  result->Set(Nan::New("enforcing").ToLocalChecked(), Nan::New<Boolean>(info_.enforcing));
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::GetInterfaceStats)
 {
-  NanScope();
-  if (args.Length() != 2 &&
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a device and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() != 2 &&
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a device and callback");
+    return;
   }
 
-  std::string interface(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new GetInterfaceStatsWorker(callback, domain->handle_, interface));
-  NanReturnUndefined();
+  std::string interface(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new GetInterfaceStatsWorker(callback, domain->handle_, interface));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, GetInterfaceStats)
@@ -1112,24 +1112,24 @@ NLV_WORKER_EXECUTE(Domain, GetInterfaceStats)
 
 NLV_WORKER_OKCALLBACK(Domain, GetInterfaceStats)
 {
-  NanScope();
-  Local<Object> rx = NanNew<Object>();
-  rx->Set(NanNew("bytes"), NanNew<Number>(stats_.rx_bytes));
-  rx->Set(NanNew("packets"), NanNew<Number>(stats_.rx_packets));
-  rx->Set(NanNew("errors"), NanNew<Number>(stats_.rx_errs));
-  rx->Set(NanNew("drop"), NanNew<Number>(stats_.rx_drop));
+  Nan::HandleScope scope;
+  Local<Object> rx = Nan::New<Object>();
+  rx->Set(Nan::New("bytes").ToLocalChecked(), Nan::New<Number>(stats_.rx_bytes));
+  rx->Set(Nan::New("packets").ToLocalChecked(), Nan::New<Number>(stats_.rx_packets));
+  rx->Set(Nan::New("errors").ToLocalChecked(), Nan::New<Number>(stats_.rx_errs));
+  rx->Set(Nan::New("drop").ToLocalChecked(), Nan::New<Number>(stats_.rx_drop));
 
-  Local<Object> tx = NanNew<Object>();
-  tx->Set(NanNew("bytes"), NanNew<Number>(stats_.tx_bytes));
-  tx->Set(NanNew("packets"), NanNew<Number>(stats_.tx_packets));
-  tx->Set(NanNew("errors"), NanNew<Number>(stats_.tx_errs));
-  tx->Set(NanNew("drop"), NanNew<Number>(stats_.tx_drop));
+  Local<Object> tx = Nan::New<Object>();
+  tx->Set(Nan::New("bytes").ToLocalChecked(), Nan::New<Number>(stats_.tx_bytes));
+  tx->Set(Nan::New("packets").ToLocalChecked(), Nan::New<Number>(stats_.tx_packets));
+  tx->Set(Nan::New("errors").ToLocalChecked(), Nan::New<Number>(stats_.tx_errs));
+  tx->Set(Nan::New("drop").ToLocalChecked(), Nan::New<Number>(stats_.tx_drop));
 
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("rx"), rx);
-  result->Set(NanNew("tx"), tx);
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("rx").ToLocalChecked(), rx);
+  result->Set(Nan::New("tx").ToLocalChecked(), tx);
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
@@ -1146,34 +1146,34 @@ NLV_WORKER_EXECUTE(Domain, GetJobInfo)
 
 NLV_WORKER_OKCALLBACK(Domain, GetJobInfo)
 {
-  NanScope();
-  Local<Object> time = NanNew<Object>();
-  time->Set(NanNew("elapsed"), NanNew<Number>(info_.timeElapsed));
-  time->Set(NanNew("remaining"), NanNew<Number>(info_.timeRemaining));
+  Nan::HandleScope scope;
+  Local<Object> time = Nan::New<Object>();
+  time->Set(Nan::New("elapsed").ToLocalChecked(), Nan::New<Number>(info_.timeElapsed));
+  time->Set(Nan::New("remaining").ToLocalChecked(), Nan::New<Number>(info_.timeRemaining));
 
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("total"), NanNew<Number>(info_.dataTotal));
-  data->Set(NanNew("processed"), NanNew<Number>(info_.dataProcessed));
-  data->Set(NanNew("remaining"), NanNew<Number>(info_.dataRemaining));
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("total").ToLocalChecked(), Nan::New<Number>(info_.dataTotal));
+  data->Set(Nan::New("processed").ToLocalChecked(), Nan::New<Number>(info_.dataProcessed));
+  data->Set(Nan::New("remaining").ToLocalChecked(), Nan::New<Number>(info_.dataRemaining));
 
-  Local<Object> memory = NanNew<Object>();
-  memory->Set(NanNew("total"), NanNew<Number>(info_.memTotal));
-  memory->Set(NanNew("processed"), NanNew<Number>(info_.memProcessed));
-  memory->Set(NanNew("remaining"), NanNew<Number>(info_.memRemaining));
+  Local<Object> memory = Nan::New<Object>();
+  memory->Set(Nan::New("total").ToLocalChecked(), Nan::New<Number>(info_.memTotal));
+  memory->Set(Nan::New("processed").ToLocalChecked(), Nan::New<Number>(info_.memProcessed));
+  memory->Set(Nan::New("remaining").ToLocalChecked(), Nan::New<Number>(info_.memRemaining));
 
-  Local<Object> file = NanNew<Object>();
-  file->Set(NanNew("total"), NanNew<Number>(info_.fileTotal));
-  file->Set(NanNew("processed"), NanNew<Number>(info_.fileProcessed));
-  file->Set(NanNew("remaining"), NanNew<Number>(info_.fileRemaining));
+  Local<Object> file = Nan::New<Object>();
+  file->Set(Nan::New("total").ToLocalChecked(), Nan::New<Number>(info_.fileTotal));
+  file->Set(Nan::New("processed").ToLocalChecked(), Nan::New<Number>(info_.fileProcessed));
+  file->Set(Nan::New("remaining").ToLocalChecked(), Nan::New<Number>(info_.fileRemaining));
 
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("type"), NanNew<Integer>(info_.type));
-  result->Set(NanNew("time"), time);
-  result->Set(NanNew("data"), data);
-  result->Set(NanNew("memory"), memory);
-  result->Set(NanNew("file"), file);
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>(info_.type));
+  result->Set(Nan::New("time").ToLocalChecked(), time);
+  result->Set(Nan::New("data").ToLocalChecked(), data);
+  result->Set(Nan::New("memory").ToLocalChecked(), memory);
+  result->Set(Nan::New("file").ToLocalChecked(), file);
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
@@ -1205,61 +1205,61 @@ NLV_WORKER_EXECUTE(Domain, GetMemoryStats)
 
 NLV_WORKER_OKCALLBACK(Domain, GetMemoryStats)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
   for(unsigned int i = 0; i < stats_.size(); ++i) {
     switch (stats_[i].tag) {
     case VIR_DOMAIN_MEMORY_STAT_SWAP_IN:
-      result->Set(NanNew("swapIn"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("swapIn").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     case VIR_DOMAIN_MEMORY_STAT_SWAP_OUT:
-      result->Set(NanNew("swapOut"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("swapOut").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     case VIR_DOMAIN_MEMORY_STAT_MAJOR_FAULT:
-      result->Set(NanNew("majorFault"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("majorFault").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     case VIR_DOMAIN_MEMORY_STAT_MINOR_FAULT:
-      result->Set(NanNew("minorFault"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("minorFault").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     case VIR_DOMAIN_MEMORY_STAT_UNUSED:
-      result->Set(NanNew("unused"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("unused").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     case VIR_DOMAIN_MEMORY_STAT_AVAILABLE:
-      result->Set(NanNew("available"), NanNew<Number>(stats_[i].val));
+      result->Set(Nan::New("available").ToLocalChecked(), Nan::New<Number>(stats_[i].val));
       break;
     }
   }
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::AttachDevice)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (args.Length() == 2 && (!args[0]->IsString() && !args[1]->IsFunction())) ||
-      (args.Length() == 3 && (!args[0]->IsString() && !args[1]->IsArray() && !args[2]->IsFunction()))) {
-    NanThrowTypeError("you must at least specify xml and a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (info.Length() == 2 && (!info[0]->IsString() && !info[1]->IsFunction())) ||
+      (info.Length() == 3 && (!info[0]->IsString() && !info[1]->IsArray() && !info[2]->IsFunction()))) {
+    Nan::ThrowTypeError("you must at least specify xml and a callback");
+    return;
   }
 
-  NanCallback *callback;
-  std::string xml(*NanUtf8String(args[0]->ToString()));
+  Nan::Callback *callback;
+  std::string xml(*Nan::Utf8String(info[0]->ToString()));
   unsigned long flags = 0;
 
-  if (args[1]->IsArray()) {
-    Local<Array> flagsArray = args[1].As<Array>();
+  if (info[1]->IsArray()) {
+    Local<Array> flagsArray = info[1].As<Array>();
     for (unsigned int i = 0; i < flagsArray->Length(); ++i)
-      flags |= flagsArray->Get(NanNew(i))->Int32Value();
-    callback = new NanCallback(args[2].As<Function>());
+      flags |= flagsArray->Get(Nan::New(i))->Int32Value();
+    callback = new Nan::Callback(info[2].As<Function>());
   } else {
-    callback = new NanCallback(args[1].As<Function>());
+    callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new AttachDeviceWorker(callback, domain->handle_, xml, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new AttachDeviceWorker(callback, domain->handle_, xml, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, AttachDevice)
@@ -1282,30 +1282,30 @@ NLV_WORKER_EXECUTE(Domain, AttachDevice)
 
 NAN_METHOD(Domain::DetachDevice)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (args.Length() == 2 && (!args[0]->IsString() && !args[1]->IsFunction())) ||
-      (args.Length() == 3 && (!args[0]->IsString() && !args[1]->IsArray() && !args[2]->IsFunction()))) {
-    NanThrowTypeError("you must at least specify xml and a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (info.Length() == 2 && (!info[0]->IsString() && !info[1]->IsFunction())) ||
+      (info.Length() == 3 && (!info[0]->IsString() && !info[1]->IsArray() && !info[2]->IsFunction()))) {
+    Nan::ThrowTypeError("you must at least specify xml and a callback");
+    return;
   }
 
-  NanCallback *callback;
-  std::string xml(*NanUtf8String(args[0]->ToString()));
+  Nan::Callback *callback;
+  std::string xml(*Nan::Utf8String(info[0]->ToString()));
   unsigned long flags = 0;
 
-  if (args[1]->IsArray()) {
-    Local<Array> flagsArray = args[1].As<Array>();
+  if (info[1]->IsArray()) {
+    Local<Array> flagsArray = info[1].As<Array>();
     for (unsigned int i = 0; i < flagsArray->Length(); ++i)
-      flags |= flagsArray->Get(NanNew(i))->Int32Value();
-    callback = new NanCallback(args[2].As<Function>());
+      flags |= flagsArray->Get(Nan::New(i))->Int32Value();
+    callback = new Nan::Callback(info[2].As<Function>());
   } else {
-    callback = new NanCallback(args[1].As<Function>());
+    callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new DetachDeviceWorker(callback, domain->handle_, xml, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new DetachDeviceWorker(callback, domain->handle_, xml, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, DetachDevice)
@@ -1328,30 +1328,30 @@ NLV_WORKER_EXECUTE(Domain, DetachDevice)
 
 NAN_METHOD(Domain::UpdateDevice)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (args.Length() == 2 && (!args[0]->IsString() && !args[1]->IsFunction())) ||
-      (args.Length() == 3 && (!args[0]->IsString() && !args[1]->IsArray() && !args[2]->IsFunction()))) {
-    NanThrowTypeError("you must at least specify xml and a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (info.Length() == 2 && (!info[0]->IsString() && !info[1]->IsFunction())) ||
+      (info.Length() == 3 && (!info[0]->IsString() && !info[1]->IsArray() && !info[2]->IsFunction()))) {
+    Nan::ThrowTypeError("you must at least specify xml and a callback");
+    return;
   }
 
-  NanCallback *callback;
-  std::string xml(*NanUtf8String(args[0]->ToString()));
+  Nan::Callback *callback;
+  std::string xml(*Nan::Utf8String(info[0]->ToString()));
   unsigned long flags = 0;
 
-  if (args[1]->IsArray()) {
-    Local<Array> flagsArray = args[1].As<Array>();
+  if (info[1]->IsArray()) {
+    Local<Array> flagsArray = info[1].As<Array>();
     for (unsigned int i = 0; i < flagsArray->Length(); ++i)
-      flags |= flagsArray->Get(NanNew(i))->Int32Value();
-    callback = new NanCallback(args[2].As<Function>());
+      flags |= flagsArray->Get(Nan::New(i))->Int32Value();
+    callback = new Nan::Callback(info[2].As<Function>());
   } else {
-    callback = new NanCallback(args[1].As<Function>());
+    callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanAsyncQueueWorker(new UpdateDeviceWorker(callback, domain->handle_, xml, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::AsyncQueueWorker(new UpdateDeviceWorker(callback, domain->handle_, xml, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, UpdateDevice)
@@ -1396,47 +1396,47 @@ NLV_WORKER_EXECUTE(Domain, GetVcpus)
 
 NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Local<Array> result = NanNew<Array>(info_.size());
+  Local<Array> result = Nan::New<Array>(info_.size());
   for (unsigned int i = 0; i < info_.size(); ++i) {
-    Local<Object> cpu = NanNew<Object>();
-    cpu->Set(NanNew("number"), NanNew<Integer>(info_[i].number));
-    cpu->Set(NanNew("state"), NanNew<Integer>(info_[i].state));
-    cpu->Set(NanNew("cpuTime"), NanNew<Number>(info_[i].cpuTime));
-    cpu->Set(NanNew("cpu"), NanNew<Integer>(info_[i].cpu));
+    Local<Object> cpu = Nan::New<Object>();
+    cpu->Set(Nan::New("number").ToLocalChecked(), Nan::New<Integer>(info_[i].number));
+    cpu->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(info_[i].state));
+    cpu->Set(Nan::New("cpuTime").ToLocalChecked(), Nan::New<Number>(info_[i].cpuTime));
+    cpu->Set(Nan::New("cpu").ToLocalChecked(), Nan::New<Integer>(info_[i].cpu));
 
     unsigned int maxCpus = VIR_NODEINFO_MAXCPUS(nodeInfo_);
-    Local<Array> affinity = NanNew<Array>(maxCpus);
+    Local<Array> affinity = Nan::New<Array>(maxCpus);
     for (unsigned int j = 0; j < maxCpus; ++j) {
-      Local<Object> realCpu = NanNew<Object>();
-      realCpu->Set(NanNew("cpu"), NanNew(j));
-      realCpu->Set(NanNew("usable"), NanNew<Boolean>(VIR_CPU_USABLE(map_, map_.size(), i, j)));
-      affinity->Set(NanNew(j), realCpu);
+      Local<Object> realCpu = Nan::New<Object>();
+      realCpu->Set(Nan::New("cpu").ToLocalChecked(), Nan::New(j));
+      realCpu->Set(Nan::New("usable").ToLocalChecked(), Nan::New<Boolean>(VIR_CPU_USABLE(map_, map_.size(), i, j)));
+      affinity->Set(Nan::New(j), realCpu);
     }
 
-    cpu->Set(NanNew("affinity"), affinity);
-    result->Set(NanNew(i), cpu);
+    cpu->Set(Nan::New("affinity").ToLocalChecked(), affinity);
+    result->Set(Nan::New(i), cpu);
   }
 
-  Local<Value> argv[] = { NanNull(), result };
+  Local<Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::SetVcpus)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsInt32() && !args[1]->IsFunction())) {
-    NanThrowTypeError("you must specify a count and a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsInt32() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify a count and a callback");
+    return;
   }
 
-  unsigned int count = args[0]->Int32Value();
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new SetVcpusWorker(callback, domain->handle_, count));
-  NanReturnUndefined();
+  unsigned int count = info[0]->Int32Value();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new SetVcpusWorker(callback, domain->handle_, count));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SetVcpus)
@@ -1453,24 +1453,24 @@ NLV_WORKER_EXECUTE(Domain, SetVcpus)
 
 NAN_METHOD(Domain::SendKeys)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsArray() && !args[1]->IsFunction())) {
-    NanThrowTypeError("you must specify an array of keycodes and a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsArray() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify an array of keycodes and a callback");
+    return;
   }
 
-  Local<Array> keyCodes = args[0].As<Array>();
+  Local<Array> keyCodes = info[0].As<Array>();
   std::vector<unsigned int> keys;
   for (unsigned int i = 0; i < keyCodes->Length(); ++i) {
-    keys.push_back((unsigned int) keyCodes->Get(NanNew(i))->Int32Value());
+    keys.push_back((unsigned int) keyCodes->Get(Nan::New(i))->Int32Value());
   }
 
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new SendKeysWorker(callback, domain->handle_, keys));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new SendKeysWorker(callback, domain->handle_, keys));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SendKeys)
@@ -1488,50 +1488,50 @@ NLV_WORKER_EXECUTE(Domain, SendKeys)
 
 NAN_METHOD(Domain::Migrate)
 {
-  NanScope();
+  Nan::HandleScope scope;
   unsigned long flags = 0;
   unsigned long bandwidth = 0;
 
-  if(args.Length() < 2 ||
-      (!args[0]->IsObject() && !args[1]->IsFunction())) {
-    NanThrowTypeError("you must specify an object and a callback");
-    NanReturnUndefined();
+  if(info.Length() < 2 ||
+      (!info[0]->IsObject() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify an object and a callback");
+    return;
   }
 
-  Local<Object> args_ = args[0]->ToObject();
+  Local<Object> info_ = info[0]->ToObject();
 
-  if(!args_->Has(NanNew("dest_uri"))) {
-    NanThrowTypeError("You must have set property dest_uri in the object");
-    NanReturnUndefined();
+  if(!info_->Has(Nan::New("dest_uri").ToLocalChecked())) {
+    Nan::ThrowTypeError("You must have set property dest_uri in the object");
+    return;
   }
 
-  std::string dest_uri(*NanUtf8String(args_->Get(NanNew("dest_uri"))));
-  std::string dest_name(*NanUtf8String(args_->Get(NanNew("dest_name"))));
+  std::string dest_uri(*Nan::Utf8String(info_->Get(Nan::New("dest_uri").ToLocalChecked())));
+  std::string dest_name(*Nan::Utf8String(info_->Get(Nan::New("dest_name").ToLocalChecked())));
 
-  if(args_->Has(NanNew("flags"))) {
-    Local<Array> flags_ = args_->Get(NanNew("flags")).As<Array>();
+  if(info_->Has(Nan::New("flags").ToLocalChecked())) {
+    Local<Array> flags_ = info_->Get(Nan::New("flags").ToLocalChecked()).As<Array>();
     unsigned int length = flags_->Length();
     for (unsigned int i = 0; i < length; i++)
-      flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
+      flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
   }
 
-  if(args_->Has(NanNew("bandwidth"))) {
-    bandwidth = args_->Get(NanNew("bandwidth"))->Int32Value();
+  if(info_->Has(Nan::New("bandwidth").ToLocalChecked())) {
+    bandwidth = info_->Get(Nan::New("bandwidth").ToLocalChecked())->Int32Value();
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
 
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   MigrateWorker *worker;
 
-  if(args_->Has(NanNew("dest_hypervisor"))) {
-    Local<Object> hyp_obj = args_->Get(NanNew("dest_hypervisor"))->ToObject();
-    if(!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
-      NanThrowTypeError("You must specify a Hypervisor object instance");
-      NanReturnUndefined();
+  if(info_->Has(Nan::New("dest_hypervisor").ToLocalChecked())) {
+    Local<Object> hyp_obj = info_->Get(Nan::New("dest_hypervisor").ToLocalChecked())->ToObject();
+    if(!Nan::New(Hypervisor::constructor_template)->HasInstance(hyp_obj)) {
+      Nan::ThrowTypeError("You must specify a Hypervisor object instance");
+      return;
     }
 
-    Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+    Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
     worker = new MigrateWorker(callback, domain->handle_, hypervisor->handle_);
   } else {
     worker = new MigrateWorker(callback, domain->handle_, dest_uri);
@@ -1540,8 +1540,8 @@ NAN_METHOD(Domain::Migrate)
   worker->setBandwidth(bandwidth);
   worker->setFlags(flags);
   worker->setDestname(dest_name);
-  NanAsyncQueueWorker(worker);
-  NanReturnUndefined();
+  Nan::AsyncQueueWorker(worker);
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, Migrate)
@@ -1565,11 +1565,11 @@ NLV_WORKER_EXECUTE(Domain, Migrate)
 
 NLV_WORKER_OKCALLBACK(Domain, Migrate)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
   if (migrated_ != NULL) {
     Local<Object> domain_obj = Domain::NewInstance(migrated_);
-    Local<Value> argv[] = { NanNull(), domain_obj };
+    Local<Value> argv[] = { Nan::Null(), domain_obj };
     callback->Call(2, argv);
   } else {
     callback->Call(0, NULL);
@@ -1577,35 +1577,35 @@ NLV_WORKER_OKCALLBACK(Domain, Migrate)
 }
 
 NAN_METHOD(Domain::PinVcpu) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(args.Length() < 3 ||
-      (!args[0]->IsInt32() && !args[1]->IsArray() && !args[2]->IsFunction())) {
-    NanThrowTypeError("you must specify an integer, an array and a callback");
-    NanReturnUndefined();
+  if(info.Length() < 3 ||
+      (!info[0]->IsInt32() && !info[1]->IsArray() && !info[2]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify an integer, an array and a callback");
+    return;
   }
 
   std::vector<bool> usables;
   std::vector<int> vcpus;
 
-  Local<Array> cpus = args[1].As<Array>();
+  Local<Array> cpus = info[1].As<Array>();
 
   for(int i = 0; i < (int)cpus->Length(); i++) {
-    if(!cpus->Get(NanNew<Integer>(i))->IsObject()) {
-      NanThrowTypeError("The second argument must be an array of objects");
-      NanReturnUndefined();
+    if(!cpus->Get(Nan::New<Integer>(i))->IsObject()) {
+      Nan::ThrowTypeError("The second argument must be an array of objects");
+      return;
     }
 
-    Local<Object> cpu = cpus->Get(NanNew<Integer>(i))->ToObject();
+    Local<Object> cpu = cpus->Get(Nan::New<Integer>(i))->ToObject();
 
-    usables.push_back(cpu->Get(NanNew("usable"))->IsTrue());
-    vcpus.push_back(cpu->Get(NanNew("cpu"))->Int32Value());
+    usables.push_back(cpu->Get(Nan::New("usable").ToLocalChecked())->IsTrue());
+    vcpus.push_back(cpu->Get(Nan::New("cpu").ToLocalChecked())->Int32Value());
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new PinVcpuWorker(callback, domain->handle_, args[0]->Int32Value(), usables, vcpus));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Nan::AsyncQueueWorker(new PinVcpuWorker(callback, domain->handle_, info[0]->Int32Value(), usables, vcpus));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, PinVcpu)
@@ -1644,29 +1644,29 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
 
 NAN_METHOD(Domain::MemoryPeek)
 {
-  NanScope();
+  Nan::HandleScope scope;
   unsigned int flags = 0;
   unsigned long long start = 0;
   size_t size = 0;
 
-  if(args.Length() != 4 ||
-      (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsArray() || !args[3]->IsFunction())) {
-    NanThrowTypeError("you must specify two integer, an array and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 4 ||
+      (!info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsArray() || !info[3]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify two integer, an array and a callback");
+    return;
   }
 
-  start = args[0]->NumberValue();
-  size = args[1]->NumberValue() * sizeof(char *);
+  start = info[0]->NumberValue();
+  size = info[1]->NumberValue() * sizeof(char *);
 
-  Local<Array> flags_ = Local<Array>::Cast(args[2]);
+  Local<Array> flags_ = Local<Array>::Cast(info[2]);
   unsigned int length = flags_->Length();
   for (unsigned int i = 0; i < length; i++)
-    flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
+    flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[3].As<Function>());
-  NanAsyncQueueWorker(new MemoryPeekWorker(callback, domain->handle_, start, size, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[3].As<Function>());
+  Nan::AsyncQueueWorker(new MemoryPeekWorker(callback, domain->handle_, start, size, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, MemoryPeek)
@@ -1677,38 +1677,38 @@ NLV_WORKER_EXECUTE(Domain, MemoryPeek)
 
 NLV_WORKER_OKCALLBACK(Domain, MemoryPeek)
 {
-  NanScope();
-  Local<Object> buffer = NanNewBufferHandle(buffer_.data(), size_);
-  Local<Value> argv[] = { NanNull(), buffer };
+  Nan::HandleScope scope;
+  Local<Object> buffer = Nan::NewBuffer(buffer_.data(), size_).ToLocalChecked();
+  Local<Value> argv[] = { Nan::Null(), buffer };
   callback->Call(2, argv);
 }
 
 NAN_METHOD(Domain::BlockPeek)
 {
-  NanScope();
+  Nan::HandleScope scope;
   unsigned int flags = 0;
   unsigned long long start = 0;
   size_t size = 0;
 
-  if(args.Length() != 5 ||
-      (!args[0]->IsString() || !args[1]->IsNumber() || !args[2]->IsNumber() || !args[3]->IsArray() || !args[4]->IsFunction())) {
-    NanThrowTypeError("you must specify a string, two integer, an array and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 5 ||
+      (!info[0]->IsString() || !info[1]->IsNumber() || !info[2]->IsNumber() || !info[3]->IsArray() || !info[4]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify a string, two integer, an array and a callback");
+    return;
   }
 
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  start = args[1]->NumberValue();
-  size = args[2]->NumberValue() * sizeof(char *);
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  start = info[1]->NumberValue();
+  size = info[2]->NumberValue() * sizeof(char *);
 
-  Local<Array> flags_ = Local<Array>::Cast(args[3]);
+  Local<Array> flags_ = Local<Array>::Cast(info[3]);
   unsigned int length = flags_->Length();
   for (unsigned int i = 0; i < length; i++)
-    flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
+    flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[4].As<Function>());
-  NanAsyncQueueWorker(new BlockPeekWorker(callback, domain->handle_, path, start, size, flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[4].As<Function>());
+  Nan::AsyncQueueWorker(new BlockPeekWorker(callback, domain->handle_, path, start, size, flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, BlockPeek)
@@ -1719,9 +1719,9 @@ NLV_WORKER_EXECUTE(Domain, BlockPeek)
 
 NLV_WORKER_OKCALLBACK(Domain, BlockPeek)
 {
-  NanScope();
-  Local<Object> buffer = NanNewBufferHandle(buffer_.data(), size_);
-  Local<Value> argv[] = { NanNull(), buffer };
+  Nan::HandleScope scope;
+  Local<Object> buffer = Nan::NewBuffer(buffer_.data(), size_).ToLocalChecked();
+  Local<Value> argv[] = { Nan::Null(), buffer };
   callback->Call(2, argv);
 }
 
@@ -1741,18 +1741,18 @@ NLV_WORKER_EXECUTE(Domain, HasCurrentSnapshot)
 }
 
 NAN_METHOD(Domain::RevertToSnapshot) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(args.Length() != 2 ||
-      (!args[0]->IsString() || !args[1]->IsFunction())) {
-    NanThrowTypeError("you must specify a string and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 2 ||
+      (!info[0]->IsString() || !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify a string and a callback");
+    return;
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new RevertToSnapshotWorker(callback, domain->handle_, *NanUtf8String(args[0]->ToString())));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new RevertToSnapshotWorker(callback, domain->handle_, *Nan::Utf8String(info[0]->ToString())));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, RevertToSnapshot)
@@ -1778,24 +1778,24 @@ NLV_WORKER_EXECUTE(Domain, RevertToSnapshot)
 
 
 NAN_METHOD(Domain::TakeSnapshot) {
-  NanScope();
+  Nan::HandleScope scope;
   unsigned int flags = 0;
 
-  if(args.Length() != 3 ||
-      (!args[0]->IsString() || !args[1]->IsArray() || !args[2]->IsFunction())) {
-    NanThrowTypeError("you must specify a string, an array and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 3 ||
+      (!info[0]->IsString() || !info[1]->IsArray() || !info[2]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify a string, an array and a callback");
+    return;
   }
 
-  Local<Array> flags_ = Local<Array>::Cast(args[1]);
+  Local<Array> flags_ = Local<Array>::Cast(info[1]);
   unsigned int length = flags_->Length();
   for (unsigned int i = 0; i < length; i++)
-    flags |= flags_->Get(NanNew<Integer>(i))->Int32Value();
+    flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new TakeSnapshotWorker(callback, domain->handle_, *NanUtf8String(args[0]->ToString()), flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Nan::AsyncQueueWorker(new TakeSnapshotWorker(callback, domain->handle_, *Nan::Utf8String(info[0]->ToString()), flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, TakeSnapshot)
@@ -1811,19 +1811,19 @@ NLV_WORKER_EXECUTE(Domain, TakeSnapshot)
 }
 
 NAN_METHOD(Domain::DeleteSnapshot) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(args.Length() != 2 ||
-      (!args[0]->IsString() || !args[1]->IsFunction())) {
-    NanThrowTypeError("you must specify a string and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 2 ||
+      (!info[0]->IsString() || !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("you must specify a string and a callback");
+    return;
   }
 
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new DeleteSnapshotWorker(callback, domain->handle_, *NanUtf8String(args[0]->ToString())));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new DeleteSnapshotWorker(callback, domain->handle_, *Nan::Utf8String(info[0]->ToString())));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, DeleteSnapshot)
@@ -1844,18 +1844,18 @@ NLV_WORKER_EXECUTE(Domain, DeleteSnapshot)
 }
 
 NAN_METHOD(Domain::LookupSnapshotByName) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(args.Length() != 2 ||
-      (!args[0]->IsString() ||!args[1]->IsFunction()) ) {
-    NanThrowTypeError("you must specify a string and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 2 ||
+      (!info[0]->IsString() ||!info[1]->IsFunction()) ) {
+    Nan::ThrowTypeError("you must specify a string and a callback");
+    return;
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupSnapshotByNameWorker(callback, domain->handle_, *NanUtf8String(args[0]->ToString())));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupSnapshotByNameWorker(callback, domain->handle_, *Nan::Utf8String(info[0]->ToString())));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, LookupSnapshotByName)
@@ -1906,19 +1906,19 @@ NLV_WORKER_EXECUTE(Domain, GetCurrentSnapshot)
 }
 
 NAN_METHOD(Domain::SetMigrationMaxDowntime) {
-  NanScope();
+  Nan::HandleScope scope;
   // long long downtime = 0;
   unsigned int flags = 0;
 
-  if(args.Length() != 2 || !args[0]->IsInt32() || !args[1]->IsFunction()) {
-    NanThrowTypeError("you must specify an integer and a callback");
-    NanReturnUndefined();
+  if(info.Length() != 2 || !info[0]->IsInt32() || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError("you must specify an integer and a callback");
+    return;
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new SetMigrationMaxDowntimeWorker(callback, domain->handle_, args[0]->Int32Value(), flags));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new SetMigrationMaxDowntimeWorker(callback, domain->handle_, info[0]->Int32Value(), flags));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, SetMigrationMaxDowntime)
@@ -1961,39 +1961,39 @@ NLV_WORKER_EXECUTE(Domain, GetSnapshots)
 
 NLV_WORKER_OKCALLBACK(Domain, GetSnapshots)
 {
-  NanScope();
-  Local<Array> snapshots = NanNew<Array>(xmls_.size());
+  Nan::HandleScope scope;
+  Local<Array> snapshots = Nan::New<Array>(xmls_.size());
   int i = 0;
 
   for (std::vector<std::string>::iterator it = xmls_.begin() ; it != xmls_.end(); ++it)
-    snapshots->Set(NanNew<Integer>(i++), NanNew<String>(it->c_str()));
+    snapshots->Set(Nan::New<Integer>(i++), Nan::New<String>(it->c_str()).ToLocalChecked());
 
-  Local<Value> argv[] = { NanNull(), snapshots };
+  Local<Value> argv[] = { Nan::Null(), snapshots };
   callback->Call(2, argv);
 }
 
 
 NAN_METHOD(Domain::RegisterEvent)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() == 0 || !args[0]->IsObject() || !args[1]->IsFunction()) {
-    NanThrowTypeError("You must specify a object and a callback as argument");
-    NanReturnUndefined();
+  if (info.Length() == 0 || !info[0]->IsObject() || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a object and a callback as argument");
+    return;
   }
 
-  Local<Object> arg_obj = args[0]->ToObject();
-  if (!arg_obj->Has(NanNew("evtype")) ||
-      !arg_obj->Get(NanNew("evtype"))->IsInt32()) {
-    NanThrowTypeError("You must specify an valid event type");
-    NanReturnUndefined();
+  Local<Object> arg_obj = info[0]->ToObject();
+  if (!arg_obj->Has(Nan::New("evtype").ToLocalChecked()) ||
+      !arg_obj->Get(Nan::New("evtype").ToLocalChecked())->IsInt32()) {
+    Nan::ThrowTypeError("You must specify an valid event type");
+    return;
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  int eventId = arg_obj->Get(NanNew("evtype"))->Int32Value();
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new RegisterEventWorker(callback, domain->handle_, domain, eventId));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  int eventId = arg_obj->Get(Nan::New("evtype").ToLocalChecked())->Int32Value();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new RegisterEventWorker(callback, domain->handle_, domain, eventId));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, RegisterEvent)
@@ -2044,17 +2044,17 @@ NLV_WORKER_EXECUTE(Domain, RegisterEvent)
 
 NAN_METHOD(Domain::UnregisterEvent)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() != 2 || !args[0]->IsInt32() || !args[1]->IsFunction()) {
-    NanThrowTypeError("You must specify a callback identifier and a callback");
-    NanReturnUndefined();
+  if (info.Length() != 2 || !info[0]->IsInt32() || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a callback identifier and a callback");
+    return;
   }
 
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new UnregisterEventWorker(callback, domain->handle_, args[0]->Int32Value()));
-  NanReturnUndefined();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new UnregisterEventWorker(callback, domain->handle_, info[0]->Int32Value()));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
@@ -2073,45 +2073,45 @@ NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
 
 NAN_METHOD(Domain::SetSchedulerParameters)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
   virSchedParameterPtr params = NULL;
   int nparams = 0;
   char *type = NULL;
   int ret = -1;
 
-  if (args.Length() == 0 || !args[0]->IsObject()) {
-    NanThrowTypeError("You must specify an object as argument to invoke this function");
-    NanReturnUndefined();
+  if (info.Length() == 0 || !info[0]->IsObject()) {
+    Nan::ThrowTypeError("You must specify an object as argument to invoke this function");
+    return;
   }
 
-  Local<Object> newparams = args[0]->ToObject();
-  Domain *domain = ObjectWrap::Unwrap<Domain>(args.This());
+  Local<Object> newparams = info[0]->ToObject();
+  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
 
   type = virDomainGetSchedulerType(domain->handle_, &nparams);
   if (type == NULL) {
-    NanThrowError(Error::New(virGetLastError()));
-    NanReturnValue(NanFalse());
+    Nan::ThrowError(Error::New(virGetLastError()));
+    return info.GetReturnValue().Set(Nan::False());
   }
   free(type);
 
   params = (virSchedParameterPtr) malloc(sizeof(*params) * nparams);
   if (params == NULL) {
-    NanThrowError("unable to allocate memory");
-    NanReturnValue(NanFalse());
+    Nan::ThrowError("unable to allocate memory");
+    return info.GetReturnValue().Set(Nan::False());
   }
 
   memset(params, 0, sizeof(*params) * nparams);
 
   ret = virDomainGetSchedulerParameters(domain->handle_, params, &nparams);
   if(ret == -1) {
-    NanThrowError(Error::New(virGetLastError()));
+    Nan::ThrowError(Error::New(virGetLastError()));
     free(params);
-    NanReturnValue(NanFalse());
+    return info.GetReturnValue().Set(Nan::False());
   }
 
   for (int i = 0; i < nparams; i++) {
-    Local<String> field = NanNew(params[i].field);
+    Local<String> field = Nan::New(params[i].field).ToLocalChecked();
     if (!newparams->Has(field)) {
       continue;
     }
@@ -2142,13 +2142,13 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   ret = virDomainSetSchedulerParameters(domain->handle_, params, nparams);
   if (ret == -1) {
-    NanThrowError(Error::New(virGetLastError()));
+    Nan::ThrowError(Error::New(virGetLastError()));
     free(params);
-    NanReturnValue(NanFalse());
+    return info.GetReturnValue().Set(Nan::False());
   }
   free(params);
 
-  NanReturnValue(NanTrue());
+  return info.GetReturnValue().Set(Nan::True());
 }
 
 void Domain::domain_event_free(void *opaque)
@@ -2159,18 +2159,17 @@ void Domain::domain_event_free(void *opaque)
 int Domain::domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr dom, int event,
                                             int detail, void *opaque)
 {
-  NanScope();
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("evtype"), NanNew<Integer>(event));
-  data->Set(NanNew("detail"), NanNew<Integer>(detail));
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("evtype").ToLocalChecked(), Nan::New<Integer>(event));
+  data->Set(Nan::New("detail").ToLocalChecked(), Nan::New<Integer>(detail));
 
-  Handle<Value> argv[2] = {
-    NanNew("lifecycleEvent"),
+  Local<Value> argv[2] = {
+    Nan::New("lifecycleEvent").ToLocalChecked(),
     data
   };
-
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
@@ -2183,34 +2182,34 @@ int Domain::domain_event_generic_callback(virConnectPtr conn, virDomainPtr dom, 
 int Domain::domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr dom,
                                             long long utcoffset, void *opaque)
 {
-  NanScope();
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("utcOffset"), NanNew<Number>(utcoffset));
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("utcOffset").ToLocalChecked(), Nan::New<Number>(utcoffset));
 
-  Handle<Value> argv[2] = {
-    NanNew("rtcChange"),
+  Local<Value> argv[2] = {
+    Nan::New("rtcChange").ToLocalChecked(),
     data
   };
 
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
 int Domain::domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr dom, int action,
                                            void *opaque)
 {
-  NanScope();
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("action"), NanNew<Integer>(action));
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Handle<Value> argv[2] = {
-    NanNew("watchdogEvent"),
+  Local<Value> argv[2] = {
+    Nan::New("watchdogEvent").ToLocalChecked(),
     data
   };
 
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
@@ -2218,21 +2217,21 @@ int Domain::domain_event_io_error_callback(virConnectPtr conn, virDomainPtr dom,
                                            const char *src_path, const char *dev_alias,
                                            int action, void *opaque)
 {
-  NanScope();
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("sourcePath"), NanNew(src_path));
-  data->Set(NanNew("devAlias"), NanNew(dev_alias));
-  data->Set(NanNew("action"), NanNew<Integer>(action));
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("sourcePath").ToLocalChecked(), Nan::New(src_path).ToLocalChecked());
+  data->Set(Nan::New("devAlias").ToLocalChecked(), Nan::New(dev_alias).ToLocalChecked());
+  data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  data->Set(NanNew("action"), NanNew<Integer>(action));
+  data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Handle<Value> argv[2] = {
-    NanNew("ioError"),
+  Local<Value> argv[2] = {
+    Nan::New("ioError").ToLocalChecked(),
     data
   };
 
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
@@ -2240,20 +2239,20 @@ int Domain::domain_event_io_error_reason_callback(virConnectPtr conn, virDomainP
                                                   const char *src_path, const char *dev_alias,
                                                   int action, const char *reason, void *opaque)
 {
-  NanScope();
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("sourcePath"), NanNew(src_path));
-  data->Set(NanNew("devAlias"), NanNew(dev_alias));
-  data->Set(NanNew("reason"), NanNew(reason));
-  data->Set(NanNew("action"), NanNew<Integer>(action));
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("sourcePath").ToLocalChecked(), Nan::New(src_path).ToLocalChecked());
+  data->Set(Nan::New("devAlias").ToLocalChecked(), Nan::New(dev_alias).ToLocalChecked());
+  data->Set(Nan::New("reason").ToLocalChecked(), Nan::New(reason).ToLocalChecked());
+  data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Handle<Value> argv[2] = {
-    NanNew("ioErrorReason"),
+  Local<Value> argv[2] = {
+    Nan::New("ioErrorReason").ToLocalChecked(),
     data
   };
 
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
@@ -2264,60 +2263,60 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
                                            virDomainEventGraphicsSubjectPtr subject,
                                            void *opaque)
 {
-  NanScope();
+  Nan::HandleScope scope;
   Local<String> lfamily;
   switch (local->family) {
   case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-    lfamily = NanNew("ipv4");
+    lfamily = Nan::New("ipv4").ToLocalChecked();
     break;
   case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-    lfamily = NanNew("ipv6");
+    lfamily = Nan::New("ipv6").ToLocalChecked();
     break;
   };
 
   Local<String> rfamily;
   switch(remote->family) {
   case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-    rfamily = NanNew("ipv4");
+    rfamily = Nan::New("ipv4").ToLocalChecked();
     break;
   case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-    rfamily = NanNew("ipv6");
+    rfamily = Nan::New("ipv6").ToLocalChecked();
     break;
   };
 
-  Local<Object> local_ = NanNew<Object>();
-  local_->Set(NanNew("family"), lfamily);
-  local_->Set(NanNew("node"), NanNew(local->node));
-  local_->Set(NanNew("service"), NanNew(local->service));
+  Local<Object> local_ = Nan::New<Object>();
+  local_->Set(Nan::New("family").ToLocalChecked(), lfamily);
+  local_->Set(Nan::New("node").ToLocalChecked(), Nan::New(local->node).ToLocalChecked());
+  local_->Set(Nan::New("service").ToLocalChecked(), Nan::New(local->service).ToLocalChecked());
 
-  Local<Object> remote_ = NanNew<Object>();
-  remote_->Set(NanNew("family"), rfamily);
-  remote_->Set(NanNew("node"), NanNew(remote->node));
-  remote_->Set(NanNew("service"), NanNew(remote->service));
+  Local<Object> remote_ = Nan::New<Object>();
+  remote_->Set(Nan::New("family").ToLocalChecked(), rfamily);
+  remote_->Set(Nan::New("node").ToLocalChecked(), Nan::New(remote->node).ToLocalChecked());
+  remote_->Set(Nan::New("service").ToLocalChecked(), Nan::New(remote->service).ToLocalChecked());
 
   int nidentity = subject->nidentity;
-  Local<Array> subject_ = NanNew<Array>(nidentity);
+  Local<Array> subject_ = Nan::New<Array>(nidentity);
   for (int i = 0; i < nidentity; i++) {
-    Local<Object> identity = NanNew<Object>();
-    identity->Set(NanNew("type"), NanNew(subject->identities[i].type));
-    identity->Set(NanNew("name"), NanNew(subject->identities[i].name));
-    subject_->Set(NanNew<Integer>(i), identity);
+    Local<Object> identity = Nan::New<Object>();
+    identity->Set(Nan::New("type").ToLocalChecked(), Nan::New(subject->identities[i].type).ToLocalChecked());
+    identity->Set(Nan::New("name").ToLocalChecked(), Nan::New(subject->identities[i].name).ToLocalChecked());
+    subject_->Set(Nan::New<Integer>(i), identity);
   }
 
-  Local<Object> data = NanNew<Object>();
-  data->Set(NanNew("local"), local_);
-  data->Set(NanNew("remote"), remote_);
-  data->Set(NanNew("subject"), subject_);
-  data->Set(NanNew("phase"), NanNew<Integer>(phase));
-  data->Set(NanNew("auth_scheme"), NanNew(auth_scheme));
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("local").ToLocalChecked(), local_);
+  data->Set(Nan::New("remote").ToLocalChecked(), remote_);
+  data->Set(Nan::New("subject").ToLocalChecked(), subject_);
+  data->Set(Nan::New("phase").ToLocalChecked(), Nan::New<Integer>(phase));
+  data->Set(Nan::New("auth_scheme").ToLocalChecked(), Nan::New(auth_scheme).ToLocalChecked());
 
-  Handle<Value> argv[2] = {
-    NanNew("graphicsEvent"),
+  Local<Value> argv[2] = {
+    Nan::New("graphicsEvent").ToLocalChecked(),
     data
   };
 
-  ObjectWrap *domain = static_cast<ObjectWrap*>(opaque);
-  NanMakeCallback(NanObjectWrapHandle(domain), "emit", 2, argv);
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
