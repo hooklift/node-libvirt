@@ -55,7 +55,7 @@ NAN_METHOD(NodeDevice::LookupByName)
     return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
@@ -76,7 +76,7 @@ NAN_METHOD(NodeDevice::Create)
     return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData));

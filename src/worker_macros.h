@@ -47,7 +47,7 @@
       return; \
     } \
     Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());  \
-    Class *object = ObjectWrap::Unwrap<Class>(info.This()); \
+    Class *object = Nan::ObjectWrap::Unwrap<Class>(info.This()); \
     Nan::AsyncQueueWorker(new Method##Worker(callback, object->handle_));  \
     return; \
   }
@@ -64,7 +64,7 @@
       Nan::ThrowTypeError("You must specify a Hypervisor instance");  \
       return; \
     } \
-    Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This()); \
+    Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
     std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
     Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
     Nan::AsyncQueueWorker(new DefineWorker(callback, hv, xmlData));  \
@@ -83,7 +83,7 @@
       Nan::ThrowTypeError("You must specify a Hypervisor instance");  \
       return; \
     } \
-    Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This()); \
+    Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
     std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
     Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
     Nan::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData));  \

@@ -264,7 +264,7 @@ NAN_METHOD(Hypervisor::Connect)
   }
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new ConnectWorker(callback, hv));
   return;
 }
@@ -298,7 +298,7 @@ NAN_METHOD(Hypervisor::Disconnect)
   }
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new DisconnectWorker(callback, hv));
   return;
 }
@@ -454,7 +454,7 @@ NAN_METHOD(Hypervisor::GetMaxVcpus)
 
   std::string type(*Nan::Utf8String(info[0]));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new GetMaxVcpusWorker(callback, hypervisor->handle_, type));
   return;
 }
@@ -499,7 +499,7 @@ NAN_METHOD(Hypervisor::SetKeepAlive)
   int interval = info[0]->IntegerValue();
   unsigned int count = info[1]->IntegerValue();
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new SetKeepAliveWorker(callback, hypervisor->handle_, interval, count));
   return;
 }
@@ -538,7 +538,7 @@ NAN_METHOD(Hypervisor::GetBaselineCPU)
   }
 
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new GetBaselineCPUWorker(callback, hypervisor->handle_, cpus, count, flags));
   return;
 }
@@ -574,7 +574,7 @@ NAN_METHOD(Hypervisor::CompareCPU)
   int flags = 0;
   std::string cpu(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new CompareCPUWorker(callback, hypervisor->handle_, cpu, flags));
   return;
 }
@@ -731,7 +731,7 @@ NAN_METHOD(Hypervisor::ListNodeDevices)
     callback = new Nan::Callback(info[0].As<Function>());
   }
 
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new ListNodeDevicesWorker(callback, hypervisor->handle_, capability));
   return;
 }
@@ -848,7 +848,7 @@ NAN_METHOD(Hypervisor::GetNodeMemoryStats)
     return;
   }
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   int numCells = info[0]->IntegerValue();
   int flags = info[1]->IntegerValue();
   Nan::AsyncQueueWorker(new GetNodeMemoryStatsWorker(callback, hypervisor->handle_, numCells, flags));
@@ -898,7 +898,7 @@ NAN_METHOD(Hypervisor::GetNodeCellsFreeMemory)
   }
 
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  Hypervisor *hypervisor = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   Nan::AsyncQueueWorker(new GetNodeCellsFreeMemoryWorker(callback, hypervisor->handle_, startCell, maxCells));
   return;
 }

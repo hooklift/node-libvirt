@@ -144,7 +144,7 @@ void Error::Initialize(Handle<Object> exports)
 }
 
 Error::Error(virErrorPtr error)
-  : ObjectWrap()
+  : Nan::ObjectWrap()
 {
   error_ = error;
 }
@@ -164,7 +164,7 @@ NAN_GETTER(Error::Getter)
 {
   Nan::HandleScope scope;
 
-  Error *error = ObjectWrap::Unwrap<Error>(info.This());
+  Error *error = Nan::ObjectWrap::Unwrap<Error>(info.This());
   virErrorPtr error_ = error->error_;
 
   if (property->Equals(Nan::New("code").ToLocalChecked())) {

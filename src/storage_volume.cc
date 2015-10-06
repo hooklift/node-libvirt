@@ -62,7 +62,7 @@ NAN_METHOD(StorageVolume::Create)
     return;
   }
 
-  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(info.This());
+  StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new CreateWorker(callback, sp, xmlData));
@@ -117,7 +117,7 @@ NAN_METHOD(StorageVolume::GetInfo)
   }
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
-  StorageVolume *storageVolume = ObjectWrap::Unwrap<StorageVolume>(info.This());
+  StorageVolume *storageVolume = Nan::ObjectWrap::Unwrap<StorageVolume>(info.This());
   Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
   return;
 }
@@ -214,7 +214,7 @@ NAN_METHOD(StorageVolume::LookupByName)
     return;
   }
 
-  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
+  StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupByNameWorker(callback, sp, name));
@@ -237,7 +237,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
     return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
   std::string key(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupByKeyWorker(callback, hv, key));
@@ -260,7 +260,7 @@ NAN_METHOD(StorageVolume::LookupByPath)
     return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupByPathWorker(callback, hv, path));
@@ -297,8 +297,8 @@ NAN_METHOD(StorageVolume::Clone)
   }
 
   std::string xml(*Nan::Utf8String(info[1]->ToString()));
-  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
-  StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
+  StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
+  StorageVolume *sv = Nan::ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
 
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
   Nan::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_));

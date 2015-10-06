@@ -12,7 +12,7 @@ using namespace node;
 
 namespace NLV {
 
-class Error : public ObjectWrap
+class Error : public Nan::ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);

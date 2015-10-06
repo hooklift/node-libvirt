@@ -85,8 +85,8 @@ void Domain::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "registerEvent",           RegisterEvent);
   Nan::SetPrototypeMethod(t, "unregisterEvent",         UnregisterEvent);
 
-  constructor_template.Reset();
-  constructor.Reset();
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Domain").ToLocalChecked(), t->GetFunction());
 
   //Constants initialization
