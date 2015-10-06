@@ -5,7 +5,7 @@
 
 namespace NLV {
 
-Persistent<Function> Interface::constructor;
+Nan::Persistent<Function> Interface::constructor;
 void Interface::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -20,7 +20,7 @@ void Interface::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "undefine",      Undefine);
   Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Interface").ToLocalChecked(), t->GetFunction());
 
   //Constants

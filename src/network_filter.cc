@@ -6,7 +6,7 @@
 
 namespace NLV {
 
-Persistent<Function> NetworkFilter::constructor;
+Nan::Persistent<Function> NetworkFilter::constructor;
 void NetworkFilter::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -18,7 +18,7 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "undefine", NetworkFilter::Undefine);
   Nan::SetPrototypeMethod(t, "toXml", NetworkFilter::ToXml);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("NetworkFilter").ToLocalChecked(), t->GetFunction());
 }
 

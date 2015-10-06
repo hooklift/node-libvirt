@@ -20,7 +20,7 @@ public:
 
 private:
   explicit Error(virErrorPtr error);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
 
   static NAN_GETTER(Getter);
 

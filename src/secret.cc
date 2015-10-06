@@ -5,7 +5,7 @@
 
 namespace NLV {
 
-Persistent<Function> Secret::constructor;
+Nan::Persistent<Function> Secret::constructor;
 void Secret::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -20,7 +20,7 @@ void Secret::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "getUsageType",  GetUsageType);
   Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Secret").ToLocalChecked(), t->GetFunction());
 }
 

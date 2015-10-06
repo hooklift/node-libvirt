@@ -286,7 +286,7 @@ protected:
   virtual void HandleOKCallback() {
     Nan::HandleScope scope;
     Local<Object> childObject = InstanceClass::NewInstance(lookupHandle_);
-    InstanceClass *child = ObjectWrap::Unwrap<InstanceClass>(childObject);
+    InstanceClass *child = Nan::ObjectWrap::Unwrap<InstanceClass>(childObject);
     NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
     child->SetParentReference(childPtr);
     parent_->children_.push_back(childPtr);

@@ -10,8 +10,8 @@
 
 namespace NLV {
 
-Persistent<FunctionTemplate> StorageVolume::constructor_template;
-Persistent<Function> StorageVolume::constructor;
+Nan::Persistent<FunctionTemplate> StorageVolume::constructor_template;
+Nan::Persistent<Function> StorageVolume::constructor;
 void StorageVolume::Initialize(Handle<Object> exports)
 {
   Nan::HandleScope scope;
@@ -27,8 +27,8 @@ void StorageVolume::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "remove",  Delete);
   Nan::SetPrototypeMethod(t, "wipe",    Wipe);
 
-  constructor_template.Reset(v8::Isolate::GetCurrent(), t);
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("StorageVolume").ToLocalChecked(), t->GetFunction());
 
   // Constants

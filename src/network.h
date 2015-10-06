@@ -24,7 +24,7 @@ public:
 
 private:
   explicit Network(virNetworkPtr handle);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   friend class Hypervisor;
 
 protected:

@@ -11,8 +11,8 @@
 
 namespace NLV {
 
-Persistent<FunctionTemplate> StoragePool::constructor_template;
-Persistent<Function> StoragePool::constructor;
+Nan::Persistent<FunctionTemplate> StoragePool::constructor_template;
+Nan::Persistent<Function> StoragePool::constructor;
 void StoragePool::Initialize(Handle<Object> exports)
 {
   Nan::HandleScope scope;
@@ -39,8 +39,8 @@ void StoragePool::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "cloneVolume",         StorageVolume::Clone);
   Nan::SetPrototypeMethod(t, "lookupStorageVolumeByName",  StorageVolume::LookupByName);
 
-  constructor_template.Reset(v8::Isolate::GetCurrent(), t);
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("StoragePool").ToLocalChecked(), t->GetFunction());
 
   //Constants initialization

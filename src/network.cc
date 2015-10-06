@@ -5,7 +5,7 @@
 
 namespace NLV {
 
-Persistent<Function> Network::constructor;
+Nan::Persistent<Function> Network::constructor;
 void Network::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -24,7 +24,7 @@ void Network::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "toXml",           ToXml);
   Nan::SetPrototypeMethod(t, "getBridgeName",   GetBridgeName);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Network").ToLocalChecked(), t->GetFunction());
 }
 

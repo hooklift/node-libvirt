@@ -3,7 +3,7 @@
 
 namespace NLV {
 
-Persistent<Function> Error::constructor;
+Nan::Persistent<Function> Error::constructor;
 void Error::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -21,7 +21,7 @@ void Error::Initialize(Handle<Object> exports)
   Nan::SetAccessor(ot, Nan::New("int1").ToLocalChecked(), Error::Getter);
   Nan::SetAccessor(ot, Nan::New("int2").ToLocalChecked(), Error::Getter);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
 
   //define constants
   //virErrorNumber

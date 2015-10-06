@@ -8,7 +8,7 @@ using namespace v8;
 
 namespace NLV {
 
-Persistent<Function> NodeDevice::constructor;
+Nan::Persistent<Function> NodeDevice::constructor;
 void NodeDevice::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -24,7 +24,7 @@ void NodeDevice::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "toXml",             ToXml);
   Nan::SetPrototypeMethod(t, "getCapabilities",   GetCapabilities);
 
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("NodeDevice").ToLocalChecked(), t->GetFunction());
 }
 

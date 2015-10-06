@@ -24,8 +24,8 @@ public:
 
 private:
   explicit StoragePool(virStoragePoolPtr handle);
-  static Persistent<FunctionTemplate> constructor_template;
-  static Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
+  static Nan::Persistent<Function> constructor;
   friend class StorageVolume;
   friend class Hypervisor;
 

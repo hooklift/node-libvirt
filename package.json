@@ -25,6 +25,11 @@
     {
       "name": "Michael Maier",
       "url": "https://github.com/binBASH"
+    },
+    {
+      "name": "Damian Kaczmarek",
+      "email": "rush@virtkick.com",
+      "url": "https://github.com/Rush"
     }
   ],
   "description": "Native libvirt C++ bindings for node.js",
@@ -35,7 +40,7 @@
   },
   "main": "lib/index.js",
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=0.10.0"
   },
   "keywords": [
     "libvirt",

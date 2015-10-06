@@ -23,8 +23,8 @@ public:
 
 private:
   explicit Hypervisor(std::string uri, std::string user, std::string pass, bool readOnly);
-  static Persistent<Function> constructor;
-  static Persistent<FunctionTemplate> constructor_template;
+  static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
 
   std::string uri_;
   std::string username_;

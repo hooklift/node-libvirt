@@ -24,7 +24,7 @@ public:
 
 private:
   explicit Secret(virSecretPtr handle);
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   friend class Hypervisor;
 
 private:

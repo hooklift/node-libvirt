@@ -16,8 +16,8 @@
 
 namespace NLV {
 
-Persistent<Function> Hypervisor::constructor;
-Persistent<FunctionTemplate> Hypervisor::constructor_template;
+Nan::Persistent<Function> Hypervisor::constructor;
+Nan::Persistent<FunctionTemplate> Hypervisor::constructor_template;
 void Hypervisor::Initialize(Handle<Object> exports)
 {
   Nan::HandleScope scope;
@@ -158,8 +158,8 @@ void Hypervisor::Initialize(Handle<Object> exports)
 #endif
 
   t->SetClassName(Nan::New("Hypervisor").ToLocalChecked());
-  constructor_template.Reset(v8::Isolate::GetCurrent(), t);
-  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  constructor_template.Reset(t);
+  constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Hypervisor").ToLocalChecked(), t->GetFunction());
 }
 
