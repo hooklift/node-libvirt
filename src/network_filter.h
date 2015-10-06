@@ -47,9 +47,9 @@ private:
 
   // WORKER METHODS
   NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNWFilterPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNWFilterPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNWFilterPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNWFilterPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetName, virNWFilterPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetUUID, virNWFilterPtr, std::string);
+  NLV_STRING_RETURN_WORKER(ToXml, virNWFilterPtr, std::string);
 
 };
 

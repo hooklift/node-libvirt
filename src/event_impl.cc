@@ -43,14 +43,14 @@ std::vector<nodeEventTimeout*> EventImpl::timeouts;
 
 void EventImpl::Initialize(Handle<Object> exports)
 {
-  NanScope();
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(SetupEvent);
-  exports->Set(NanNew("setupEvent"), tpl->GetFunction());
+  Nan::HandleScope scope;
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(SetupEvent);
+  exports->Set(Nan::New("setupEvent").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(EventImpl::SetupEvent)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
   uv_mutex_init(&lock);
   uv_check_init(uv_default_loop(), &updateHandleChecker);
@@ -61,7 +61,7 @@ NAN_METHOD(EventImpl::SetupEvent)
     AddTimeout, UpdateTimeout, RemoveTimeout
   );
 
-  NanReturnUndefined();
+  return;
 }
 
 #if UV_VERSION_MAJOR < 1

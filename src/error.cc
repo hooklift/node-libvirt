@@ -6,22 +6,22 @@ namespace NLV {
 Persistent<Function> Error::constructor;
 void Error::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("Error"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("Error").ToLocalChecked());
 
   Local<ObjectTemplate> ot = t->InstanceTemplate();
   ot->SetInternalFieldCount(1);
-  ot->SetAccessor(NanNew("code"), Error::Getter);
-  ot->SetAccessor(NanNew("domain"), Error::Getter);
-  ot->SetAccessor(NanNew("message"), Error::Getter);
-  ot->SetAccessor(NanNew("level"), Error::Getter);
-  ot->SetAccessor(NanNew("str1"), Error::Getter);
-  ot->SetAccessor(NanNew("str2"), Error::Getter);
-  ot->SetAccessor(NanNew("str3"), Error::Getter);
-  ot->SetAccessor(NanNew("int1"), Error::Getter);
-  ot->SetAccessor(NanNew("int2"), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("code").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("domain").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("message").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("level").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("str1").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("str2").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("str3").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("int1").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("int2").ToLocalChecked(), Error::Getter);
 
-  NanAssignPersistent(constructor, t->GetFunction());
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
 
   //define constants
   //virErrorNumber
@@ -151,44 +151,43 @@ Error::Error(virErrorPtr error)
 
 Local<Value> Error::New(virErrorPtr error)
 {
-  NanEscapableScope();
+  Nan::EscapableHandleScope scope;
 
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> instance = ctor->NewInstance();
   Error *err = new Error(error);
   err->Wrap(instance);
-  return NanEscapeScope(instance);
+  return scope.Escape(instance);
 }
 
 NAN_GETTER(Error::Getter)
 {
-  NanScope();
+  Nan::HandleScope scope;
 
-  Error *error = ObjectWrap::Unwrap<Error>(args.This());
+  Error *error = ObjectWrap::Unwrap<Error>(info.This());
   virErrorPtr error_ = error->error_;
 
-  if (property->Equals(NanNew("code"))) {
-    NanReturnValue(NanNew(error_->code));
-  } else if (property->Equals(NanNew("domain"))) {
-    NanReturnValue(NanNew(error_->domain));
-  } else if (property->Equals(NanNew("message"))) {
-    NanReturnValue(NanNew(error_->message));
-  } else if (property->Equals(NanNew("level"))) {
-    NanReturnValue(NanNew(error_->level));
-  } else if (property->Equals(NanNew("str1"))) {
-    NanReturnValue(NanNew(error_->str1 != NULL ? error_->str1 : ""));
-  } else if (property->Equals(NanNew("str2"))) {
-    NanReturnValue(NanNew(error_->str2 != NULL ? error_->str2 : ""));
-  } else if (property->Equals(NanNew("str3"))) {
-    NanReturnValue(NanNew(error_->str3 != NULL ? error_->str3 : ""));
-  } else if (property->Equals(NanNew("int1"))) {
-    NanReturnValue(NanNew(error_->int1));
-  } else if (property->Equals(NanNew("int2"))) {
-    NanReturnValue(NanNew(error_->int2));
+  if (property->Equals(Nan::New("code").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->code));
+  } else if (property->Equals(Nan::New("domain").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->domain));
+  } else if (property->Equals(Nan::New("message").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->message).ToLocalChecked());
+  } else if (property->Equals(Nan::New("level").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->level));
+  } else if (property->Equals(Nan::New("str1").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->str1 != NULL ? error_->str1 : "").ToLocalChecked());
+  } else if (property->Equals(Nan::New("str2").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->str2 != NULL ? error_->str2 : "").ToLocalChecked());
+  } else if (property->Equals(Nan::New("str3").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->str3 != NULL ? error_->str3 : "").ToLocalChecked());
+  } else if (property->Equals(Nan::New("int1").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->int1));
+  } else if (property->Equals(Nan::New("int2").ToLocalChecked())) {
+    info.GetReturnValue().Set(Nan::New(error_->int2));
   }
 
-  NanReturnUndefined();
+  return;
 }
 
 } // namespace NLV
-

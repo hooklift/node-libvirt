@@ -11,76 +11,76 @@ namespace NLV {
 Persistent<Function> NodeDevice::constructor;
 void NodeDevice::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("NodeDevice"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("NodeDevice").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "destroy",           Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "detach",            Detach);
-  NODE_SET_PROTOTYPE_METHOD(t, "reattach",          Reattach);
-  NODE_SET_PROTOTYPE_METHOD(t, "reset",             Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName",           GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getParentName",     GetParentName);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",             ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "getCapabilities",   GetCapabilities);
+  Nan::SetPrototypeMethod(t, "destroy",           Destroy);
+  Nan::SetPrototypeMethod(t, "detach",            Detach);
+  Nan::SetPrototypeMethod(t, "reattach",          Reattach);
+  Nan::SetPrototypeMethod(t, "reset",             Destroy);
+  Nan::SetPrototypeMethod(t, "getName",           GetName);
+  Nan::SetPrototypeMethod(t, "getParentName",     GetParentName);
+  Nan::SetPrototypeMethod(t, "toXml",             ToXml);
+  Nan::SetPrototypeMethod(t, "getCapabilities",   GetCapabilities);
 
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("NodeDevice"), t->GetFunction());
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  exports->Set(Nan::New("NodeDevice").ToLocalChecked(), t->GetFunction());
 }
 
 NodeDevice::NodeDevice(virNodeDevicePtr handle) : NLVObject(handle) {}
 Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   NodeDevice *nodeDevice = new NodeDevice(handle);
   nodeDevice->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid network name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid network name and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  return;
 }
 
 NAN_METHOD(NodeDevice::Create)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a string and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a string and callback");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string xmlData(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, hv, xmlData));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData));
+  return;
 }
 
 NLV_WORKER_EXECUTE(NodeDevice, Create)
@@ -192,7 +192,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
 {
   NLV_WORKER_ASSERT_NODEDEVICE();
 
-  NanScope();
+  Nan::HandleScope scope;
   int num_caps = virNodeDeviceNumOfCaps(Handle());
   if (num_caps == -1) {
     SetVirError(virGetLastError());

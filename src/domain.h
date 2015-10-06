@@ -118,7 +118,7 @@ private:
 
   class LookupByIdWorker : public NLVLookupInstanceByValueWorker<Domain, Hypervisor, virDomainPtr> {
   public:
-    LookupByIdWorker(NanCallback *callback, Hypervisor *parent, int id)
+    LookupByIdWorker(Nan::Callback *callback, Hypervisor *parent, int id)
       : NLVLookupInstanceByValueWorker<Domain, Hypervisor, virDomainPtr>(callback, parent, std::string()), id_(id) {}
     void Execute();
   private:
@@ -127,7 +127,7 @@ private:
 
   class RestoreWorker : public NLVPrimitiveReturnWorker<virConnectPtr, bool> {
   public:
-    RestoreWorker(NanCallback *callback, virConnectPtr handle, const std::string &path)
+    RestoreWorker(Nan::Callback *callback, virConnectPtr handle, const std::string &path)
       : NLVPrimitiveReturnWorker<virConnectPtr, bool>(callback, handle), path_(path) {}
     void Execute();
   private:
@@ -136,7 +136,7 @@ private:
 
   class CoreDumpWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    CoreDumpWorker(NanCallback *callback, virDomainPtr handle, const std::string &path)
+    CoreDumpWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &path)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), path_(path) {}
     void Execute();
   private:
@@ -145,7 +145,7 @@ private:
 
   class RegisterEventWorker : public NLVPrimitiveReturnWorker<virDomainPtr, int> {
   public:
-    RegisterEventWorker(NanCallback *callback, virDomainPtr handle, Domain *domain, int eventId)
+    RegisterEventWorker(Nan::Callback *callback, virDomainPtr handle, Domain *domain, int eventId)
       : NLVPrimitiveReturnWorker<virDomainPtr, int>(callback, handle), domain_(domain), eventId_(eventId) {}
     void Execute();
   private:
@@ -155,7 +155,7 @@ private:
 
   class UnregisterEventWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    UnregisterEventWorker(NanCallback *callback, virDomainPtr handle, int callbackId)
+    UnregisterEventWorker(Nan::Callback *callback, virDomainPtr handle, int callbackId)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), callbackId_(callbackId) {}
     void Execute();
   private:
@@ -177,7 +177,7 @@ private:
 
   class SaveWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SaveWorker(NanCallback *callback, virDomainPtr handle, const std::string &path)
+    SaveWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &path)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), path_(path) {}
     void Execute();
   private:
@@ -186,7 +186,7 @@ private:
 
   class AttachDeviceWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    AttachDeviceWorker(NanCallback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
+    AttachDeviceWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), xml_(xml), flags_(flags) {}
     void Execute();
   private:
@@ -196,7 +196,7 @@ private:
 
   class DetachDeviceWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    DetachDeviceWorker(NanCallback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
+    DetachDeviceWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), xml_(xml), flags_(flags) {}
     void Execute();
   private:
@@ -206,7 +206,7 @@ private:
 
   class UpdateDeviceWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    UpdateDeviceWorker(NanCallback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
+    UpdateDeviceWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &xml, unsigned long flags)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), xml_(xml), flags_(flags) {}
     void Execute();
   private:
@@ -217,7 +217,7 @@ private:
 
   class SendKeysWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SendKeysWorker(NanCallback *callback, virDomainPtr handle, const std::vector<unsigned int> &keys)
+    SendKeysWorker(Nan::Callback *callback, virDomainPtr handle, const std::vector<unsigned int> &keys)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), keys_(keys) {}
     void Execute();
   private:
@@ -226,9 +226,9 @@ private:
 
   class MigrateWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    MigrateWorker(NanCallback *callback, virDomainPtr handle, const std::string &uri)
+    MigrateWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &uri)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), uri_(uri), conn_(NULL), migrated_(NULL), flags_(0), bandwidth_(0) {}
-    MigrateWorker(NanCallback *callback, virDomainPtr handle, virConnectPtr conn)
+    MigrateWorker(Nan::Callback *callback, virDomainPtr handle, virConnectPtr conn)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), conn_(conn), migrated_(NULL), flags_(0), bandwidth_(0) {}
     void Execute();
     void setFlags(const unsigned long flags) { flags_ = flags; }
@@ -247,7 +247,7 @@ private:
 
   class PinVcpuWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    PinVcpuWorker(NanCallback *callback, virDomainPtr handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
+    PinVcpuWorker(Nan::Callback *callback, virDomainPtr handle, int vcpu, const std::vector<bool> &usables, const std::vector<int> &vcpus)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), vcpu_(vcpu), usables_(usables), vcpus_(vcpus) {}
     void Execute();
   private:
@@ -258,7 +258,7 @@ private:
 
   class MemoryPeekWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    MemoryPeekWorker(NanCallback *callback, virDomainPtr handle, unsigned long long start, size_t size, unsigned int flags)
+    MemoryPeekWorker(Nan::Callback *callback, virDomainPtr handle, unsigned long long start, size_t size, unsigned int flags)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), start_(start), size_(size), flags_(flags), buffer_(size) {}
     void Execute();
   protected:
@@ -272,7 +272,7 @@ private:
 
   class BlockPeekWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    BlockPeekWorker(NanCallback *callback, virDomainPtr handle, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
+    BlockPeekWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &path, unsigned long long start, size_t size, unsigned int flags)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), path_(path), start_(start), size_(size), flags_(flags), buffer_(size) {}
     void Execute();
   protected:
@@ -287,7 +287,7 @@ private:
 
   class RevertToSnapshotWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    RevertToSnapshotWorker(NanCallback *callback, virDomainPtr handle, const std::string &name)
+    RevertToSnapshotWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &name)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), name_(name) {}
     void Execute();
   private:
@@ -296,7 +296,7 @@ private:
 
   class TakeSnapshotWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    TakeSnapshotWorker(NanCallback *callback, virDomainPtr handle, const std::string &xml, unsigned int flags)
+    TakeSnapshotWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &xml, unsigned int flags)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), xml_(xml), flags_(flags) {}
     void Execute();
   private:
@@ -306,28 +306,28 @@ private:
 
   class DeleteSnapshotWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    DeleteSnapshotWorker(NanCallback *callback, virDomainPtr handle, const std::string &name)
+    DeleteSnapshotWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &name)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), name_(name) {}
     void Execute();
   private:
     std::string name_;
   };
 
-  class LookupSnapshotByNameWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
+  class LookupSnapshotByNameWorker : public NLVStringReturnWorker<virDomainPtr, std::string> {
   public:
-    LookupSnapshotByNameWorker(NanCallback *callback, virDomainPtr handle, const std::string &name)
-      : NLVPrimitiveReturnWorker<virDomainPtr, std::string>(callback, handle), name_(name) {}
+    LookupSnapshotByNameWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &name)
+      : NLVStringReturnWorker<virDomainPtr, std::string>(callback, handle), name_(name) {}
     void Execute();
   private:
     std::string name_;
   };
 
   // ACCESSOR/MUTATOR METHOD WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virDomainPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetName, virDomainPtr, std::string);
   NLV_OBJECT_RETURN_WORKER(GetInfo, virDomainPtr, virDomainInfo);
   NLV_PRIMITIVE_RETURN_WORKER(GetId, virDomainPtr, int);
-  NLV_PRIMITIVE_RETURN_WORKER(GetOSType, virDomainPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virDomainPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetOSType, virDomainPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetUUID, virDomainPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virDomainPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(GetMaxMemory, virDomainPtr, double);
   NLV_PRIMITIVE_RETURN_WORKER(GetMaxVcpus, virDomainPtr, int);
@@ -335,27 +335,27 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virDomainPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(IsUpdated, virDomainPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(HasManagedSaveImage, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetSchedulerType, virDomainPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetSchedulerType, virDomainPtr, std::string);
   NLV_TYPED_PARAMETER_RETURN_WORKER(GetSchedulerParameters, virDomainPtr, virSchedParameter);
   NLV_OBJECT_RETURN_WORKER(GetSecurityLabel, virDomainPtr, virSecurityLabel);
   NLV_OBJECT_RETURN_WORKER(GetJobInfo, virDomainPtr, virDomainJobInfo);
-  NLV_PRIMITIVE_RETURN_WORKER(GetCurrentSnapshot, virDomainPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetCurrentSnapshot, virDomainPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(HasCurrentSnapshot, virDomainPtr, bool);
 
-  class ToXmlWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
+  class ToXmlWorker : public NLVStringReturnWorker<virDomainPtr, std::string> {
     public:
-      ToXmlWorker(NanCallback *callback, virDomainPtr handle, int flags = 0)
-        : NLVPrimitiveReturnWorker<virDomainPtr, std::string>(callback, handle), flags_(flags) {}
+      ToXmlWorker(Nan::Callback *callback, virDomainPtr handle, int flags = 0)
+        : NLVStringReturnWorker<virDomainPtr, std::string>(callback, handle), flags_(flags) {}
       void Execute();
     private:
       unsigned int flags_;
   };
 
 #ifdef _HAVE_DOMAIN_METADATA_API
-  class GetMetadataWorker : public NLVPrimitiveReturnWorker<virDomainPtr, std::string> {
+  class GetMetadataWorker : public NLVStringReturnWorker<virDomainPtr, std::string> {
     public:
-      GetMetadataWorker(NanCallback *callback, virDomainPtr handle, int type, const std::string &namespace_uri, unsigned int flags)
-        : NLVPrimitiveReturnWorker<virDomainPtr, std::string>(callback, handle), type_(type), namespace_uri_(namespace_uri), flags_(flags) {}
+      GetMetadataWorker(Nan::Callback *callback, virDomainPtr handle, int type, const std::string &namespace_uri, unsigned int flags)
+        : NLVStringReturnWorker<virDomainPtr, std::string>(callback, handle), type_(type), namespace_uri_(namespace_uri), flags_(flags) {}
       void Execute();
     private:
       int type_;
@@ -365,7 +365,7 @@ private:
 
   class SetMetadataWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
     public:
-      SetMetadataWorker(NanCallback *callback, virDomainPtr handle,
+      SetMetadataWorker(Nan::Callback *callback, virDomainPtr handle,
 	      int type, bool null_metadata,
 	      const std::string &metadata, const std::string &namespace_key,
 	      const std::string &namespace_uri, unsigned int flags)
@@ -386,7 +386,7 @@ private:
 
   class SetAutostartWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, virDomainPtr handle, bool autoStart)
+    SetAutostartWorker(Nan::Callback *callback, virDomainPtr handle, bool autoStart)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), autoStart_(autoStart) {}
     void Execute();
   private:
@@ -395,7 +395,7 @@ private:
 
   class SetMaxMemoryWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SetMaxMemoryWorker(NanCallback *callback, virDomainPtr handle, unsigned long maxMemory)
+    SetMaxMemoryWorker(Nan::Callback *callback, virDomainPtr handle, unsigned long maxMemory)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), maxMemory_(maxMemory) {}
     void Execute();
   private:
@@ -404,7 +404,7 @@ private:
 
   class SetMemoryWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SetMemoryWorker(NanCallback *callback, virDomainPtr handle, unsigned long memory)
+    SetMemoryWorker(Nan::Callback *callback, virDomainPtr handle, unsigned long memory)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), memory_(memory) {}
     void Execute();
   private:
@@ -413,7 +413,7 @@ private:
 
   class GetBlockInfoWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    GetBlockInfoWorker(NanCallback *callback, virDomainPtr handle, const std::string &path)
+    GetBlockInfoWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &path)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), path_(path) {}
     void Execute();
   protected:
@@ -425,7 +425,7 @@ private:
 
   class GetBlockStatsWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    GetBlockStatsWorker(NanCallback *callback, virDomainPtr handle, const std::string &path)
+    GetBlockStatsWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &path)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), path_(path) {}
     void Execute();
   protected:
@@ -437,7 +437,7 @@ private:
 
   class GetInterfaceStatsWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    GetInterfaceStatsWorker(NanCallback *callback, virDomainPtr handle, const std::string &interface)
+    GetInterfaceStatsWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &interface)
       : NLVAsyncWorker<virDomainPtr>(callback, handle), interface_(interface) {}
     void Execute();
   protected:
@@ -450,7 +450,7 @@ private:
   class GetMemoryStatsWorker : public NLVAsyncWorker<virDomainPtr>
   {
   public:
-    explicit GetMemoryStatsWorker(NanCallback *callback, virDomainPtr handle)
+    explicit GetMemoryStatsWorker(Nan::Callback *callback, virDomainPtr handle)
       : NLVAsyncWorker<virDomainPtr>(callback, handle) {}
     void Execute();
   protected:
@@ -462,7 +462,7 @@ private:
   class GetVcpusWorker : public NLVAsyncWorker<virDomainPtr>
   {
   public:
-    explicit GetVcpusWorker(NanCallback *callback, virDomainPtr handle)
+    explicit GetVcpusWorker(Nan::Callback *callback, virDomainPtr handle)
       : NLVAsyncWorker<virDomainPtr>(callback, handle) {}
     void Execute();
   protected:
@@ -475,7 +475,7 @@ private:
 
   class SetVcpusWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SetVcpusWorker(NanCallback *callback, virDomainPtr handle, unsigned int count)
+    SetVcpusWorker(Nan::Callback *callback, virDomainPtr handle, unsigned int count)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), count_(count) {}
     void Execute();
   private:
@@ -484,7 +484,7 @@ private:
 
   class SetMigrationMaxDowntimeWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
-    SetMigrationMaxDowntimeWorker(NanCallback *callback, virDomainPtr handle, long long downtime, unsigned int flags)
+    SetMigrationMaxDowntimeWorker(Nan::Callback *callback, virDomainPtr handle, long long downtime, unsigned int flags)
       : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), downtime_(downtime), flags_(flags) {}
     void Execute();
   private:
@@ -494,7 +494,7 @@ private:
 
   class GetSnapshotsWorker : public NLVAsyncWorker<virDomainPtr> {
   public:
-    GetSnapshotsWorker(NanCallback *callback, virDomainPtr handle)
+    GetSnapshotsWorker(Nan::Callback *callback, virDomainPtr handle)
       : NLVAsyncWorker<virDomainPtr>(callback, handle) {}
     void Execute();
   protected:

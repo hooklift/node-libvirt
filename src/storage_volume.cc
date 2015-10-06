@@ -14,22 +14,22 @@ Persistent<FunctionTemplate> StorageVolume::constructor_template;
 Persistent<Function> StorageVolume::constructor;
 void StorageVolume::Initialize(Handle<Object> exports)
 {
-  NanScope();
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("StorageVolume"));
+  Nan::HandleScope scope;
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("StorageVolume").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "getInfo", GetInfo);
-  NODE_SET_PROTOTYPE_METHOD(t, "getKey",  GetKey);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName", GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getPath", GetPath);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",   ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "remove",  Delete);
-  NODE_SET_PROTOTYPE_METHOD(t, "wipe",    Wipe);
+  Nan::SetPrototypeMethod(t, "getInfo", GetInfo);
+  Nan::SetPrototypeMethod(t, "getKey",  GetKey);
+  Nan::SetPrototypeMethod(t, "getName", GetName);
+  Nan::SetPrototypeMethod(t, "getPath", GetPath);
+  Nan::SetPrototypeMethod(t, "toXml",   ToXml);
+  Nan::SetPrototypeMethod(t, "remove",  Delete);
+  Nan::SetPrototypeMethod(t, "wipe",    Wipe);
 
-  NanAssignPersistent(constructor_template, t);
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("StorageVolume"), t->GetFunction());
+  constructor_template.Reset(v8::Isolate::GetCurrent(), t);
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  exports->Set(Nan::New("StorageVolume").ToLocalChecked(), t->GetFunction());
 
   // Constants
   NODE_DEFINE_CONSTANT(exports, VIR_STORAGE_VOL_FILE);
@@ -39,34 +39,34 @@ void StorageVolume::Initialize(Handle<Object> exports)
 StorageVolume::StorageVolume(virStorageVolPtr handle) : NLVObject(handle) {}
 Local<Object> StorageVolume::NewInstance(virStorageVolPtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   StorageVolume *storageVolume = new StorageVolume(handle);
   storageVolume->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NAN_METHOD(StorageVolume::Create)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a string and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a string and callback");
+    return;
   }
 
-  if (!NanHasInstance(StoragePool::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a StoragePool instance");
-    NanReturnUndefined();
+  if (!Nan::New(StoragePool::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a StoragePool instance");
+    return;
   }
 
-  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(args.This());
-  std::string xmlData(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CreateWorker(callback, sp, xmlData));
-  NanReturnUndefined();
+  StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(info.This());
+  std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new CreateWorker(callback, sp, xmlData));
+  return;
 }
 
 NLV_WORKER_EXECUTE(StorageVolume, Create)
@@ -110,16 +110,16 @@ NLV_WORKER_EXECUTE(StorageVolume, Wipe)
 
 NAN_METHOD(StorageVolume::GetInfo)
 {
-  NanScope();
-  if (args.Length() != 1) {
-    NanThrowTypeError("You must specify a callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() != 1) {
+    Nan::ThrowTypeError("You must specify a callback");
+    return;
   }
 
-  NanCallback *callback = new NanCallback(args[0].As<Function>());
-  StorageVolume *storageVolume = ObjectWrap::Unwrap<StorageVolume>(args.This());
-  NanAsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
+  StorageVolume *storageVolume = ObjectWrap::Unwrap<StorageVolume>(info.This());
+  Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
+  return;
 }
 
 NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
@@ -134,13 +134,13 @@ NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
 
 NLV_WORKER_OKCALLBACK(StorageVolume, GetInfo)
 {
-  NanScope();
-  Local<Object> result = NanNew<Object>();
-  result->Set(NanNew("type"), NanNew<Integer>(info_.type));
-  result->Set(NanNew("capacity"), NanNew<Number>(info_.capacity));
-  result->Set(NanNew("allocation"), NanNew<Number>(info_.allocation));
+  Nan::HandleScope scope;
+  Local<Object> result = Nan::New<Object>();
+  result->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>(info_.type));
+  result->Set(Nan::New("capacity").ToLocalChecked(), Nan::New<Number>(info_.capacity));
+  result->Set(Nan::New("allocation").ToLocalChecked(), Nan::New<Number>(info_.allocation));
 
-  v8::Local<v8::Value> argv[] = { NanNull(), result };
+  v8::Local<v8::Value> argv[] = { Nan::Null(), result };
   callback->Call(2, argv);
 }
 
@@ -201,108 +201,108 @@ NLV_WORKER_EXECUTE(StorageVolume, ToXml)
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByName, virStorageVolLookupByName)
 NAN_METHOD(StorageVolume::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid name and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(StoragePool::constructor_template, object)) {
-    NanThrowTypeError("You must specify a StoragePool instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(StoragePool::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a StoragePool instance");
+    return;
   }
 
   StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, sp, name));
-  NanReturnUndefined();
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, sp, name));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByKey, virStorageVolLookupByKey)
 NAN_METHOD(StorageVolume::LookupByKey)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid name and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  std::string key(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByKeyWorker(callback, hv, key));
-  NanReturnUndefined();
+  std::string key(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByKeyWorker(callback, hv, key));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(StorageVolume, LookupByPath, virStorageVolLookupByPath)
 NAN_METHOD(StorageVolume::LookupByPath)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid name and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  std::string path(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByPathWorker(callback, hv, path));
-  NanReturnUndefined();
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByPathWorker(callback, hv, path));
+  return;
 }
 
 NAN_METHOD(StorageVolume::Clone)
 {
-  NanScope();
-  if (args.Length() < 3) {
-    NanThrowTypeError("You must specify three arguments to call this function");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 3) {
+    Nan::ThrowTypeError("You must specify three arguments to call this function");
+    return;
   }
 
-  if (!NanHasInstance(StorageVolume::constructor_template, args[0])) {
-    NanThrowTypeError("You must specify a StorageVolume instance as first argument");
-    NanReturnUndefined();
+  if (!Nan::New(StorageVolume::constructor_template)->HasInstance(info[0])) {
+    Nan::ThrowTypeError("You must specify a StorageVolume instance as first argument");
+    return;
   }
 
-  if (!args[1]->IsString()) {
-    NanThrowTypeError("You must specify a string as second argument");
-    NanReturnUndefined();
+  if (!info[1]->IsString()) {
+    Nan::ThrowTypeError("You must specify a string as second argument");
+    return;
   }
 
-  if (!args[2]->IsFunction()) {
-    NanThrowTypeError("You must specify a callback as the third argument");
-    NanReturnUndefined();
+  if (!info[2]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a callback as t.ToLocalChecked()he third argument");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(StoragePool::constructor_template, object)) {
-    NanThrowTypeError("You must specify a StoragePool instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(StoragePool::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a StoragePool instance");
+    return;
   }
 
-  std::string xml(*NanUtf8String(args[1]->ToString()));
+  std::string xml(*Nan::Utf8String(info[1]->ToString()));
   StoragePool *sp = ObjectWrap::Unwrap<StoragePool>(object);
-  StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(args[0]->ToObject());
+  StorageVolume *sv = ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
 
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_));
-  NanReturnUndefined();
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Nan::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_));
+  return;
 }
 
 NLV_WORKER_EXECUTE(StorageVolume, Clone)

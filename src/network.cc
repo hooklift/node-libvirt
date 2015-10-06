@@ -8,80 +8,80 @@ namespace NLV {
 Persistent<Function> Network::constructor;
 void Network::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("Network"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("Network").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "start",           Start);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName",         GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID",         GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "getAutostart",    GetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "setAutostart",    SetAutostart);
-  NODE_SET_PROTOTYPE_METHOD(t, "isActive",        IsActive);
-  NODE_SET_PROTOTYPE_METHOD(t, "isPersistent",    IsPersistent);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine",        Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "destroy",         Destroy);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",           ToXml);
-  NODE_SET_PROTOTYPE_METHOD(t, "getBridgeName",   GetBridgeName);
+  Nan::SetPrototypeMethod(t, "start",           Start);
+  Nan::SetPrototypeMethod(t, "getName",         GetName);
+  Nan::SetPrototypeMethod(t, "getUUID",         GetUUID);
+  Nan::SetPrototypeMethod(t, "getAutostart",    GetAutostart);
+  Nan::SetPrototypeMethod(t, "setAutostart",    SetAutostart);
+  Nan::SetPrototypeMethod(t, "isActive",        IsActive);
+  Nan::SetPrototypeMethod(t, "isPersistent",    IsPersistent);
+  Nan::SetPrototypeMethod(t, "undefine",        Undefine);
+  Nan::SetPrototypeMethod(t, "destroy",         Destroy);
+  Nan::SetPrototypeMethod(t, "toXml",           ToXml);
+  Nan::SetPrototypeMethod(t, "getBridgeName",   GetBridgeName);
 
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("Network"), t->GetFunction());
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  exports->Set(Nan::New("Network").ToLocalChecked(), t->GetFunction());
 }
 
 Network::Network(virNetworkPtr handle) : NLVObject(handle) {}
 Local<Object> Network::NewInstance(virNetworkPtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   Network *network = new Network(handle);
   network->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)
 NAN_METHOD(Network::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid network name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid network name and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByUUID, virNetworkLookupByUUIDString)
 NAN_METHOD(Network::LookupByUUID)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid network uuid and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid network uuid and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string uuid(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
+  return;
 }
 
 NLV_WORKER_METHOD_CREATE(Network)
@@ -164,18 +164,18 @@ NLV_WORKER_EXECUTE(Network, GetAutostart)
 
 NAN_METHOD(Network::SetAutostart)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a bool and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a bool and callback");
+    return;
   }
 
-  bool autoStart = args[0]->IsTrue();
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Network *network = ObjectWrap::Unwrap<Network>(args.This());
-  NanAsyncQueueWorker(new SetAutostartWorker(callback, network->handle_, autoStart));
-  NanReturnUndefined();
+  bool autoStart = info[0]->IsTrue();
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Network *network = ObjectWrap::Unwrap<Network>(info.This());
+  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, network->handle_, autoStart));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Network, SetAutostart)

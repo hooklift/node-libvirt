@@ -8,32 +8,32 @@ namespace NLV {
 Persistent<Function> Secret::constructor;
 void Secret::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("Secret"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("Secret").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUUID",       GetUUID);
-  NODE_SET_PROTOTYPE_METHOD(t, "getValue",      GetValue);
-  NODE_SET_PROTOTYPE_METHOD(t, "setValue",      SetValue);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUsageId",    GetUsageId);
-  NODE_SET_PROTOTYPE_METHOD(t, "getUsageType",  GetUsageType);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
+  Nan::SetPrototypeMethod(t, "undefine",      Undefine);
+  Nan::SetPrototypeMethod(t, "getUUID",       GetUUID);
+  Nan::SetPrototypeMethod(t, "getValue",      GetValue);
+  Nan::SetPrototypeMethod(t, "setValue",      SetValue);
+  Nan::SetPrototypeMethod(t, "getUsageId",    GetUsageId);
+  Nan::SetPrototypeMethod(t, "getUsageType",  GetUsageType);
+  Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("Secret"), t->GetFunction());
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  exports->Set(Nan::New("Secret").ToLocalChecked(), t->GetFunction());
 }
 
 Secret::Secret(virSecretPtr handle) : NLVObject(handle) {}
 Local<Object> Secret::NewInstance(virSecretPtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   Secret *secret = new Secret(handle);
   secret->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_WORKER_METHOD_DEFINE(Secret)
@@ -63,39 +63,39 @@ NLV_WORKER_EXECUTE(Secret, Undefine)
 
 NAN_METHOD(Secret::LookupByUsage)
 {
-  NanScope();
-  if (args.Length() < 3) {
-    NanThrowTypeError("You must specify type, xml and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 3) {
+    Nan::ThrowTypeError("You must specify type, xml and callback");
+    return;
   }
 
-  if (!args[0]->IsInt32()) {
-    NanThrowTypeError("You must specify a number as first argument");
-    NanReturnUndefined();
+  if (!info[0]->IsInt32()) {
+    Nan::ThrowTypeError("You must specify a number as first argument");
+    return;
   }
 
-  if (!args[1]->IsString()) {
-    NanThrowTypeError("You must specify a string as second argument");
-    NanReturnUndefined();
+  if (!info[1]->IsString()) {
+    Nan::ThrowTypeError("You must specify a string as second argument");
+    return;
   }
 
-  if (!args[2]->IsFunction()) {
-    NanThrowTypeError("You must specify a callback as the third argument");
-    NanReturnUndefined();
+  if (!info[2]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify a callback as the third argument");
+    return;
   }
 
-  Local<Object> hyp_obj = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, hyp_obj)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> hyp_obj = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(hyp_obj)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  int usageType = args[0]->Int32Value();
-  std::string usageId(*NanUtf8String(args[1]->ToString()));
-  NanCallback *callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(new LookupByUsageWorker(callback, hv, usageId, usageType));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  int usageType = info[0]->Int32Value();
+  std::string usageId(*Nan::Utf8String(info[1]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByUsageWorker(callback, hv, usageId, usageType));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
@@ -111,23 +111,23 @@ NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Secret, LookupByUUID, virSecretLookupByUUIDString)
 NAN_METHOD(Secret::LookupByUUID)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid uuid and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid uuid and callback.");
+    return;
   }
 
-  if (!NanHasInstance(Hypervisor::constructor_template, args.This())) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
-  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(args.This());
-  std::string uuid(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
-  NanReturnUndefined();
+  Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
+  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
+  return;
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Secret, GetUUID)
@@ -192,18 +192,18 @@ NLV_WORKER_EXECUTE(Secret, GetValue)
 
 NAN_METHOD(Secret::SetValue)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a value and callback");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a value and callback");
+    return;
   }
 
-  std::string value(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  Secret *secret = ObjectWrap::Unwrap<Secret>(args.This());
-  NanAsyncQueueWorker(new SetValueWorker(callback, secret->handle_, value));
-  NanReturnUndefined();
+  std::string value(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Secret *secret = ObjectWrap::Unwrap<Secret>(info.This());
+  Nan::AsyncQueueWorker(new SetValueWorker(callback, secret->handle_, value));
+  return;
 }
 
 NLV_WORKER_EXECUTE(Secret, SetValue)

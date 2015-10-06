@@ -13,10 +13,10 @@
 /**
  * Base class for all workers in node-libvirt
  */
-class NLVAsyncWorkerBase : public NanAsyncWorker
+class NLVAsyncWorkerBase : public Nan::AsyncWorker
 {
 public:
-  explicit NLVAsyncWorkerBase(NanCallback *callback);
+  explicit NLVAsyncWorkerBase(Nan::Callback *callback);
 
   virErrorPtr VirError() const;
   void SetVirError(virErrorPtr error);
@@ -38,7 +38,7 @@ template <typename T>
 class NLVAsyncWorker : public NLVAsyncWorkerBase
 {
 public:
-  explicit NLVAsyncWorker(NanCallback *callback, T handle)
+  explicit NLVAsyncWorker(Nan::Callback *callback, T handle)
     : NLVAsyncWorkerBase(callback), handle_(handle) {}
 
   T Handle() const { return handle_; }
@@ -54,7 +54,7 @@ private:
 #define NLV_PRIMITIVE_RETURN_WORKER(Method, HandleType, PrimitiveType)  \
   class Method##Worker : public NLVPrimitiveReturnWorker<HandleType, PrimitiveType> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle) \
+    Method##Worker(Nan::Callback *callback, HandleType handle) \
       : NLVPrimitiveReturnWorker<HandleType, PrimitiveType>(callback, handle) {} \
     void Execute(); \
   };
@@ -63,15 +63,15 @@ template <typename HandleType, typename PrimitiveType>
 class NLVPrimitiveReturnWorker : public NLVAsyncWorker<HandleType>
 {
 public:
-  explicit NLVPrimitiveReturnWorker(NanCallback *callback, HandleType handle)
+  explicit NLVPrimitiveReturnWorker(Nan::Callback *callback, HandleType handle)
     : NLVAsyncWorker<HandleType>(callback, handle) {}
 
 protected:
   using NLVAsyncWorker<HandleType>::callback;
 
   void HandleOKCallback() {
-    NanScope();
-    v8::Local<v8::Value> argv[] = { NanNull(), NanNew(data_) };
+    Nan::HandleScope scope;
+    v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(data_) };
     callback->Call(2, argv);
   }
 
@@ -79,12 +79,43 @@ protected:
 };
 
 /**
+ * Worker that returns a primitive to javascript
+ */
+#define NLV_STRING_RETURN_WORKER(Method, HandleType, PrimitiveType)  \
+  class Method##Worker : public NLVStringReturnWorker<HandleType, PrimitiveType> { \
+  public: \
+    Method##Worker(Nan::Callback *callback, HandleType handle) \
+      : NLVStringReturnWorker<HandleType, PrimitiveType>(callback, handle) {} \
+    void Execute(); \
+  };
+
+template <typename HandleType, typename PrimitiveType>
+class NLVStringReturnWorker : public NLVAsyncWorker<HandleType>
+{
+public:
+  explicit NLVStringReturnWorker(Nan::Callback *callback, HandleType handle)
+    : NLVAsyncWorker<HandleType>(callback, handle) {}
+
+protected:
+  using NLVAsyncWorker<HandleType>::callback;
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(data_).ToLocalChecked() };
+    callback->Call(2, argv);
+  }
+
+  PrimitiveType data_;
+};
+
+
+/**
  * Worker that returns lists
  */
 #define NLV_LIST_RETURN_WORKER(Method, HandleType, CType, V8Type)  \
   class Method##Worker : public NLVListReturnWorker<HandleType, CType, V8Type> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle) \
+    Method##Worker(Nan::Callback *callback, HandleType handle) \
       : NLVListReturnWorker<HandleType, CType, V8Type>(callback, handle) {} \
     void Execute(); \
   };
@@ -93,19 +124,53 @@ template <typename HandleType, typename CType, typename V8Type>
 class NLVListReturnWorker : public NLVAsyncWorker<HandleType>
 {
 public:
-  explicit NLVListReturnWorker(NanCallback *callback, HandleType handle)
+  explicit NLVListReturnWorker(Nan::Callback *callback, HandleType handle)
     : NLVAsyncWorker<HandleType>(callback, handle) {}
 
 protected:
   using NLVAsyncWorker<HandleType>::callback;
 
   virtual void HandleOKCallback() {
-    NanScope();
-    v8::Local<v8::Array> result = NanNew<v8::Array>(data_.size());
+    Nan::HandleScope scope;
+    v8::Local<v8::Array> result = Nan::New<v8::Array>(data_.size());
     for (unsigned int i = 0; i < data_.size(); ++i)
-      result->Set(NanNew<v8::Integer>(i), NanNew<V8Type>(data_[i]));
+      result->Set(i, Nan::New<V8Type>(data_[i]));
 
-    v8::Local<v8::Value> argv[] = { NanNull(), result };
+    v8::Local<v8::Value> argv[] = { Nan::Null(), result };
+    callback->Call(2, argv);
+  }
+
+  std::vector<CType> data_;
+};
+
+/**
+ * Worker that returns lists
+ */
+#define NLV_STRING_LIST_RETURN_WORKER(Method, HandleType, CType, V8Type)  \
+  class Method##Worker : public NLVStringListReturnWorker<HandleType, CType, V8Type> { \
+  public: \
+    Method##Worker(Nan::Callback *callback, HandleType handle) \
+      : NLVStringListReturnWorker<HandleType, CType, V8Type>(callback, handle) {} \
+    void Execute(); \
+  };
+
+template <typename HandleType, typename CType, typename V8Type>
+class NLVStringListReturnWorker : public NLVAsyncWorker<HandleType>
+{
+public:
+  explicit NLVStringListReturnWorker(Nan::Callback *callback, HandleType handle)
+    : NLVAsyncWorker<HandleType>(callback, handle) {}
+
+protected:
+  using NLVAsyncWorker<HandleType>::callback;
+
+  virtual void HandleOKCallback() {
+    Nan::HandleScope scope;
+    v8::Local<v8::Array> result = Nan::New<v8::Array>(data_.size());
+    for (unsigned int i = 0; i < data_.size(); ++i)
+      result->Set(i, Nan::New<V8Type>(data_[i]).ToLocalChecked());
+
+    v8::Local<v8::Value> argv[] = { Nan::Null(), result };
     callback->Call(2, argv);
   }
 
@@ -118,7 +183,7 @@ protected:
 #define NLV_OBJECT_RETURN_WORKER(Method, HandleType, ObjectType) \
   class Method##Worker : public NLVAsyncWorker<HandleType> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle)  \
+    Method##Worker(Nan::Callback *callback, HandleType handle)  \
       : NLVAsyncWorker<HandleType>(callback, handle) {}  \
     void Execute(); \
   protected:  \
@@ -134,7 +199,7 @@ protected:
 #define NLV_TYPED_PARAMETER_RETURN_WORKER(Method, HandleType, ParameterType)  \
   class Method##Worker : public NLVTypedParameterReturnWorker<HandleType, ParameterType> { \
   public: \
-    Method##Worker(NanCallback *callback, HandleType handle)  \
+    Method##Worker(Nan::Callback *callback, HandleType handle)  \
       : NLVTypedParameterReturnWorker<HandleType, ParameterType>(callback, handle) {} \
     void Execute(); \
   };
@@ -143,44 +208,44 @@ template <typename HandleType, typename T>
 class NLVTypedParameterReturnWorker : public NLVAsyncWorker<HandleType>
 {
 public:
-  explicit NLVTypedParameterReturnWorker(NanCallback *callback, HandleType handle)
+  explicit NLVTypedParameterReturnWorker(Nan::Callback *callback, HandleType handle)
     : NLVAsyncWorker<HandleType>(callback, handle) {}
 
 protected:
   using NLVAsyncWorker<HandleType>::callback;
   virtual void HandleOKCallback() {
-    NanScope();
-    v8::Local<v8::Object> result = NanNew<v8::Object>();
+    Nan::HandleScope scope;
+    v8::Local<v8::Object> result = Nan::New<v8::Object>();
     typename std::vector<T>::const_iterator it;
     for (it = params_.begin(); it != params_.end(); ++it) {
       v8::Local<v8::Value> value;
       switch((*it).type) {
       case VIR_TYPED_PARAM_INT:
-        value = NanNew<v8::Integer>((*it).value.i);
+        value = Nan::New<v8::Integer>((*it).value.i);
         break;
       case VIR_TYPED_PARAM_UINT:
-        value = NanNew<v8::Integer>((*it).value.ui);
+        value = Nan::New<v8::Integer>((*it).value.ui);
         break;
       case VIR_TYPED_PARAM_LLONG:
-        value = NanNew<v8::Number>((*it).value.l);
+        value = Nan::New<v8::Number>((*it).value.l);
         break;
       case VIR_TYPED_PARAM_ULLONG:
-        value = NanNew<v8::Number>((*it).value.ul);
+        value = Nan::New<v8::Number>((*it).value.ul);
         break;
       case VIR_TYPED_PARAM_DOUBLE:
-        value = NanNew<v8::Number>((*it).value.d);
+        value = Nan::New<v8::Number>((*it).value.d);
         break;
       case VIR_TYPED_PARAM_BOOLEAN:
-        value = NanNew<v8::Boolean>((*it).value.b);
+        value = Nan::New<v8::Boolean>((*it).value.b);
         break;
       default:
-        value = NanNull();
+        value = Nan::Null();
       }
 
-      result->Set(NanNew((*it).field), value);
+      result->Set(Nan::New((*it).field).ToLocalChecked(), value);
     }
 
-    v8::Local<v8::Value> argv[] = { NanNull(), result };
+    v8::Local<v8::Value> argv[] = { Nan::Null(), result };
     callback->Call(2, argv);
   };
 
@@ -193,7 +258,7 @@ protected:
 #define NLV_LOOKUP_BY_VALUE_WORKER(Method, InstanceClass, ParentClass, InstanceType)  \
   class Method##Worker : public NLVLookupInstanceByValueWorker<InstanceClass, ParentClass, InstanceType> { \
   public: \
-    Method##Worker(NanCallback *callback, ParentClass *parent, const std::string &value) \
+    Method##Worker(Nan::Callback *callback, ParentClass *parent, const std::string &value) \
       : NLVLookupInstanceByValueWorker<InstanceClass, ParentClass, InstanceType>(callback, parent, value) {} \
     void Execute(); \
   };
@@ -211,7 +276,7 @@ template <typename InstanceClass, typename ParentClass, typename InstanceHandleT
 class NLVLookupInstanceByValueWorker : public NLVAsyncWorkerBase
 {
 public:
-  explicit NLVLookupInstanceByValueWorker(NanCallback *callback,
+  explicit NLVLookupInstanceByValueWorker(Nan::Callback *callback,
                                             ParentClass *parent,
                                             const std::string &value)
     : NLVAsyncWorkerBase(callback), parent_(parent), value_(value), lookupHandle_(NULL) {}
@@ -219,13 +284,13 @@ public:
 protected:
   using NLVAsyncWorkerBase::callback;
   virtual void HandleOKCallback() {
-    NanScope();
+    Nan::HandleScope scope;
     Local<Object> childObject = InstanceClass::NewInstance(lookupHandle_);
     InstanceClass *child = ObjectWrap::Unwrap<InstanceClass>(childObject);
     NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
     child->SetParentReference(childPtr);
     parent_->children_.push_back(childPtr);
-    v8::Local<v8::Value> argv[] = { NanNull(), childObject };
+    v8::Local<v8::Value> argv[] = { Nan::Null(), childObject };
     callback->Call(2, argv);
   }
 

@@ -62,17 +62,17 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(Undefine, virNetworkPtr, bool);
 
   // ACCESSORS/MUTATORS WORKERS
-  NLV_PRIMITIVE_RETURN_WORKER(GetName, virNetworkPtr, std::string);
-  NLV_PRIMITIVE_RETURN_WORKER(GetUUID, virNetworkPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetName, virNetworkPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetUUID, virNetworkPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(GetAutostart, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(GetBridgeName, virNetworkPtr, std::string);
+  NLV_STRING_RETURN_WORKER(GetBridgeName, virNetworkPtr, std::string);
   NLV_PRIMITIVE_RETURN_WORKER(IsActive, virNetworkPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(IsPersistent, virNetworkPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(ToXml, virNetworkPtr, std::string);
+  NLV_STRING_RETURN_WORKER(ToXml, virNetworkPtr, std::string);
 
   class SetAutostartWorker : public NLVPrimitiveReturnWorker<virNetworkPtr, bool> {
   public:
-    SetAutostartWorker(NanCallback *callback, virNetworkPtr handle, bool autoStart)
+    SetAutostartWorker(Nan::Callback *callback, virNetworkPtr handle, bool autoStart)
       : NLVPrimitiveReturnWorker<virNetworkPtr, bool>(callback, handle), autoStart_(autoStart) {} \
     void Execute();
   private:

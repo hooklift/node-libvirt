@@ -3,8 +3,8 @@
 
 using namespace NLV;
 
-NLVAsyncWorkerBase::NLVAsyncWorkerBase(NanCallback *callback)
-    : NanAsyncWorker(callback),
+NLVAsyncWorkerBase::NLVAsyncWorkerBase(Nan::Callback *callback)
+    : Nan::AsyncWorker(callback),
       virError_(NULL)
 {
 }
@@ -21,7 +21,7 @@ void NLVAsyncWorkerBase::SetVirError(virErrorPtr error)
 
 void NLVAsyncWorkerBase::WorkComplete()
 {
-  NanScope();
+  Nan::HandleScope scope;
   if (virError_ == NULL && ErrorMessage() == NULL) {
     HandleOKCallback();
   } else {
@@ -34,13 +34,13 @@ void NLVAsyncWorkerBase::WorkComplete()
 
 void NLVAsyncWorkerBase::HandleErrorCallback()
 {
-  NanScope();
+  Nan::HandleScope scope;
   if (virError_ != NULL) {
-    v8::Handle<v8::Value> argv[] = { Error::New(VirError()) };
+    v8::Local<v8::Value> argv[] = { Error::New(VirError()) };
     callback->Call(1, argv);
   } else {
     v8::Local<v8::Value> argv[] = {
-      v8::Exception::Error(NanNew<v8::String>(ErrorMessage()))
+      v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
     };
     callback->Call(1, argv);
   }

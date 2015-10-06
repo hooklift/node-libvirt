@@ -8,20 +8,20 @@ namespace NLV {
 Persistent<Function> Interface::constructor;
 void Interface::Initialize(Handle<Object> exports)
 {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>();
-  t->SetClassName(NanNew("Interface"));
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
+  t->SetClassName(Nan::New("Interface").ToLocalChecked());
   t->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(t, "start",         Start);
-  NODE_SET_PROTOTYPE_METHOD(t, "stop",          Stop);
-  NODE_SET_PROTOTYPE_METHOD(t, "getName",       GetName);
-  NODE_SET_PROTOTYPE_METHOD(t, "getMacAddress", GetMacAddress);
-  NODE_SET_PROTOTYPE_METHOD(t, "isActive",      IsActive);
-  NODE_SET_PROTOTYPE_METHOD(t, "undefine",      Undefine);
-  NODE_SET_PROTOTYPE_METHOD(t, "toXml",         ToXml);
+  Nan::SetPrototypeMethod(t, "start",         Start);
+  Nan::SetPrototypeMethod(t, "stop",          Stop);
+  Nan::SetPrototypeMethod(t, "getName",       GetName);
+  Nan::SetPrototypeMethod(t, "getMacAddress", GetMacAddress);
+  Nan::SetPrototypeMethod(t, "isActive",      IsActive);
+  Nan::SetPrototypeMethod(t, "undefine",      Undefine);
+  Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
-  NanAssignPersistent(constructor, t->GetFunction());
-  exports->Set(NanNew("Interface"), t->GetFunction());
+  constructor.Reset(v8::Isolate::GetCurrent(), t->GetFunction());
+  exports->Set(Nan::New("Interface").ToLocalChecked(), t->GetFunction());
 
   //Constants
   //virInterfaceXMLFlags
@@ -31,13 +31,13 @@ void Interface::Initialize(Handle<Object> exports)
 Interface::Interface(virInterfacePtr handle) : NLVObject(handle) {}
 Local<Object> Interface::NewInstance(virInterfacePtr handle)
 {
-  NanEscapableScope();
-  Local<Function> ctor = NanNew<Function>(constructor);
+  Nan::EscapableHandleScope scope;
+  Local<Function> ctor = Nan::New<Function>(constructor);
   Local<Object> object = ctor->NewInstance();
 
   Interface *interface = new Interface(handle);
   interface->Wrap(object);
-  return NanEscapeScope(object);
+  return scope.Escape(object);
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
@@ -97,47 +97,47 @@ NLV_WORKER_EXECUTE(Interface, Undefine)
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByName, virInterfaceLookupByName)
 NAN_METHOD(Interface::LookupByName)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid Interface name and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid Interface name and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  std::string name(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
-  NanReturnUndefined();
+  std::string name(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  return;
 }
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Interface, LookupByMacAddress, virInterfaceLookupByMACString)
 NAN_METHOD(Interface::LookupByMacAddress)
 {
-  NanScope();
-  if (args.Length() < 2 ||
-      (!args[0]->IsString() && !args[1]->IsFunction())) {
-    NanThrowTypeError("You must specify a valid Interface MAC address and callback.");
-    NanReturnUndefined();
+  Nan::HandleScope scope;
+  if (info.Length() < 2 ||
+      (!info[0]->IsString() && !info[1]->IsFunction())) {
+    Nan::ThrowTypeError("You must specify a valid Interface MAC address and callback.");
+    return;
   }
 
-  Local<Object> object = args.This();
-  if (!NanHasInstance(Hypervisor::constructor_template, object)) {
-    NanThrowTypeError("You must specify a Hypervisor instance");
-    NanReturnUndefined();
+  Local<Object> object = info.This();
+  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(object)) {
+    Nan::ThrowTypeError("You must specify a Hypervisor instance");
+    return;
   }
 
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
-  std::string uuid(*NanUtf8String(args[0]->ToString()));
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new LookupByMacAddressWorker(callback, hv, uuid));
-  NanReturnUndefined();
+  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Nan::AsyncQueueWorker(new LookupByMacAddressWorker(callback, hv, uuid));
+  return;
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, GetName)
