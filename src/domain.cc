@@ -2091,14 +2091,14 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   type = virDomainGetSchedulerType(domain->handle_, &nparams);
   if (type == NULL) {
     Nan::ThrowError(Error::New(virGetLastError()));
-    info.GetReturnValue().Set(Nan::False());
+    return info.GetReturnValue().Set(Nan::False());
   }
   free(type);
 
   params = (virSchedParameterPtr) malloc(sizeof(*params) * nparams);
   if (params == NULL) {
     Nan::ThrowError("unable to allocate memory");
-    info.GetReturnValue().Set(Nan::False());
+    return info.GetReturnValue().Set(Nan::False());
   }
 
   memset(params, 0, sizeof(*params) * nparams);
@@ -2107,7 +2107,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   if(ret == -1) {
     Nan::ThrowError(Error::New(virGetLastError()));
     free(params);
-    info.GetReturnValue().Set(Nan::False());
+    return info.GetReturnValue().Set(Nan::False());
   }
 
   for (int i = 0; i < nparams; i++) {
@@ -2144,11 +2144,11 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   if (ret == -1) {
     Nan::ThrowError(Error::New(virGetLastError()));
     free(params);
-    info.GetReturnValue().Set(Nan::False());
+    return info.GetReturnValue().Set(Nan::False());
   }
   free(params);
 
-  info.GetReturnValue().Set(Nan::True());
+  return info.GetReturnValue().Set(Nan::True());
 }
 
 void Domain::domain_event_free(void *opaque)

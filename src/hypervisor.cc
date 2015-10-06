@@ -181,7 +181,7 @@ NAN_METHOD(Hypervisor::New)
     const int argc = 1;
     Local<Value> argv[argc] = { info[0] };
     Local<Function> cons = Nan::New<Function>(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+    return info.GetReturnValue().Set(cons->NewInstance(argc, argv));
   }
 
   int infoLen = info.Length();
@@ -226,7 +226,7 @@ NAN_METHOD(Hypervisor::New)
   info.This()->Set(Nan::New("password").ToLocalChecked(), Nan::New(password).ToLocalChecked());
   info.This()->Set(Nan::New("readOnly").ToLocalChecked(), Nan::New(readOnly));
 
-  info.GetReturnValue().Set(info.This());
+  return info.GetReturnValue().Set(info.This());
 }
 
 int Hypervisor::ConnectWorker::auth_callback(virConnectCredentialPtr cred,

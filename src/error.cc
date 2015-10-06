@@ -168,23 +168,23 @@ NAN_GETTER(Error::Getter)
   virErrorPtr error_ = error->error_;
 
   if (property->Equals(Nan::New("code").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->code));
+    return info.GetReturnValue().Set(Nan::New(error_->code));
   } else if (property->Equals(Nan::New("domain").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->domain));
+    return info.GetReturnValue().Set(Nan::New(error_->domain));
   } else if (property->Equals(Nan::New("message").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->message).ToLocalChecked());
+    return info.GetReturnValue().Set(Nan::New(error_->message).ToLocalChecked());
   } else if (property->Equals(Nan::New("level").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->level));
+    return info.GetReturnValue().Set(Nan::New(error_->level));
   } else if (property->Equals(Nan::New("str1").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->str1 != NULL ? error_->str1 : "").ToLocalChecked());
+    return info.GetReturnValue().Set(Nan::New(error_->str1 != NULL ? error_->str1 : "").ToLocalChecked());
   } else if (property->Equals(Nan::New("str2").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->str2 != NULL ? error_->str2 : "").ToLocalChecked());
+    return info.GetReturnValue().Set(Nan::New(error_->str2 != NULL ? error_->str2 : "").ToLocalChecked());
   } else if (property->Equals(Nan::New("str3").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->str3 != NULL ? error_->str3 : "").ToLocalChecked());
+    return info.GetReturnValue().Set(Nan::New(error_->str3 != NULL ? error_->str3 : "").ToLocalChecked());
   } else if (property->Equals(Nan::New("int1").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->int1));
+    return info.GetReturnValue().Set(Nan::New(error_->int1));
   } else if (property->Equals(Nan::New("int2").ToLocalChecked())) {
-    info.GetReturnValue().Set(Nan::New(error_->int2));
+    return info.GetReturnValue().Set(Nan::New(error_->int2));
   }
 
   return;
