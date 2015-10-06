@@ -57,7 +57,7 @@
     "chai": "^3.2.0",
     "jshint": "^2.8.0",
     "mocha": "^2.2.5",
-    "segfault-handler": "^0.2.4",
+    "segfault-handler": "^0.2.5",
     "semver": "^5.0.1",
     "xpath": "~0.0.9",
     "xmldom": "~0.1.19"
