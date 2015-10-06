@@ -1,7 +1,7 @@
 language: node_js
 node_js:
   - '0.12'
-  - '4.1'
+  - '4'
 
 cache:
   directories:
@@ -13,3 +13,10 @@ before_install:
 
 script:
   - make test
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
