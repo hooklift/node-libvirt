@@ -67,7 +67,7 @@
     Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
     std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
     Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
-    Nan::AsyncQueueWorker(new DefineWorker(callback, hv, xmlData));  \
+    NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new DefineWorker(callback, hv, xmlData), info.This()); \
     return; \
   }
 
@@ -86,7 +86,7 @@
     Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This()); \
     std::string xmlData(*Nan::Utf8String(info[0]->ToString())); \
     Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());  \
-    Nan::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData));  \
+    NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new CreateWorker(callback, hv, xmlData), info.This()); \
     return; \
   }
 

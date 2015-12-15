@@ -33,6 +33,7 @@ describe('Interface', function() {
       test.hypervisor.defineInterface(xml, function(err, iface) {
         expect(err).to.not.exist;
         expect(iface).to.exist;
+        expect(iface._parent).to.exist;
 
         iface.getName(function(err, result) {
           expect(err).to.not.exist;
@@ -47,10 +48,12 @@ describe('Interface', function() {
       test.hypervisor.defineInterface(xml, function(err, iface) {
         expect(err).to.not.exist;
         expect(iface).to.exist;
+        expect(iface._parent).to.exist;
 
         test.hypervisor.lookupInterfaceByName('eth2', function(err, iface) {
           expect(err).to.not.exist;
           expect(iface).to.exist;
+          expect(iface._parent).to.exist;
           iface.undefine(function(err, result) {
             expect(err).to.not.exist;
             expect(result).to.be.true;
@@ -64,6 +67,7 @@ describe('Interface', function() {
       test.hypervisor.lookupInterfaceByName('eth1', function(err, iface) {
         expect(err).to.not.exist;
         expect(iface).to.exist;
+        expect(iface._parent).to.exist;
 
         iface.getName(function(err, result) {
           expect(err).to.not.exist;
@@ -77,6 +81,7 @@ describe('Interface', function() {
       test.hypervisor.lookupInterfaceByMacAddress('aa:bb:cc:dd:ee:ff', function(err, iface) {
         expect(err).to.not.exist;
         expect(iface).to.exist;
+        expect(iface._parent).to.exist;
 
         iface.getName(function(err, result) {
           expect(err).to.not.exist;
@@ -95,6 +100,7 @@ describe('Interface', function() {
         test.hypervisor.lookupInterfaceByName('eth1', function(err, iface) {
           expect(err).to.not.exist;
           expect(iface).to.exist;
+          expect(iface._parent).to.exist;
           test.interface = iface;
           done();
         });

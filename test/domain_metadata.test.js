@@ -7,7 +7,7 @@ var libvirt = require('../lib'),
     semver = require('semver'),
     expect = require('chai').expect,
     xpath = require('xpath'),
-    dom = require('xmldom').DOMParser;
+    Dom = require('xmldom').DOMParser;
 
 var test = {};
 
@@ -39,7 +39,7 @@ function getMetadataFromXml(test, callback) {
         if (err) {
             callback(err);
         } else {
-            var doc = new dom().parseFromString(xml);
+            var doc = new Dom().parseFromString(xml);
             var nodes = xpath.select("//metadata/*", doc);
             expect(nodes.length).to.be.below(2);
             xml = nodes.length === 1 ? nodes[0].toString() : undefined;
@@ -93,6 +93,7 @@ describe('Domain', function() {
                 test.hypervisor.lookupDomainById(1, function(err, domain) {
                     expect(err).to.not.exist;
                     expect(domain).to.exist;
+                    expect(domain._parent).to.exist;
                     test.domain = domain;
                     done();
                 });
@@ -119,14 +120,14 @@ describe('Domain', function() {
                 }
             );
         });
-        
+
         it('should rewrite domain element metadata', function(done) {
             if (semver.lt(test.version, '0.9.10')) { return done(); }
             var metadata2 = h.fixture("metadata2.xml");
             metadata2 = metadata2.trim();
             var metadata2_ns = h.fixture("metadata2_ns.xml");
             metadata2_ns = metadata2_ns.trim();
-            test.domain.setMetadata(libvirt.VIR_DOMAIN_METADATA_ELEMENT, metadata2, "blurb", "http://herp.derp/", 0, 
+            test.domain.setMetadata(libvirt.VIR_DOMAIN_METADATA_ELEMENT, metadata2, "blurb", "http://herp.derp/", 0,
                 function(err) {
                     expect(err).to.not.exist;
                     verifyMetadata(test, metadata2, metadata2_ns, "http://herp.derp/", done);

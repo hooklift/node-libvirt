@@ -8,11 +8,11 @@ jshint:
 fixjsstyle:
 	fixjsstyle -r lib -r test --strict --jslint_error=all
 
-test:
+test:	jshint
 	@if [ "$$GREP" ]; then \
-		make jshint && $(NPM_BIN)/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		$(NPM_BIN)/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		make jshint && $(NPM_BIN)/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+		$(NPM_BIN)/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
 .PHONY: jshint fixjsstyle test

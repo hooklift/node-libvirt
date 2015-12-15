@@ -59,6 +59,7 @@ describe('Storage Pool', function() {
       test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
         expect(err).to.not.exist;
         expect(pool).to.exist;
+        expect(pool._parent).to.exist;
 
         pool.getVolumes(function(err, volumes) {
           expect(err).to.not.exist;
@@ -77,6 +78,9 @@ describe('Storage Pool', function() {
         expect(err).to.not.exist;
         test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
           expect(err).to.not.exist;
+          expect(pool).to.exist;
+          expect(pool._parent).to.exist;
+
           test.pool = pool;
 
           test.pool.isActive(function(err, active) {
@@ -156,6 +160,8 @@ describe('Storage Pool', function() {
 
         test.hypervisor.lookupStoragePoolByUUID(uuid, function(err, pool) {
           expect(err).to.not.exist;
+          expect(pool).to.exist;
+          expect(pool._parent).to.exist;
 
           pool.getName(function(err, name) {
             expect(err).to.not.exist;
@@ -180,6 +186,8 @@ describe('Storage Pool', function() {
 
         test.hypervisor.lookupStoragePoolByUUID(uuid, function(err, pool) {
           expect(err).to.not.exist;
+          expect(pool).to.exist;
+          expect(pool._parent).to.exist;
 
           pool.getUUID(function(err, lookupUUID) {
             expect(err).to.not.exist;

@@ -33,6 +33,7 @@ describe('Network', function() {
       test.hypervisor.defineNetwork(xml, function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
+        expect(network._parent).to.exist;
 
         network.start(function(err, result) {
           expect(err).to.not.exist;
@@ -47,6 +48,7 @@ describe('Network', function() {
       test.hypervisor.createNetwork(xml, function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
+        expect(network._parent).to.exist;
 
         network.getName(function(err, name) {
           expect(err).to.not.exist;
@@ -61,6 +63,7 @@ describe('Network', function() {
       test.hypervisor.lookupNetworkByName('default', function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
+        expect(network._parent).to.exist;
 
         network.getName(function(err, name) {
           expect(err).to.not.exist;
@@ -76,6 +79,7 @@ describe('Network', function() {
       test.hypervisor.defineNetwork(xml, function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
+        expect(network._parent).to.exist;
 
         network.getName(function(err, name) {
           expect(err).to.not.exist;
@@ -96,6 +100,7 @@ describe('Network', function() {
         test.hypervisor.lookupNetworkByName('default', function(err, network) {
           expect(err).to.not.exist;
           expect(network).to.exist;
+          expect(network._parent).to.exist;
           test.network = network;
           done();
         });
@@ -192,6 +197,7 @@ describe('Network', function() {
         test.hypervisor.lookupNetworkByUUID(uuid, function(err, network) {
           expect(err).to.not.exist;
           expect(network).to.exist;
+          expect(network._parent).to.exist;
 
           network.getName(function(err, name) {
             expect(err).to.not.exist;
@@ -208,10 +214,12 @@ describe('Network', function() {
       test.hypervisor.defineNetwork(xml, function(err, network) {
         expect(err).to.not.exist;
         expect(network).to.exist;
+        expect(network._parent).to.exist;
 
         test.hypervisor.lookupNetworkByName('test', function(err, network) {
           expect(err).to.not.exist;
           expect(network).to.exist;
+          expect(network._parent).to.exist;
 
           network.destroy(function(err, result) {
             expect(err).to.not.exist;
