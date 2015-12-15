@@ -93,6 +93,7 @@ describe('Domain', function() {
                 test.hypervisor.lookupDomainById(1, function(err, domain) {
                     expect(err).to.not.exist;
                     expect(domain).to.exist;
+                    expect(domain._parent).to.exist;
                     test.domain = domain;
                     done();
                 });

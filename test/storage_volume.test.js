@@ -21,6 +21,7 @@ describe('Storage Volume', function() {
         test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
           expect(err).to.not.exist;
           expect(pool).to.exist;
+          expect(pool._parent).to.exist;
           test.pool = pool;
 
           test.pool.isActive(function(err, active) {
@@ -51,6 +52,7 @@ describe('Storage Volume', function() {
         if (!!err) { console.log('\n\n\nERROR:\n'); console.log(err); console.log('\n\n\n'); }
 
         expect(err).to.not.exist;
+        expect(volume._parent).to.exist;
 
         volume.getName(function(err, name) {
           expect(err).to.not.exist;
@@ -79,6 +81,7 @@ describe('Storage Volume', function() {
           test.pool.cloneVolume(volume, clone_xml, function(err, cloneVolume) {
             expect(err).to.not.exist;
             expect(volume).to.exist;
+            expect(volume._parent).to.exist;
 
             cloneVolume.getName(function(err, name) {
               expect(err).to.not.exist;
@@ -110,13 +113,14 @@ describe('Storage Volume', function() {
         test.hypervisor.lookupStoragePoolByName('default-pool', function(err, pool) {
           expect(err).to.not.exist;
           expect(pool).to.exist;
-
+          expect(pool._parent).to.exist;
           test.pool = pool;
 
           var xml = fixture('storage_volume.xml');
           test.pool.createVolume(xml, function(err, volume) {
             expect(err).to.not.exist;
             expect(volume).to.exist;
+            expect(volume._parent).to.exist;
             test.volume = volume;
             done();
           });
@@ -214,6 +218,8 @@ describe('Storage Volume', function() {
         expect(err).to.not.exist;
         test.hypervisor.lookupStorageVolumeByKey(key, function(err, volume) {
           expect(err).to.not.exist;
+          expect(volume).to.exist;
+          expect(volume._parent).to.exist;
 
           volume.getName(function(err, lookupName) {
             expect(err).to.not.exist;
@@ -233,6 +239,8 @@ describe('Storage Volume', function() {
         expect(err).to.not.exist;
         test.pool.lookupStorageVolumeByName(name, function(err, volume) {
           expect(err).to.not.exist;
+          expect(volume).to.exist;
+          expect(volume._parent).to.exist;
 
           volume.getKey(function(err, lookupKey) {
             expect(err).to.not.exist;
@@ -252,6 +260,8 @@ describe('Storage Volume', function() {
         expect(err).to.not.exist;
         test.hypervisor.lookupStorageVolumeByPath(path, function(err, volume) {
           expect(err).to.not.exist;
+          expect(volume).to.exist;
+          expect(volume._parent).to.exist;
 
           volume.getKey(function(err, lookupKey) {
             expect(err).to.not.exist;

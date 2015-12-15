@@ -18,16 +18,19 @@ public:
   NLVObjectBasePtr(NLVObjectBase *ref) : ref_(ref), valid_(true) {}
   bool IsValid() const { return valid_; }
   NLVObjectBase* GetPointer() const {
-      if (!valid_) {
-         //Nan::ThrowReferenceError("attempt to access invalid NLVObjectBase pointer");
-	 return NULL;
-      }
-      return ref_;
+    if (!valid_) {
+      //Nan::ThrowReferenceError("attempt to access invalid NLVObjectBase pointer");
+      return NULL;
+    }
+
+    return ref_;
   }
+
   void SetInvalid() {
-      ref_ = NULL;
-      valid_ = false;
+    ref_ = NULL;
+    valid_ = false;
   }
+
 protected:
   NLVObjectBase *ref_;
   bool valid_;
@@ -47,11 +50,11 @@ class NLVObject : public NLVObjectBase
 public:
   NLVObject(HandleType handle) : handle_(handle), parentReference_(NULL) {}
   ~NLVObject() {
-      // calling virtual ClearHandle() will break if overridden by subclasses
-      ClearHandle();
-      if (parentReference_ != NULL) {
-	  parentReference_->SetInvalid();
-      }
+    // calling virtual ClearHandle() will break if overridden by subclasses
+    ClearHandle();
+    if (parentReference_ != NULL) {
+      parentReference_->SetInvalid();
+    }
   }
 
   virtual void ClearHandle() {
@@ -79,7 +82,7 @@ public:
   }
 
   virtual void SetParentReference(NLVObjectBasePtr *parentReference) {
-      parentReference_ = parentReference;
+    parentReference_ = parentReference;
   }
 
   std::vector<NLVObjectBasePtr*> children_;
@@ -87,6 +90,7 @@ public:
 protected:
   HandleType handle_;
   NLVObjectBasePtr* parentReference_;
+
 };
 
 #endif  // NLV_OBJECT_H

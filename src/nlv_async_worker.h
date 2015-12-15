@@ -48,6 +48,11 @@ private:
 
 };
 
+#define NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(WorkerDefinition, Parent) \
+  NLVAsyncWorkerBase *worker = WorkerDefinition; \
+  worker->SaveToPersistent("parent", Parent); \
+  Nan::AsyncQueueWorker(worker); \
+
 /**
  * Worker that returns a primitive to javascript
  */
@@ -277,8 +282,8 @@ class NLVLookupInstanceByValueWorker : public NLVAsyncWorkerBase
 {
 public:
   explicit NLVLookupInstanceByValueWorker(Nan::Callback *callback,
-                                            ParentClass *parent,
-                                            const std::string &value)
+                                          ParentClass *parent,
+                                          const std::string &value)
     : NLVAsyncWorkerBase(callback), parent_(parent), value_(value), lookupHandle_(NULL) {}
 
 protected:
@@ -286,6 +291,11 @@ protected:
   virtual void HandleOKCallback() {
     Nan::HandleScope scope;
     Local<Object> childObject = InstanceClass::NewInstance(lookupHandle_);
+    Local<Value> parentObject = GetFromPersistent("parent");
+    if (parentObject->IsObject()) {
+      childObject->Set(Nan::New("_parent").ToLocalChecked(), parentObject);
+    }
+
     InstanceClass *child = Nan::ObjectWrap::Unwrap<InstanceClass>(childObject);
     NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
     child->SetParentReference(childPtr);

@@ -37,6 +37,7 @@ describe('Domain', function() {
       test.hypervisor.lookupDomainById(1, function(err, domain) {
         expect(err).to.not.exist;
         expect(domain).to.exist;
+        expect(domain._parent).to.exist;
         done();
       });
     });
@@ -46,9 +47,12 @@ describe('Domain', function() {
       test.hypervisor.createDomain(xml, function(err, domain) {
         expect(err).to.not.exist;
         expect(domain).to.exist;
+        expect(domain._parent).to.exist;
 
         test.hypervisor.lookupDomainByName('nodejs-test', function(err, lookupDomain) {
           expect(err).to.not.exist;
+          expect(lookupDomain).to.exist;
+          expect(lookupDomain._parent).to.exist;
 
           lookupDomain.getName(function(err, name) {
             expect(err).to.not.exist;
@@ -69,9 +73,12 @@ describe('Domain', function() {
       test.hypervisor.defineDomain(xml, function(err, domain) {
         expect(err).to.not.exist;
         expect(domain).to.exist;
+        expect(domain._parent).to.exist;
 
         test.hypervisor.lookupDomainByName('nodejs-test', function(err, lookupDomain) {
           expect(err).to.not.exist;
+          expect(lookupDomain).to.exist;
+          expect(lookupDomain._parent).to.exist;
 
           lookupDomain.undefine(function(err, result) {
             expect(err).to.not.exist;
@@ -96,6 +103,7 @@ describe('Domain', function() {
         test.hypervisor.lookupDomainById(1, function(err, domain) {
           expect(err).to.not.exist;
           expect(domain).to.exist;
+          expect(domain._parent).to.exist;
           test.domain = domain;
           done();
         });
@@ -303,7 +311,7 @@ describe('Domain', function() {
 
       test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
         expect(err).to.exist;
-        // some libvirt versions report different error codes. 
+        // some libvirt versions report different error codes.
         var expected = err.code === libvirt.VIR_ERR_OPERATION_INVALID ? libvirt.VIR_ERR_OPERATION_INVALID : libvirt.VIR_ERR_NO_SUPPORT;
         expect(err.code).to.be.equal(expected);
 
@@ -436,6 +444,7 @@ describe('Domain', function() {
         test.hypervisor.lookupDomainById(1, function(err, domain) {
           expect(err).to.not.exist;
           expect(domain).to.exist;
+          expect(domain._parent).to.exist;
           test.domain = domain;
           done();
         });

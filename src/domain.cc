@@ -233,7 +233,7 @@ NAN_METHOD(Domain::LookupByName)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name));
+  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByNameWorker(callback, hv, name), info.This());
   return;
 }
 
@@ -255,7 +255,7 @@ NAN_METHOD(Domain::LookupByUUID)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
+  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByUUIDWorker(callback, hv, uuid), info.This());
   return;
 }
 
@@ -276,7 +276,7 @@ NAN_METHOD(Domain::LookupById)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   int id = info[0]->IntegerValue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new LookupByIdWorker(callback, hv, id));
+  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByIdWorker(callback, hv, id), info.This());
   return;
 }
 
