@@ -89,21 +89,7 @@ void Domain::Initialize(Handle<Object> exports)
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Domain").ToLocalChecked(), t->GetFunction());
 
-  //Constants initialization
-  //virDomainState
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_NOSTATE);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_RUNNING);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCKED);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_PAUSED);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SHUTDOWN);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SHUTOFF);
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_CRASHED);
-
-#ifdef VIR_DOMAIN_PMSUSPENDED
-  // If its available in libvirt.h, then make it available in node
-  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_PMSUSPENDED);
-#endif
-
+  // Constants
   //virDomainDeviceModifyFlags
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_CURRENT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_DEVICE_MODIFY_LIVE);
@@ -932,11 +918,29 @@ NLV_WORKER_EXECUTE(Domain, GetInfo)
   }
 }
 
+std::string convertStateToString(unsigned char state) {
+  switch (state) {
+  case VIR_DOMAIN_NOSTATE: return "no state";
+  case VIR_DOMAIN_RUNNING: return "running";
+  case VIR_DOMAIN_BLOCKED: return "idle";
+  case VIR_DOMAIN_PAUSED: return "paused";
+  case VIR_DOMAIN_SHUTDOWN: return "in shutdown";
+  case VIR_DOMAIN_SHUTOFF: return "shut off";
+  case VIR_DOMAIN_CRASHED: return "crashed";
+
+#ifdef VIR_DOMAIN_PMSUSPENDED
+  case VIR_DOMAIN_PMSUSPENDED: return "pmsuspended";
+#endif
+  }
+
+  return "unknown";
+}
+
 NLV_WORKER_OKCALLBACK(Domain, GetInfo)
 {
   Nan::HandleScope scope;
   Local<Object> result = Nan::New<Object>();
-  result->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(info_.state));
+  result->Set(Nan::New("state").ToLocalChecked(), Nan::New(convertStateToString(info_.state)).ToLocalChecked());
   result->Set(Nan::New("maxMemory").ToLocalChecked(), Nan::New<Number>(info_.maxMem));
   result->Set(Nan::New("memory").ToLocalChecked(), Nan::New<Number>(info_.memory));
   result->Set(Nan::New("vcpus").ToLocalChecked(), Nan::New<Integer>(info_.nrVirtCpu));

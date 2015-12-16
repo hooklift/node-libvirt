@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "worker_macros.h"
-
+#include "node_libvirt.h"
 #include "domain.h"
 #include "node_device.h"
 #include "secret.h"

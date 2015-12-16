@@ -498,14 +498,10 @@ describe('Domain', function() {
     });
 
     it('should return the domain information', function(done) {
-      // @todo: these should be better defined somewhere
-      // var runningState = test.domain.VIR_DOMAIN_RUNNING;
-      var runningState = 1;
-
       test.domain.getInfo(function(err, info) {
         expect(err).to.not.exist;
         expect(info).to.include({
-          state: runningState,
+          state: 'running',
           maxMemory: 8388608,
           memory: 2097152,
           vcpus: 2
