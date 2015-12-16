@@ -918,7 +918,7 @@ NLV_WORKER_EXECUTE(Domain, GetInfo)
   }
 }
 
-std::string convertStateToString(unsigned char state) {
+std::string domainStateToString(unsigned char state) {
   switch (state) {
   case VIR_DOMAIN_NOSTATE: return "no state";
   case VIR_DOMAIN_RUNNING: return "running";
@@ -940,7 +940,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetInfo)
 {
   Nan::HandleScope scope;
   Local<Object> result = Nan::New<Object>();
-  result->Set(Nan::New("state").ToLocalChecked(), Nan::New(convertStateToString(info_.state)).ToLocalChecked());
+  result->Set(Nan::New("state").ToLocalChecked(), Nan::New(domainStateToString(info_.state)).ToLocalChecked());
   result->Set(Nan::New("maxMemory").ToLocalChecked(), Nan::New<Number>(info_.maxMem));
   result->Set(Nan::New("memory").ToLocalChecked(), Nan::New<Number>(info_.memory));
   result->Set(Nan::New("vcpus").ToLocalChecked(), Nan::New<Integer>(info_.nrVirtCpu));
@@ -1398,6 +1398,16 @@ NLV_WORKER_EXECUTE(Domain, GetVcpus)
   }
 }
 
+std::string vcpuStateToString(unsigned char state) {
+  switch (state) {
+  case VIR_VCPU_OFFLINE: return "offline";
+  case VIR_VCPU_RUNNING: return "running";
+  case VIR_VCPU_BLOCKED: return "blocked";
+  }
+
+  return "unknown";
+}
+
 NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
 {
   Nan::HandleScope scope;
@@ -1406,7 +1416,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetVcpus)
   for (unsigned int i = 0; i < info_.size(); ++i) {
     Local<Object> cpu = Nan::New<Object>();
     cpu->Set(Nan::New("number").ToLocalChecked(), Nan::New<Integer>(info_[i].number));
-    cpu->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(info_[i].state));
+    cpu->Set(Nan::New("state").ToLocalChecked(), Nan::New(vcpuStateToString(info_[i].state)).ToLocalChecked());
     cpu->Set(Nan::New("cpuTime").ToLocalChecked(), Nan::New<Number>(info_[i].cpuTime));
     cpu->Set(Nan::New("cpu").ToLocalChecked(), Nan::New<Integer>(info_[i].cpu));
 

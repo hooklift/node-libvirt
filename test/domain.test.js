@@ -750,6 +750,7 @@ describe('Domain', function() {
         expect(vcpus).to.be.instanceOf(Array);
         expect(vcpus[0].number).to.exist;
         expect(vcpus[0].state).to.exist;
+        expect(vcpus[0].state).to.equal('running');
         expect(vcpus[0].cpuTime).to.exist;
         expect(vcpus[0].cpu).to.exist;
         expect(vcpus[0].affinity).to.exist;
