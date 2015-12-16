@@ -56,15 +56,15 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "bluebird": "^2.9.34",
-    "nan": "^2.0.9"
+    "nan": "^2.1.0"
   },
   "devDependencies": {
-    "chai": "^3.2.0",
-    "jshint": "^2.8.0",
-    "mocha": "^2.2.5",
-    "segfault-handler": "^0.2.5",
-    "semver": "^5.0.1",
-    "xpath": "~0.0.9",
-    "xmldom": "~0.1.19"
+    "chai": "^3.4.1",
+    "jshint": "^2.9.1-rc1",
+    "mocha": "^2.3.4",
+    "segfault-handler": "^1.0.0",
+    "semver": "^5.1.0",
+    "xpath": "^0.0.9",
+    "xmldom": "^0.1.19"
   }
 }

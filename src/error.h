@@ -2,13 +2,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <nan.h>
-
-#include <libvirt/libvirt.h>
-#include <libvirt/virterror.h>
-
-using namespace v8;
-using namespace node;
+#include "node_libvirt.h"
 
 namespace NLV {
 

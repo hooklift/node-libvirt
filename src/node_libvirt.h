@@ -14,4 +14,8 @@ using namespace node;
 #define NLV_WARN_UNFINISHED(Method)   \
   fprintf(stderr, "WARNING: " #Method " is still synchronous and needs to be ported\n");
 
+#ifndef LIBVIR_CHECK_VERSION
+# define LIBVIR_CHECK_VERSION(major, minor, micro) false
+#endif
+
 #endif  // NODE_LIBVIRT_H

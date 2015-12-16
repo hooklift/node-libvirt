@@ -312,9 +312,13 @@ describe('Domain', function() {
       test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
         expect(err).to.exist;
         // some libvirt versions report different error codes.
-        var expected = err.code === libvirt.VIR_ERR_OPERATION_INVALID ? libvirt.VIR_ERR_OPERATION_INVALID : libvirt.VIR_ERR_NO_SUPPORT;
-        expect(err.code).to.be.equal(expected);
+        var possibleErrors = [
+          libvirt.VIR_ERR_OPERATION_INVALID,
+          libvirt.VIR_ERR_NO_SUPPORT,
+          libvirt.VIR_ERR_ARGUMENT_UNSUPPORTED
+        ];
 
+        expect(possibleErrors).to.include(err.code);
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;
 
@@ -342,9 +346,12 @@ describe('Domain', function() {
       var physical = [test.domain.VIR_MEMORY_PHYSICAL];
       var virtual = [test.domain.VIR_MEMORY_VIRTUAL];
 
+      // support different errors for different libvirt versions
+      var possibleErrors = [ libvirt.VIR_ERR_INVALID_ARG, libvirt.VIR_ERR_NO_SUPPORT ];
+
       test.domain.memoryPeek(0, 1024, physical, function(err, res) {
         expect(err).to.exist;
-        expect(err.code).to.be.equal(libvirt.VIR_ERR_INVALID_ARG);
+        expect(possibleErrors).to.include(err.code);
 
         // NOTE: not supported by test driver
         // expect(err).to.not.exist;
@@ -352,7 +359,7 @@ describe('Domain', function() {
 
         test.domain.memoryPeek(0, 1024, virtual, function(err, res) {
           expect(err).to.exist;
-          expect(err.code).to.be.equal(libvirt.VIR_ERR_INVALID_ARG);
+          expect(possibleErrors).to.include(err.code);
 
           // NOTE: not supported by test driver
           //expect(err).to.not.exist;
