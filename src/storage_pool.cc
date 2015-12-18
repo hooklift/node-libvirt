@@ -87,7 +87,7 @@ NAN_METHOD(StoragePool::LookupByName)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(object);
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByNameWorker(callback, hv, name), info.This());
+  NLV::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name), info.This());
   return;
 }
 
@@ -109,7 +109,7 @@ NAN_METHOD(StoragePool::LookupByUUID)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByUUIDWorker(callback, hv, uuid), info.This());
+  NLV::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid), info.This());
   return;
 }
 
@@ -136,7 +136,7 @@ NAN_METHOD(StoragePool::Create)
   Hypervisor *hv = ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new CreateWorker(callback, hv, xmlData), info.This());
+  NLV::AsyncQueueWorker(new CreateWorker(callback, hv, xmlData), info.This());
   return;
 }
 

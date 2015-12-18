@@ -65,7 +65,7 @@ NAN_METHOD(StorageVolume::Create)
   StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new CreateWorker(callback, sp, xmlData), info.This());
+  NLV::AsyncQueueWorker(new CreateWorker(callback, sp, xmlData), info.This());
   return;
 }
 
@@ -217,7 +217,7 @@ NAN_METHOD(StorageVolume::LookupByName)
   StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByNameWorker(callback, sp, name), info.This());
+  NLV::AsyncQueueWorker(new LookupByNameWorker(callback, sp, name), info.This());
   return;
 }
 
@@ -240,7 +240,7 @@ NAN_METHOD(StorageVolume::LookupByKey)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
   std::string key(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByKeyWorker(callback, hv, key), info.This());
+  NLV::AsyncQueueWorker(new LookupByKeyWorker(callback, hv, key), info.This());
   return;
 }
 
@@ -263,7 +263,7 @@ NAN_METHOD(StorageVolume::LookupByPath)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByPathWorker(callback, hv, path), info.This());
+  NLV::AsyncQueueWorker(new LookupByPathWorker(callback, hv, path), info.This());
   return;
 }
 
@@ -300,7 +300,7 @@ NAN_METHOD(StorageVolume::Clone)
   StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
   StorageVolume *sv = Nan::ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new CloneWorker(callback, sp, xml, sv->handle_), info.This());
+  NLV::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_), info.This());
   return;
 }
 

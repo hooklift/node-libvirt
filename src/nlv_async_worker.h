@@ -48,11 +48,6 @@ private:
 
 };
 
-#define NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(WorkerDefinition, Parent) \
-  NLVAsyncWorkerBase *worker = WorkerDefinition; \
-  worker->SaveToPersistent("parent", Parent); \
-  Nan::AsyncQueueWorker(worker); \
-
 /**
  * Worker that returns a primitive to javascript
  */

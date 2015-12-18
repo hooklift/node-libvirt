@@ -219,7 +219,7 @@ NAN_METHOD(Domain::LookupByName)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByNameWorker(callback, hv, name), info.This());
+  NLV::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name), info.This());
   return;
 }
 
@@ -241,7 +241,7 @@ NAN_METHOD(Domain::LookupByUUID)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByUUIDWorker(callback, hv, uuid), info.This());
+  NLV::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid), info.This());
   return;
 }
 
@@ -262,7 +262,7 @@ NAN_METHOD(Domain::LookupById)
   Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
   int id = info[0]->IntegerValue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV_ASYNC_QUEUE_WORKER_WITH_PARENT(new LookupByIdWorker(callback, hv, id), info.This());
+  NLV::AsyncQueueWorker(new LookupByIdWorker(callback, hv, id), info.This());
   return;
 }
 
@@ -1148,6 +1148,19 @@ NLV_WORKER_EXECUTE(Domain, GetJobInfo)
   }
 }
 
+std::string jobTypeToString(int type) {
+  switch (type) {
+  case VIR_DOMAIN_JOB_NONE: return "none";
+  case VIR_DOMAIN_JOB_BOUNDED: return "bounded";
+  case VIR_DOMAIN_JOB_UNBOUNDED: return "unbounded";
+  case VIR_DOMAIN_JOB_COMPLETED: return "completed";
+  case VIR_DOMAIN_JOB_FAILED: return "failed";
+  case VIR_DOMAIN_JOB_CANCELLED: return "cancelled";
+  }
+
+  return "unknown";
+}
+
 NLV_WORKER_OKCALLBACK(Domain, GetJobInfo)
 {
   Nan::HandleScope scope;
@@ -1171,7 +1184,7 @@ NLV_WORKER_OKCALLBACK(Domain, GetJobInfo)
   file->Set(Nan::New("remaining").ToLocalChecked(), Nan::New<Number>(info_.fileRemaining));
 
   Local<Object> result = Nan::New<Object>();
-  result->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>(info_.type));
+  result->Set(Nan::New("type").ToLocalChecked(), Nan::New(jobTypeToString(info_.type)).ToLocalChecked());
   result->Set(Nan::New("time").ToLocalChecked(), time);
   result->Set(Nan::New("data").ToLocalChecked(), data);
   result->Set(Nan::New("memory").ToLocalChecked(), memory);

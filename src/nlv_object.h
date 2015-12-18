@@ -93,4 +93,16 @@ protected:
 
 };
 
+namespace NLV {
+
+NAN_INLINE void AsyncQueueWorker(Nan::AsyncWorker *worker, Local<Object> parent = Local<Object>())
+{
+  if (!parent->IsUndefined() && !parent->IsNull())
+    worker->SaveToPersistent("parent", parent);
+  Nan::AsyncQueueWorker(worker);
+}
+
+};
+
+
 #endif  // NLV_OBJECT_H
