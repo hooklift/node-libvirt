@@ -1,6 +1,6 @@
 {
   "name": "libvirt",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "Camilo Aguilar",
     "email": "camilo@cloudescape.com",
@@ -55,7 +55,7 @@
   ],
   "dependencies": {
     "bindings": "^1.2.1",
-    "bluebird": "^3.0.6",
+    "bluebird": "^3.1.1",
     "nan": "^2.1.0"
   },
   "devDependencies": {
