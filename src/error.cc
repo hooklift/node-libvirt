@@ -153,6 +153,11 @@ Error::Error(virErrorPtr error)
   error_ = error;
 }
 
+Error::~Error()
+{
+  virFreeError(error_);
+}
+
 Local<Value> Error::New(virErrorPtr error)
 {
   Nan::EscapableHandleScope scope;
