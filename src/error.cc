@@ -176,7 +176,7 @@ NAN_GETTER(Error::Getter)
   } else if (property->Equals(Nan::New("domain").ToLocalChecked())) {
     return info.GetReturnValue().Set(Nan::New(error_->domain));
   } else if (property->Equals(Nan::New("message").ToLocalChecked())) {
-    return info.GetReturnValue().Set(Nan::New(error_->message).ToLocalChecked());
+    return info.GetReturnValue().Set(Nan::New(error_->message != NULL ? error_->message : "unknown error").ToLocalChecked());
   } else if (property->Equals(Nan::New("level").ToLocalChecked())) {
     return info.GetReturnValue().Set(Nan::New(error_->level));
   } else if (property->Equals(Nan::New("str1").ToLocalChecked())) {
