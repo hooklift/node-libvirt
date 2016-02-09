@@ -90,7 +90,7 @@ NLV_WORKER_EXECUTE(Network, Create)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   lookupHandle_ = virNetworkCreateXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -101,7 +101,7 @@ NLV_WORKER_EXECUTE(Network, Define)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   lookupHandle_ = virNetworkDefineXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -112,7 +112,7 @@ NLV_WORKER_EXECUTE(Network, Start)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkCreate(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -125,7 +125,7 @@ NLV_WORKER_EXECUTE(Network, GetName)
   NLV_WORKER_ASSERT_NETWORK();
   const char *result = virNetworkGetName(Handle());
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -139,7 +139,7 @@ NLV_WORKER_EXECUTE(Network, GetUUID)
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virNetworkGetUUIDString(Handle(), uuid);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     delete[] uuid;
     return;
   }
@@ -155,7 +155,7 @@ NLV_WORKER_EXECUTE(Network, GetAutostart)
   int autostart;
   int result = virNetworkGetAutostart(Handle(), &autostart);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -183,7 +183,7 @@ NLV_WORKER_EXECUTE(Network, SetAutostart)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -196,7 +196,7 @@ NLV_WORKER_EXECUTE(Network, IsActive)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkIsActive(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -209,7 +209,7 @@ NLV_WORKER_EXECUTE(Network, IsPersistent)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkIsPersistent(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -222,7 +222,7 @@ NLV_WORKER_EXECUTE(Network, Undefine)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkUndefine(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -235,7 +235,7 @@ NLV_WORKER_EXECUTE(Network, Destroy)
   NLV_WORKER_ASSERT_NETWORK();
   int result = virNetworkDestroy(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -249,7 +249,7 @@ NLV_WORKER_EXECUTE(Network, ToXml)
   unsigned int flags = 0;
   char *result = virNetworkGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -263,7 +263,7 @@ NLV_WORKER_EXECUTE(Network, GetBridgeName)
   NLV_WORKER_ASSERT_NETWORK();
   const char *result = virNetworkGetBridgeName(Handle());
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 

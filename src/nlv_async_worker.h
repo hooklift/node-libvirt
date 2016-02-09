@@ -17,6 +17,7 @@ class NLVAsyncWorkerBase : public Nan::AsyncWorker
 {
 public:
   explicit NLVAsyncWorkerBase(Nan::Callback *callback);
+  ~NLVAsyncWorkerBase();
 
   virErrorPtr VirError() const;
   void SetVirError(virErrorPtr error);
@@ -267,7 +268,7 @@ protected:
   NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(parent_->handle_, value_.c_str());  \
     if (lookupHandle_ == NULL) { \
-      SetVirError(virGetLastError()); \
+      SetVirError(virSaveLastError()); \
       return; \
     } \
   }

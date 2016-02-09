@@ -99,7 +99,7 @@
     NLV_WORKER_ASSERT_CONNECTION(); \
     int result = Accessor(Handle());  \
     if (result == -1) { \
-      SetVirError(virGetLastError()); \
+      SetVirError(virSaveLastError()); \
       return; \
     } \
     data_ = static_cast<bool>(result);  \
