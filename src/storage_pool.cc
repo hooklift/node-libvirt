@@ -146,7 +146,7 @@ NLV_WORKER_EXECUTE(StoragePool, Create)
   unsigned int flags = 0;
   lookupHandle_ = virStoragePoolCreateXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -158,7 +158,7 @@ NLV_WORKER_EXECUTE(StoragePool, Define)
   unsigned int flags = 0;
   lookupHandle_ = virStoragePoolDefineXML(parent_->handle_, value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -170,7 +170,7 @@ NLV_WORKER_EXECUTE(StoragePool, Build)
   unsigned int flags = 0;
   int result = virStoragePoolBuild(Handle(), flags);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -183,7 +183,7 @@ NLV_WORKER_EXECUTE(StoragePool, Undefine)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolUndefine(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -197,7 +197,7 @@ NLV_WORKER_EXECUTE(StoragePool, Start)
   unsigned int flags = 0;
   int result = virStoragePoolCreate(Handle(), flags);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -210,7 +210,7 @@ NLV_WORKER_EXECUTE(StoragePool, Stop)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolDestroy(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -248,7 +248,7 @@ NLV_WORKER_EXECUTE(StoragePool, Erase)
 
   int result = virStoragePoolDelete(Handle(), flags_);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -262,7 +262,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetAutostart)
   int autostart;
   int result = virStoragePoolGetAutostart(Handle(), &autostart);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -290,7 +290,7 @@ NLV_WORKER_EXECUTE(StoragePool, SetAutostart)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -303,7 +303,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetInfo)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolGetInfo(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -327,7 +327,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetName)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   const char *result = virStoragePoolGetName(Handle());
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -341,7 +341,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetUUID)
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virStoragePoolGetUUIDString(Handle(), uuid);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     delete[] uuid;
     return;
   }
@@ -357,7 +357,7 @@ NLV_WORKER_EXECUTE(StoragePool, ToXml)
   unsigned int flags = 0;
   char *result = virStoragePoolGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -371,7 +371,7 @@ NLV_WORKER_EXECUTE(StoragePool, IsActive)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolIsActive(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -384,7 +384,7 @@ NLV_WORKER_EXECUTE(StoragePool, IsPersistent)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int result = virStoragePoolIsPersistent(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -410,7 +410,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
   NLV_WORKER_ASSERT_STORAGEPOOL();
   int num_volumes = virStoragePoolNumOfVolumes(Handle());
   if (num_volumes == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -423,7 +423,7 @@ NLV_WORKER_EXECUTE(StoragePool, GetVolumes)
   num_volumes = virStoragePoolListVolumes(Handle(), volumes, num_volumes);
   if (num_volumes == -1) {
     free(volumes);
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -443,7 +443,7 @@ NLV_WORKER_EXECUTE(StoragePool, Refresh)
   unsigned int flags = 0;
   int result = virStoragePoolRefresh(Handle(), flags);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 

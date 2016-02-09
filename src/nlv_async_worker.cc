@@ -9,6 +9,15 @@ NLVAsyncWorkerBase::NLVAsyncWorkerBase(Nan::Callback *callback)
 {
 }
 
+NLVAsyncWorkerBase::~NLVAsyncWorkerBase()
+{
+  // the virError_ reference SHOULD be handed off to an Error object
+  // and we should probably never be destroyed while still holding the ref...
+  if (virError_ != NULL) {
+    virFreeError(virError_);
+  }
+}
+
 virErrorPtr NLVAsyncWorkerBase::VirError() const
 {
   return virError_;
@@ -16,6 +25,13 @@ virErrorPtr NLVAsyncWorkerBase::VirError() const
 
 void NLVAsyncWorkerBase::SetVirError(virErrorPtr error)
 {
+  if (virError_ != NULL) {
+    virFreeError(virError_);
+  }
+  if (error != NULL && error->level == VIR_ERR_NONE) {
+      virFreeError(error);
+      error = NULL;
+  }
   virError_ = error;
 }
 
@@ -37,6 +53,8 @@ void NLVAsyncWorkerBase::HandleErrorCallback()
   Nan::HandleScope scope;
   if (virError_ != NULL) {
     v8::Local<v8::Value> argv[] = { Error::New(VirError()) };
+    // the reference to virError will be cleaned up by Error object now
+    virError_ = NULL;
     callback->Call(1, argv);
   } else {
     v8::Local<v8::Value> argv[] = {

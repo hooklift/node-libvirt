@@ -85,7 +85,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, Define)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   lookupHandle_ = virNWFilterDefineXML(parent_->handle_, value_.c_str());
   if (lookupHandle_ == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 }
@@ -96,7 +96,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetName)
   NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virNWFilterGetName(Handle());
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -110,7 +110,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, GetUUID)
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virNWFilterGetUUIDString(Handle(), uuid);
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     delete[] uuid;
     return;
   }
@@ -125,7 +125,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, Undefine)
   NLV_WORKER_ASSERT_INTERFACE();
   int result = virNWFilterUndefine(Handle());
   if (result == -1) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
@@ -139,7 +139,7 @@ NLV_WORKER_EXECUTE(NetworkFilter, ToXml)
   unsigned int flags = 0;
   char *result = virNWFilterGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virGetLastError());
+    SetVirError(virSaveLastError());
     return;
   }
 
