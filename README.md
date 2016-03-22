@@ -52,7 +52,7 @@ Work in progress at [docs page][docs_link]
 ## License
 (The MIT License)
 
-Copyright 2015 node-libvirt Authors. All rights reserved.
+Copyright 2016 node-libvirt Authors. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -88,4 +88,3 @@ IN THE SOFTWARE.
 [wiki_api]: http://github.com/c4milo/node-libvirt/wikis/api
 [docs_link]: http://github.com/c4milo/node-libvirt/blob/master/API.md
 [phyp_home]: http://www.ibm.com/developerworks/wikis/display/LinuxP/POWER5+Hypervisor
-
