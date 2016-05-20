@@ -2118,7 +2118,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   type = virDomainGetSchedulerType(domain->handle_, &nparams);
   if (type == NULL) {
-    Nan::ThrowError(Error::New(virSaveLastError()));
+    ThrowLastVirError();
     return info.GetReturnValue().Set(Nan::False());
   }
   free(type);
@@ -2133,7 +2133,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   ret = virDomainGetSchedulerParameters(domain->handle_, params, &nparams);
   if(ret == -1) {
-    Nan::ThrowError(Error::New(virSaveLastError()));
+    ThrowLastVirError();
     free(params);
     return info.GetReturnValue().Set(Nan::False());
   }
@@ -2170,7 +2170,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
 
   ret = virDomainSetSchedulerParameters(domain->handle_, params, nparams);
   if (ret == -1) {
-    Nan::ThrowError(Error::New(virSaveLastError()));
+    ThrowLastVirError();
     free(params);
     return info.GetReturnValue().Set(Nan::False());
   }

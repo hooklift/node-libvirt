@@ -20,6 +20,7 @@ void Error::Initialize(Handle<Object> exports)
   Nan::SetAccessor(ot, Nan::New("str3").ToLocalChecked(), Error::Getter);
   Nan::SetAccessor(ot, Nan::New("int1").ToLocalChecked(), Error::Getter);
   Nan::SetAccessor(ot, Nan::New("int2").ToLocalChecked(), Error::Getter);
+  Nan::SetAccessor(ot, Nan::New("context").ToLocalChecked(), Error::Getter);
 
   constructor.Reset(t->GetFunction());
 
@@ -147,10 +148,11 @@ void Error::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_ERR_ERROR);
 }
 
-Error::Error(virErrorPtr error)
+Error::Error(virErrorPtr error, const char* context)
   : Nan::ObjectWrap()
 {
   error_ = error;
+  context_ = context;
 }
 
 Error::~Error()
@@ -158,13 +160,14 @@ Error::~Error()
   virFreeError(error_);
 }
 
-Local<Value> Error::New(virErrorPtr error)
+Local<Value> Error::New(virErrorPtr error, const char* context)
 {
   Nan::EscapableHandleScope scope;
 
   Local<Function> ctor = Nan::New<Function>(constructor);
+  
   Local<Object> instance = ctor->NewInstance();
-  Error *err = new Error(error);
+  Error *err = new Error(error, context);
   err->Wrap(instance);
   return scope.Escape(instance);
 }
@@ -194,6 +197,8 @@ NAN_GETTER(Error::Getter)
     return info.GetReturnValue().Set(Nan::New(error_->int1));
   } else if (property->Equals(Nan::New("int2").ToLocalChecked())) {
     return info.GetReturnValue().Set(Nan::New(error_->int2));
+  } else if (property->Equals(Nan::New("context").ToLocalChecked())) {
+    return info.GetReturnValue().Set(Nan::New(error->context_).ToLocalChecked());
   }
 
   return;

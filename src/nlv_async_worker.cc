@@ -52,7 +52,7 @@ void NLVAsyncWorkerBase::HandleErrorCallback()
 {
   Nan::HandleScope scope;
   if (virError_ != NULL) {
-    v8::Local<v8::Value> argv[] = { Error::New(VirError()) };
+    v8::Local<v8::Value> argv[] = { MakeVirError() };
     // the reference to virError will be cleaned up by Error object now
     virError_ = NULL;
     callback->Call(1, argv);
