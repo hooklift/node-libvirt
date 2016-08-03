@@ -171,7 +171,7 @@ private:
   NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, virDomainPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSave, virDomainPtr, bool);
   NLV_PRIMITIVE_RETURN_WORKER(ManagedSaveRemove, virDomainPtr, bool);
-  NLV_PRIMITIVE_RETURN_WORKER(Undefine, virDomainPtr, bool);
+  NLV_PRIMITIVE_RETURN_WORKER_WITH_FLAGS(Undefine, virDomainPtr, bool);
 
   class SaveWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:

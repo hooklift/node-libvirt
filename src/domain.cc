@@ -185,6 +185,10 @@ void Domain::Initialize(Handle<Object> exports)
 
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SEND_KEY_MAX_KEYS);
 
+  // virDomainUndefineFlags
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_UNDEFINE_MANAGED_SAVE);
+
   // ETC
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
 }
@@ -390,11 +394,11 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
   data_ = true;
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Undefine)
+NLV_WORKER_METHOD_FLAGS(Domain, Undefine)
 NLV_WORKER_EXECUTE(Domain, Undefine)
 {
   NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainUndefine(Handle());
+  int result = virDomainUndefineFlags(Handle(), flags);
   if (result == -1) {
     SetVirError(virSaveLastError());
     return;

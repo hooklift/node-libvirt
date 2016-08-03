@@ -50,6 +50,18 @@ private:
 };
 
 /**
+ * Worker that returns a primitive to javascript and takes flags
+ */
+#define NLV_PRIMITIVE_RETURN_WORKER_WITH_FLAGS(Method, HandleType, PrimitiveType)  \
+  class Method##Worker : public NLVPrimitiveReturnWorker<HandleType, PrimitiveType> { \
+    unsigned int flags; \
+  public: \
+    Method##Worker(Nan::Callback *callback, HandleType handle, unsigned int _flags = 0) \
+      : NLVPrimitiveReturnWorker<HandleType, PrimitiveType>(callback, handle), flags(_flags) {} \
+    void Execute(); \
+  };
+
+/**
  * Worker that returns a primitive to javascript
  */
 #define NLV_PRIMITIVE_RETURN_WORKER(Method, HandleType, PrimitiveType)  \

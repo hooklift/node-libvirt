@@ -52,6 +52,27 @@
     return; \
   }
 
+// METHOD HELPERS
+#define NLV_WORKER_METHOD_FLAGS(Class, Method) \
+  NAN_METHOD(Class::Method) {  \
+    Nan::HandleScope scope; \
+    unsigned int flags = 0; \
+    Nan::Callback *callback; \
+    if (info.Length() > 1 && info[1]->IsFunction()) \
+    { \
+      callback = new Nan::Callback(info[1].As<Function>()); \
+      flags = info[0]->IntegerValue(); \
+    } else if (info.Length() == 1 && info[0]->IsFunction()) { \
+      callback = new Nan::Callback(info[0].As<Function>()); \
+    } else { \
+      Nan::ThrowTypeError("signature is callback or flags, callback"); \
+      return; \
+    } \
+    Class *object = Nan::ObjectWrap::Unwrap<Class>(info.This()); \
+    Nan::AsyncQueueWorker(new Method##Worker(callback, object->handle_, flags));  \
+    return; \
+  }
+
 #define NLV_WORKER_METHOD_DEFINE(Class) \
   NAN_METHOD(Class::Define) { \
     Nan::HandleScope scope; \
