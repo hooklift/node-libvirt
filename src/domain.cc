@@ -1568,7 +1568,7 @@ NAN_METHOD(Domain::BlockJobInfo)
       return onFinished(PrimitiveReturnHandler(false));
     }
     
-    return onFinished([&](Nan::Callback* callback) {
+    return onFinished([=](Nan::Callback* callback) {
       Nan::HandleScope scope;
       v8::Local<Object> data = Nan::New<Object>();
       data->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.type));
