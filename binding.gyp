@@ -19,6 +19,7 @@
         'src/storage_volume.cc',
         'src/worker.cc'
       ],
+      "cflags": ["-std=c++11"],
       'include_dirs' : [
         "<!(node -e \"require('nan')\")"
       ],
