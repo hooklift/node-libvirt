@@ -102,6 +102,22 @@ NAN_INLINE void AsyncQueueWorker(Nan::AsyncWorker *worker, Local<Object> parent 
   Nan::AsyncQueueWorker(worker);
 }
 
+NAN_INLINE unsigned int GetFlags(v8::Handle<v8::Value> val) {
+  if(val->IsUndefined() || val->IsFunction()) {
+    return 0;
+  }
+  if(!val->IsArray()) {
+    Nan::ThrowTypeError("flags must be an array");
+    return 0;
+  }
+  
+  Local<Array> flags_ = Local<Array>::Cast(val);
+  unsigned int flags = 0;
+  for (unsigned int i = 0; i < flags_->Length(); i++)
+    flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
+  return flags;
+}
+
 };
 
 

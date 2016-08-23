@@ -96,6 +96,9 @@ private:
   static NAN_METHOD(GetMemoryStats);
   static NAN_METHOD(GetVcpus);
   static NAN_METHOD(SetVcpus);
+  static NAN_METHOD(BlockCommit);
+  static NAN_METHOD(BlockJobInfo);
+  static NAN_METHOD(BlockJobAbort);
   static NAN_METHOD(ToXml);
   static NAN_METHOD(GetMetadata);
   static NAN_METHOD(SetMetadata);
@@ -478,6 +481,37 @@ private:
     void Execute();
   private:
     unsigned int count_;
+  };
+
+  class OldBlockCommitWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
+  public:
+    OldBlockCommitWorker(Nan::Callback *callback, virDomainPtr handle, std::string path,
+      std::string base, std::string top, unsigned long bandwidth, unsigned int flags)
+      : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle),
+      path_(path), base_(base), top_(top), bandwidth_(bandwidth), flags_(flags) {}
+    void Execute();
+  private:
+    std::string path_;
+    std::string base_;
+    std::string top_;
+    unsigned long bandwidth_;
+    unsigned int flags_;
+  };
+  
+  class BlockCommitWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
+  public:
+    BlockCommitWorker(Nan::Callback *callback, virDomainPtr handle, std::function<virErrorPtr(virDomainPtr)> func)
+      : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle),
+      func_(func) {}
+    void Execute() {
+      NLV_WORKER_ASSERT_DOMAIN();
+      virErrorPtr error = func_(Handle());
+      if(error) {
+        SetVirError(error);
+      }
+    }
+  private:
+    std::function<virErrorPtr(virDomainPtr)> func_;
   };
 
   class SetMigrationMaxDowntimeWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {

@@ -3,6 +3,7 @@
 #include "error.h"
 #include "hypervisor.h"
 #include "domain.h"
+#include "worker.h"
 
 namespace NLV {
 
@@ -69,6 +70,9 @@ void Domain::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "getMemoryStats",          GetMemoryStats);
   Nan::SetPrototypeMethod(t, "getVcpus",                GetVcpus);
   Nan::SetPrototypeMethod(t, "setVcpus",                SetVcpus);
+  Nan::SetPrototypeMethod(t, "blockCommit",             BlockCommit);
+  Nan::SetPrototypeMethod(t, "blockJobInfo",            BlockJobInfo);
+  Nan::SetPrototypeMethod(t, "blockJobAbort",           BlockJobAbort);
 
   // UNFINISHED SYNC ACCESSORS/MUTATORS
   Nan::SetPrototypeMethod(t, "setSchedulerParameters",  SetSchedulerParameters);
@@ -112,10 +116,45 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_DISK);
   NODE_DEFINE_CONSTANT(exports, VIR_MIGRATE_NON_SHARED_INC);
 
+  //virDomainSnapshotCreateXML
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_REDEFINE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_CURRENT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_NO_METADATA);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_HALT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_REUSE_EXT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_QUIESCE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_LIVE);
+
+  //virDomainSnapshotDelete
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_DELETE_CHILDREN);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_DELETE_CHILDREN_ONLY);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_DELETE_METADATA_ONLY);
+
   //virDomainModificationImpact
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CURRENT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CONFIG);
+
+  //virDomainBlockCommit
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_SHALLOW);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_DELETE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_ACTIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_RELATIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_BANDWIDTH_BYTES);
+
+  //virDomainBlockJobAbort
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_COMPLETED);
+
+  //virDomainBlockJobInfo
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_INFO_BANDWIDTH_BYTES);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_UNKNOWN);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_PULL);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_COPY);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_COMMIT);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_ACTIVE_COMMIT);
 
   //virDomainXMLFlags
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_SECURE);
@@ -1482,6 +1521,86 @@ NLV_WORKER_EXECUTE(Domain, SetVcpus)
 
   data_ = true;
 }
+#include <unistd.h>
+NAN_METHOD(Domain::BlockCommit)
+{
+  Nan::HandleScope scope;
+  if (info.Length() < 5 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()
+      || !info[3]->IsNumber()) {
+    Nan::ThrowTypeError("you must specify path, base, top, bandwidth, and optionally flags");
+    return;
+  }
+
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  std::string base(*Nan::Utf8String(info[1]->ToString()));
+  std::string top(*Nan::Utf8String(info[2]->ToString()));
+  unsigned long bandwidth = info[3]->Int32Value();
+  unsigned int flags = GetFlags(info[4]);
+    
+  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
+  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+    if (virDomainBlockCommit(domain, path.c_str(), base.c_str(), top.c_str(), bandwidth, flags) < 0) {
+      return virSaveLastError();
+    }
+    return onFinished(PrimitiveReturnHandler(true));
+  });
+}
+
+NAN_METHOD(Domain::BlockJobInfo)
+{
+  Nan::HandleScope scope;
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    Nan::ThrowTypeError("you must specify path and optionally flags");
+    return;
+  }
+  
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  unsigned int flags = GetFlags(info[1]);
+  
+  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
+  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+    virDomainBlockJobInfo info;
+    int ret = virDomainGetBlockJobInfo(domain, path.c_str(), &info, flags);
+    if(ret == -1) {
+      return virSaveLastError();
+    }
+    if(ret == 0) {
+      return onFinished(PrimitiveReturnHandler(false));
+    }
+    
+    return onFinished([&](Nan::Callback* callback) {
+      Nan::HandleScope scope;
+      v8::Local<Object> data = Nan::New<Object>();
+      data->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.type));
+      data->Set(Nan::New("bandwidth").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.bandwidth));
+      data->Set(Nan::New("cur").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.cur));
+      data->Set(Nan::New("end").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.end));
+      Local<Value> argv[] = { Nan::Null(), data };
+      callback->Call(2, argv);
+    });
+  });
+}
+
+NAN_METHOD(Domain::BlockJobAbort)
+{
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    Nan::ThrowTypeError("you must specify path and optionally flags");
+    return;
+  }
+  
+  std::string path(*Nan::Utf8String(info[0]->ToString()));
+  unsigned int flags = GetFlags(info[1]);
+  
+  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
+
+  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+    //abort_flags |= VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT;
+    if (virDomainBlockJobAbort(domain, path.c_str(), flags) < 0) {
+      return virSaveLastError();
+    }
+    return onFinished(PrimitiveReturnHandler(true));
+  });
+}
 
 NAN_METHOD(Domain::SendKeys)
 {
@@ -1845,34 +1964,31 @@ NLV_WORKER_EXECUTE(Domain, TakeSnapshot)
 NAN_METHOD(Domain::DeleteSnapshot) {
   Nan::HandleScope scope;
 
-  if(info.Length() != 2 ||
-      (!info[0]->IsString() || !info[1]->IsFunction())) {
-    Nan::ThrowTypeError("you must specify a string and a callback");
+  if(info.Length() < 2 ||
+      (!info[0]->IsString())) {
+    Nan::ThrowTypeError("you must specify a string and optional flags");
     return;
   }
 
+  std::string name = *Nan::Utf8String(info[0]->ToString());
+  unsigned int flags = GetFlags(info[1]);
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new DeleteSnapshotWorker(callback, domain->handle_, *Nan::Utf8String(info[0]->ToString())));
-  return;
-}
+  auto domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
+  //Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
+  Worker::Queue(info[info.Length() - 1], [=](Worker::SetOnFinishedHandler onFinished) {
+    auto snapshot = virDomainSnapshotLookupByName(domain, name.c_str(), 0);
+    if(snapshot == NULL) {
+      return virSaveLastError();
+    }
 
-NLV_WORKER_EXECUTE(Domain, DeleteSnapshot)
-{
-  unsigned int flags = 0;
-  virDomainSnapshotPtr snapshot = NULL;
-
-  snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
-  if(snapshot == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  if(virDomainSnapshotDelete(snapshot, flags) == -1)
-    SetVirError(virSaveLastError());
-
-  virDomainSnapshotFree(snapshot);
+    if(virDomainSnapshotDelete(snapshot, flags) == -1) {
+      virDomainSnapshotFree(snapshot); // TODO: add some auto cleanup scope
+      return virSaveLastError();
+    }
+    virDomainSnapshotFree(snapshot);
+    
+    return onFinished(PrimitiveReturnHandler(true));
+  });
 }
 
 NAN_METHOD(Domain::LookupSnapshotByName) {
