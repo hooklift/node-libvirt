@@ -1,3 +1,5 @@
+#include <functional>
+
 #include "nlv_async_worker.h"
 
 namespace NLV {
@@ -43,3 +45,4 @@ namespace NLV {
     };
   }
 };
+

@@ -2,6 +2,8 @@
 #ifndef DOMAIN_H
 #define DOMAIN_H
 
+#include <functional>
+
 #include "nlv_object.h"
 #include "nlv_async_worker.h"
 #include "worker_macros.h"
