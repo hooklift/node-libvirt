@@ -5,7 +5,7 @@
 namespace NLV {
   class Worker : public NLVAsyncWorkerBase {
   public:
-    typedef std::function<void(Nan::Callback*)>  OnFinishedHandler;
+    typedef std::function<void(Worker*)>  OnFinishedHandler;
     
     typedef std::function<virErrorPtr(OnFinishedHandler)> SetOnFinishedHandler;
     
@@ -18,7 +18,12 @@ namespace NLV {
       : NLVAsyncWorkerBase(callback), execute_handler(handler) { };
     
     void HandleOKCallback() {
-      on_finished_handler(callback);
+      on_finished_handler(this);
+    }
+    
+    template <class... T>
+    void Call(T... t) {
+      callback->Call(t...);
     }
     
     virtual void Execute() {
@@ -30,18 +35,36 @@ namespace NLV {
         SetVirError(error);
       }
     }
-    
+        
     // TODO: make it a template so that it can accept arbitrary number of arguments
     // of objects to make persistent for the duration of the worker run
-    static void Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler);
+    static Worker* Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler,
+      v8::Local<v8::Object> parent = v8::Local<v8::Object>());
   };
   
   template<class T>
   Worker::OnFinishedHandler PrimitiveReturnHandler(T val) {
-    return [=](Nan::Callback* callback) {
+    return [=](Worker* worker) {
       Nan::HandleScope scope;
       v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(val) };
-      callback->Call(2, argv);
+      worker->Call(2, argv);
+    };
+  }
+  template<class T, class Y>
+  Worker::OnFinishedHandler InstanceReturnHandler(Y val) {
+    return [=](Worker* worker) {
+      Nan::HandleScope scope;
+      Local<Object> childObject = T::NewInstance(val);
+      Local<Value> parentObject = worker->GetFromPersistent("parent");
+      if (parentObject->IsObject()) {
+        childObject->Set(Nan::New("_parent").ToLocalChecked(), parentObject);
+      }
+      T *child = Nan::ObjectWrap::Unwrap<T>(childObject);
+      NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
+      child->SetParentReference(childPtr);
+      //parent_->children_.push_back(childPtr);
+      v8::Local<v8::Value> argv[] = { Nan::Null(), childObject };
+      worker->Call(2, argv);
     };
   }
 };

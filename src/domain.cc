@@ -1579,7 +1579,7 @@ NAN_METHOD(Domain::BlockJobInfo)
       return onFinished(PrimitiveReturnHandler(false));
     }
     
-    return onFinished([=](Nan::Callback* callback) {
+    return onFinished([=](Worker* worker) {
       Nan::HandleScope scope;
       v8::Local<Object> data = Nan::New<Object>();
       data->Set(Nan::New("type").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.type));
@@ -1587,7 +1587,7 @@ NAN_METHOD(Domain::BlockJobInfo)
       data->Set(Nan::New("cur").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.cur));
       data->Set(Nan::New("end").ToLocalChecked(), Nan::New<Integer>((unsigned int)info.end));
       Local<Value> argv[] = { Nan::Null(), data };
-      callback->Call(2, argv);
+      worker->Call(2, argv);
     });
   });
   #endif
