@@ -38,7 +38,7 @@ namespace NLV {
         
     // TODO: make it a template so that it can accept arbitrary number of arguments
     // of objects to make persistent for the duration of the worker run
-    static Worker* Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler,
+    static void Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler,
       v8::Local<v8::Object> parent = v8::Local<v8::Object>());
   };
   
@@ -68,4 +68,3 @@ namespace NLV {
     };
   }
 };
-
