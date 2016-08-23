@@ -305,15 +305,6 @@ private:
     unsigned int flags_;
   };
 
-  class DeleteSnapshotWorker : public NLVAsyncWorker<virDomainPtr> {
-  public:
-    DeleteSnapshotWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &name)
-      : NLVAsyncWorker<virDomainPtr>(callback, handle), name_(name) {}
-    void Execute();
-  private:
-    std::string name_;
-  };
-
   class LookupSnapshotByNameWorker : public NLVStringReturnWorker<virDomainPtr, std::string> {
   public:
     LookupSnapshotByNameWorker(Nan::Callback *callback, virDomainPtr handle, const std::string &name)
