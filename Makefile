@@ -15,4 +15,7 @@ test:	jshint
 		$(NPM_BIN)/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
-.PHONY: jshint fixjsstyle test
+changelog: jshint
+	${NPM_BIN}/conventional-changelog -p angular -i CHANGELOG.md -s
+
+.PHONY: jshint fixjsstyle test changelog

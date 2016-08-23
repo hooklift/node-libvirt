@@ -42,6 +42,9 @@
   "engines": {
     "node": ">=0.10.0"
   },
+  "scripts": {
+    "version": "make changelog && git add CHANGELOG.md"
+  },
   "keywords": [
     "libvirt",
     "virt",
@@ -60,6 +63,7 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
+    "conventional-changelog-cli": "^1.2.0",
     "jshint": "^2.9.1-rc1",
     "mocha": "^2.3.4",
     "segfault-handler": "^1.0.0",
