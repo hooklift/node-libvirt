@@ -2,7 +2,7 @@
 
 using namespace NLV;
 
-void Worker::Queue(v8::Handle<v8::Value> v8_callback, ExecuteHandler handler) {
+void Worker::Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler) {
   if(!v8_callback->IsFunction()) {
     Nan::ThrowTypeError("you must specify a function as the callback");;
     return;

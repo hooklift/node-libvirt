@@ -102,7 +102,7 @@ NAN_INLINE void AsyncQueueWorker(Nan::AsyncWorker *worker, Local<Object> parent 
   Nan::AsyncQueueWorker(worker);
 }
 
-NAN_INLINE unsigned int GetFlags(v8::Handle<v8::Value> val) {
+NAN_INLINE unsigned int GetFlags(v8::Local<v8::Value> val) {
   if(val->IsUndefined() || val->IsFunction()) {
     return 0;
   }

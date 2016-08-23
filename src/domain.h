@@ -10,6 +10,7 @@
 
 #if LIBVIR_CHECK_VERSION(0,9,10)
 #define _HAVE_DOMAIN_METADATA_API 1
+#define _HAVE_DOMAIN_BLOCKCOMMIT_API 1
 #endif
 
 namespace NLV {

@@ -122,10 +122,12 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_NO_METADATA);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_HALT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY);
+  #if LIBVIR_CHECK_VERSION(0,9,10)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_REUSE_EXT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_QUIESCE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_LIVE);
+  #endif
 
   //virDomainSnapshotDelete
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_DELETE_CHILDREN);
@@ -137,6 +139,7 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_LIVE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_AFFECT_CONFIG);
 
+#ifdef _HAVE_DOMAIN_BLOCKCOMMIT_API
   //virDomainBlockCommit
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_SHALLOW);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_COMMIT_DELETE);
@@ -155,6 +158,7 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_COPY);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_COMMIT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_BLOCK_JOB_TYPE_ACTIVE_COMMIT);
+#endif
 
   //virDomainXMLFlags
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_XML_SECURE);
@@ -1524,6 +1528,9 @@ NLV_WORKER_EXECUTE(Domain, SetVcpus)
 #include <unistd.h>
 NAN_METHOD(Domain::BlockCommit)
 {
+  #ifndef _HAVE_DOMAIN_BLOCKCOMMIT_API
+  Nan::ThrowTypeError("blockcommit api not supported in this libvirt version");
+  #else
   Nan::HandleScope scope;
   if (info.Length() < 5 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()
       || !info[3]->IsNumber()) {
@@ -1544,10 +1551,14 @@ NAN_METHOD(Domain::BlockCommit)
     }
     return onFinished(PrimitiveReturnHandler(true));
   });
+  #endif
 }
 
 NAN_METHOD(Domain::BlockJobInfo)
 {
+  #ifndef _HAVE_DOMAIN_BLOCKCOMMIT_API
+  Nan::ThrowTypeError("blockcommit api not supported in this libvirt version");
+  #else
   Nan::HandleScope scope;
   if (info.Length() < 1 || !info[0]->IsString()) {
     Nan::ThrowTypeError("you must specify path and optionally flags");
@@ -1579,10 +1590,14 @@ NAN_METHOD(Domain::BlockJobInfo)
       callback->Call(2, argv);
     });
   });
+  #endif
 }
 
 NAN_METHOD(Domain::BlockJobAbort)
 {
+  #ifndef _HAVE_DOMAIN_BLOCKCOMMIT_API
+  Nan::ThrowTypeError("blockcommit api not supported in this libvirt version");
+  #else
   if (info.Length() < 1 || !info[0]->IsString()) {
     Nan::ThrowTypeError("you must specify path and optionally flags");
     return;
@@ -1600,6 +1615,7 @@ NAN_METHOD(Domain::BlockJobAbort)
     }
     return onFinished(PrimitiveReturnHandler(true));
   });
+  #endif
 }
 
 NAN_METHOD(Domain::SendKeys)
