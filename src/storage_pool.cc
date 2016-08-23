@@ -7,6 +7,7 @@
 
 #include "storage_volume.h"
 #include "storage_pool.h"
+#include "worker.h"
 //FIXME default params, default flags
 
 namespace NLV {
@@ -116,7 +117,16 @@ NAN_METHOD(StoragePool::LookupByUUID)
 NAN_METHOD(StoragePool::LookupByVolume)
 {
   Nan::HandleScope scope;
-  return;
+  auto hv = ObjectWrap::Unwrap<Hypervisor>(info.This())->handle_;
+  auto volume = ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject())->handle_;
+  
+  Worker::Queue(info[1], [=](Worker::SetOnFinishedHandler onFinished) {
+    auto storagePool = virStoragePoolLookupByVolume(volume);
+    if(!storagePool) {
+      return virSaveLastError();
+    }
+    return onFinished(InstanceReturnHandler<StoragePool>(storagePool));
+  }, info.This());
 }
 
 NAN_METHOD(StoragePool::Create)
