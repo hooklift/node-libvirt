@@ -6,6 +6,7 @@
 namespace NLV {
 
 Nan::Persistent<Function> Interface::constructor;
+Nan::Persistent<FunctionTemplate> Interface::constructor_template;
 void Interface::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -20,6 +21,7 @@ void Interface::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "undefine",      Undefine);
   Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
+  constructor_template.Reset(t);
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Interface").ToLocalChecked(), t->GetFunction());
 
@@ -29,16 +31,6 @@ void Interface::Initialize(Handle<Object> exports)
 }
 
 Interface::Interface(virInterfacePtr handle) : NLVObject(handle) {}
-Local<Object> Interface::NewInstance(virInterfacePtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  Interface *interface = new Interface(handle);
-  interface->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_WORKER_METHOD_NO_ARGS(Interface, Start)
 NLV_WORKER_EXECUTE(Interface, Start)

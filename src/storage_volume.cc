@@ -7,6 +7,7 @@
 
 #include "storage_pool.h"
 #include "storage_volume.h"
+#include "worker.h"
 
 namespace NLV {
 
@@ -37,16 +38,6 @@ void StorageVolume::Initialize(Handle<Object> exports)
 }
 
 StorageVolume::StorageVolume(virStorageVolPtr handle) : NLVObject(handle) {}
-Local<Object> StorageVolume::NewInstance(virStorageVolPtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  StorageVolume *storageVolume = new StorageVolume(handle);
-  storageVolume->Wrap(object);
-  return scope.Escape(object);
-}
 
 NAN_METHOD(StorageVolume::Create)
 {
@@ -57,27 +48,17 @@ NAN_METHOD(StorageVolume::Create)
     return;
   }
 
-  if (!Nan::New(StoragePool::constructor_template)->HasInstance(info.This())) {
-    Nan::ThrowTypeError("You must specify a StoragePool instance");
-    return;
-  }
-
-  StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(info.This());
+  auto sp = StoragePool::UnwrapHandle(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV::AsyncQueueWorker(new CreateWorker(callback, sp, xmlData), info.This());
-  return;
-}
-
-NLV_WORKER_EXECUTE(StorageVolume, Create)
-{
-  NLV_WORKER_ASSERT_PARENT_HANDLE();
-  unsigned int flags = 0;
-  lookupHandle_ = virStorageVolCreateXML(parent_->handle_, value_.c_str(), flags);
-  if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
+  unsigned int flags = GetFlags(info[1]);
+  
+  Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished) {
+    auto handle = virStorageVolCreateXML(sp, xmlData.c_str(), flags);
+    if (handle == NULL) {
+      return virSaveLastError();
+    }
+    return onFinished(InstanceReturnHandler<StoragePool, StorageVolume>(handle));
+  });
 }
 
 NLV_WORKER_METHOD_NO_ARGS(StorageVolume, Delete)

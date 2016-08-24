@@ -6,6 +6,7 @@
 namespace NLV {
 
 Nan::Persistent<Function> Network::constructor;
+Nan::Persistent<FunctionTemplate> Network::constructor_template;
 void Network::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -24,21 +25,12 @@ void Network::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "toXml",           ToXml);
   Nan::SetPrototypeMethod(t, "getBridgeName",   GetBridgeName);
 
+  constructor_template.Reset(t);
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Network").ToLocalChecked(), t->GetFunction());
 }
 
 Network::Network(virNetworkPtr handle) : NLVObject(handle) {}
-Local<Object> Network::NewInstance(virNetworkPtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  Network *network = new Network(handle);
-  network->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Network, LookupByName, virNetworkLookupByName)
 NAN_METHOD(Network::LookupByName)

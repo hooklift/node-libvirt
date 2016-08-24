@@ -6,6 +6,7 @@
 namespace NLV {
 
 Nan::Persistent<Function> Secret::constructor;
+Nan::Persistent<FunctionTemplate> Secret::constructor_template;
 void Secret::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -20,21 +21,12 @@ void Secret::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "getUsageType",  GetUsageType);
   Nan::SetPrototypeMethod(t, "toXml",         ToXml);
 
+  constructor_template.Reset(t);
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("Secret").ToLocalChecked(), t->GetFunction());
 }
 
 Secret::Secret(virSecretPtr handle) : NLVObject(handle) {}
-Local<Object> Secret::NewInstance(virSecretPtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  Secret *secret = new Secret(handle);
-  secret->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_WORKER_METHOD_DEFINE(Secret)
 NLV_WORKER_EXECUTE(Secret, Define)

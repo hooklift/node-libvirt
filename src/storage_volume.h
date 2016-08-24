@@ -17,13 +17,13 @@ struct StorageVolumeCleanupHandler {
   }
 };
 
-class StorageVolume : public NLVObject<virStorageVolPtr, StorageVolumeCleanupHandler>
+class StorageVolume : public NLVObject<StorageVolume, virStorageVolPtr, StorageVolumeCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virStorageVolPtr handle);
+  NLV_OBJECT_STATIC_HELPERS(StorageVolume);
 
-private:
+protected:
   explicit StorageVolume(virStorageVolPtr handle);
   static Nan::Persistent<FunctionTemplate> constructor_template;
   static Nan::Persistent<Function> constructor;
@@ -34,6 +34,7 @@ private:
   // HYPERVISOR METHODS
   static NAN_METHOD(LookupByKey);
   static NAN_METHOD(LookupByPath);
+  static NAN_METHOD(LookupByVolume);
 
   // STORAGEPOOL METHODS
   static NAN_METHOD(LookupByName);
@@ -58,7 +59,6 @@ private:
 
   // STORAGEPOOL METHOD WORKERS
   NLV_LOOKUP_BY_VALUE_WORKER(LookupByName, StorageVolume, StoragePool, virStorageVolPtr);
-  NLV_LOOKUP_BY_VALUE_WORKER(Create, StorageVolume, StoragePool, virStorageVolPtr);
 
   class CloneWorker : public NLVLookupInstanceByValueWorker<StorageVolume, StoragePool, virStorageVolPtr> {
   public:

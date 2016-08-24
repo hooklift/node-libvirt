@@ -16,15 +16,16 @@ struct SecretCleanupHandler {
   }
 };
 
-class Secret : public NLVObject<virSecretPtr, SecretCleanupHandler>
+class Secret : public NLVObject<Secret, virSecretPtr, SecretCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virSecretPtr handle);
+  NLV_OBJECT_STATIC_HELPERS(Secret);
 
 private:
   explicit Secret(virSecretPtr handle);
   static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
   friend class Hypervisor;
 
 private:

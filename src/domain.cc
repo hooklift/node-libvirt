@@ -237,16 +237,6 @@ void Domain::Initialize(Handle<Object> exports)
 }
 
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
-Local<Object> Domain::NewInstance(virDomainPtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  Domain *domain = new Domain(handle);
-  domain->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByName, virDomainLookupByName)
 NAN_METHOD(Domain::LookupByName)
@@ -1545,7 +1535,7 @@ NAN_METHOD(Domain::BlockCommit)
   unsigned int flags = GetFlags(info[4]);
     
   virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
-  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     if (virDomainBlockCommit(domain, path.c_str(), base.c_str(), top.c_str(), bandwidth, flags) < 0) {
       return virSaveLastError();
     }
@@ -1569,7 +1559,7 @@ NAN_METHOD(Domain::BlockJobInfo)
   unsigned int flags = GetFlags(info[1]);
   
   virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
-  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     virDomainBlockJobInfo info;
     int ret = virDomainGetBlockJobInfo(domain, path.c_str(), &info, flags);
     if(ret == -1) {
@@ -1608,7 +1598,7 @@ NAN_METHOD(Domain::BlockJobAbort)
   
   virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
 
-  Worker::Queue(info[info.Length() -1], [=] (Worker::SetOnFinishedHandler onFinished) {
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     //abort_flags |= VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT;
     if (virDomainBlockJobAbort(domain, path.c_str(), flags) < 0) {
       return virSaveLastError();
@@ -1991,7 +1981,7 @@ NAN_METHOD(Domain::DeleteSnapshot) {
 
   auto domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->handle_;
   //Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Worker::Queue(info[info.Length() - 1], [=](Worker::SetOnFinishedHandler onFinished) {
+  Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished) {
     auto snapshot = virDomainSnapshotLookupByName(domain, name.c_str(), 0);
     if(snapshot == NULL) {
       return virSaveLastError();

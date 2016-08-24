@@ -35,11 +35,8 @@ namespace NLV {
         SetVirError(error);
       }
     }
-        
-    // TODO: make it a template so that it can accept arbitrary number of arguments
-    // of objects to make persistent for the duration of the worker run
-    static void Queue(v8::Local<v8::Value> v8_callback, ExecuteHandler handler,
-      v8::Local<v8::Object> parent = v8::Local<v8::Object>());
+          
+    static void RunAsync(const Nan::FunctionCallbackInfo<v8::Value>& info, ExecuteHandler handler);
   };
   
   template<class T>
@@ -50,7 +47,7 @@ namespace NLV {
       worker->Call(2, argv);
     };
   }
-  template<class T, class Y>
+  template<class ParentClass, class T, class Y>
   Worker::OnFinishedHandler InstanceReturnHandler(Y val) {
     return [=](Worker* worker) {
       Nan::HandleScope scope;
@@ -62,7 +59,17 @@ namespace NLV {
       T *child = Nan::ObjectWrap::Unwrap<T>(childObject);
       NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
       child->SetParentReference(childPtr);
-      //parent_->children_.push_back(childPtr);
+      auto parent = ParentClass::Unwrap(parentObject);
+      if(parent) {
+        parent->children_.push_back(childPtr);
+      }
+      Nan::TryCatch try_catch;
+      if(try_catch.HasCaught()) {
+        v8::Local<v8::Value> argv[] = { try_catch.Exception() };
+        worker->Call(1, argv);
+        return;
+      }
+      
       v8::Local<v8::Value> argv[] = { Nan::Null(), childObject };
       worker->Call(2, argv);
     };

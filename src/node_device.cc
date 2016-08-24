@@ -9,6 +9,7 @@ using namespace v8;
 namespace NLV {
 
 Nan::Persistent<Function> NodeDevice::constructor;
+Nan::Persistent<FunctionTemplate> NodeDevice::constructor_template;
 void NodeDevice::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -24,21 +25,12 @@ void NodeDevice::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "toXml",             ToXml);
   Nan::SetPrototypeMethod(t, "getCapabilities",   GetCapabilities);
 
+  constructor_template.Reset(t);
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("NodeDevice").ToLocalChecked(), t->GetFunction());
 }
 
 NodeDevice::NodeDevice(virNodeDevicePtr handle) : NLVObject(handle) {}
-Local<Object> NodeDevice::NewInstance(virNodeDevicePtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  NodeDevice *nodeDevice = new NodeDevice(handle);
-  nodeDevice->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NodeDevice, LookupByName, virNodeDeviceLookupByName)
 NAN_METHOD(NodeDevice::LookupByName)

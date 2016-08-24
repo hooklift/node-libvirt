@@ -166,7 +166,7 @@ Local<Value> Error::New(virErrorPtr error, const char* context)
 
   Local<Function> ctor = Nan::New<Function>(constructor);
   
-  Local<Object> instance = ctor->NewInstance();
+  Local<Object> instance = Nan::NewInstance(ctor).ToLocalChecked();
   Error *err = new Error(error, context);
   err->Wrap(instance);
   return scope.Escape(instance);

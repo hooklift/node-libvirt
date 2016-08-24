@@ -36,6 +36,18 @@ protected:
   bool valid_;
 };
 
+#define NLV_STRINGIFY0(v) #v
+#define NLV_STRINGIFY(v) NLV_STRINGIFY0(v)
+
+// macro could be removed but alternate solution seems overly complex
+// https://blog.molecular-matters.com/2015/12/11/getting-the-type-of-a-template-argument-as-string-without-rtti/
+#define NLV_OBJECT_STATIC_HELPERS(class_name) \
+  static const char* ClassName() { \
+    return NLV_STRINGIFY(class_name); \
+  } \
+  friend class NLVObject;
+  
+
 class NLVObjectBase : public Nan::ObjectWrap
 {
 public:
@@ -44,10 +56,12 @@ public:
   virtual void SetParentReference(NLVObjectBasePtr *parentReference) = 0;
 };
 
-template <typename HandleType, typename CleanupHandler>
+template <typename ParentClass, typename HandleType, typename CleanupHandler>
 class NLVObject : public NLVObjectBase
 {
 public:
+  typedef HandleType handle_type;
+  
   NLVObject(HandleType handle) : handle_(handle), parentReference_(NULL) {}
   ~NLVObject() {
     // calling virtual ClearHandle() will break if overridden by subclasses
@@ -55,6 +69,53 @@ public:
     if (parentReference_ != NULL) {
       parentReference_->SetInvalid();
     }
+  }
+
+  static v8::Local<v8::Object> NewInstance(handle_type handle) {
+    Nan::EscapableHandleScope scope;
+    Local<Function> ctor = Nan::New<Function>(ParentClass::constructor);
+    Local<Object> object = Nan::NewInstance(ctor).ToLocalChecked();
+    ParentClass *class_instance = new ParentClass(handle);
+    class_instance->Wrap(object);
+    return scope.Escape(object);
+  }
+  
+  static bool IsInstanceOf(v8::Local<v8::Object> val) {
+    Nan::HandleScope scope;
+    return Nan::New(ParentClass::constructor_template)->HasInstance(val);
+  }
+
+  HandleType handle() const {
+    return handle_;
+  }
+
+  NAN_INLINE static ParentClass* Unwrap(v8::Local<v8::Object> val) {
+    if(!ParentClass::IsInstanceOf(val)) {
+      char error[128];
+      snprintf(error, sizeof(error), "Expecting object to be %s", ParentClass::ClassName());
+      Nan::ThrowTypeError(error);
+      return nullptr;
+    }
+
+    return ObjectWrap::Unwrap<ParentClass>(val);
+  }
+  NAN_INLINE static ParentClass* Unwrap(v8::Local<v8::Value> val) {
+    if(!val->IsObject()) {
+      char error[128];
+      snprintf(error, sizeof(error), "Cannot unwrap handle from non-object, expecting %s", ParentClass::ClassName());
+      Nan::ThrowTypeError(error);
+      return nullptr;
+    }
+    return Unwrap(val->ToObject());
+  }
+
+  NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Value> val) {
+    return Unwrap(val)->handle();
+  }
+  
+  template<class T>
+  NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Object> val) {
+    return Unwrap(val)->handle();
   }
 
   virtual void ClearHandle() {

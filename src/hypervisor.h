@@ -16,12 +16,13 @@ struct HypervisorCleanupHandler {
   }
 };
 
-class Hypervisor : public NLVObject<virConnectPtr, HypervisorCleanupHandler>
+class Hypervisor : public NLVObject<Hypervisor, virConnectPtr, HypervisorCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-
+  NLV_OBJECT_STATIC_HELPERS(Hypervisor);
 private:
+  explicit Hypervisor(virConnectPtr handle) : NLVObject(handle) {};
   explicit Hypervisor(std::string uri, std::string user, std::string pass, bool readOnly);
   static Nan::Persistent<Function> constructor;
   static Nan::Persistent<FunctionTemplate> constructor_template;

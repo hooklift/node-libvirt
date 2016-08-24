@@ -7,6 +7,7 @@
 namespace NLV {
 
 Nan::Persistent<Function> NetworkFilter::constructor;
+Nan::Persistent<FunctionTemplate> NetworkFilter::constructor_template;
 void NetworkFilter::Initialize(Handle<Object> exports)
 {
   Local<FunctionTemplate> t = Nan::New<FunctionTemplate>();
@@ -18,21 +19,12 @@ void NetworkFilter::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "undefine", NetworkFilter::Undefine);
   Nan::SetPrototypeMethod(t, "toXml", NetworkFilter::ToXml);
 
+  constructor_template.Reset(t);
   constructor.Reset(t->GetFunction());
   exports->Set(Nan::New("NetworkFilter").ToLocalChecked(), t->GetFunction());
 }
 
 NetworkFilter::NetworkFilter(virNWFilterPtr handle) : NLVObject(handle) {}
-Local<Object> NetworkFilter::NewInstance(virNWFilterPtr handle)
-{
-  Nan::EscapableHandleScope scope;
-  Local<Function> ctor = Nan::New<Function>(constructor);
-  Local<Object> object = ctor->NewInstance();
-
-  NetworkFilter *filter = new NetworkFilter(handle);
-  filter->Wrap(object);
-  return scope.Escape(object);
-}
 
 NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(NetworkFilter, LookupByName, virNWFilterLookupByName)
 NAN_METHOD(NetworkFilter::LookupByName)

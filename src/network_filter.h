@@ -16,15 +16,15 @@ struct NetworkFilterCleanupHandler {
   }
 };
 
-class NetworkFilter : public NLVObject<virNWFilterPtr, NetworkFilterCleanupHandler>
+class NetworkFilter : public NLVObject<NetworkFilter, virNWFilterPtr, NetworkFilterCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virNWFilterPtr handle);
-
+  NLV_OBJECT_STATIC_HELPERS(NetworkFilter);
 private:
   explicit NetworkFilter(virNWFilterPtr handle);
   static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
   friend class Hypervisor;
 
 protected:

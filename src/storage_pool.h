@@ -16,11 +16,11 @@ struct StoragePoolCleanupHandler {
   }
 };
 
-class StoragePool : public NLVObject<virStoragePoolPtr, StoragePoolCleanupHandler>
+class StoragePool : public NLVObject<StoragePool, virStoragePoolPtr, StoragePoolCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virStoragePoolPtr handle);
+  NLV_OBJECT_STATIC_HELPERS(StoragePool);
 
 private:
   explicit StoragePool(virStoragePoolPtr handle);

@@ -16,14 +16,14 @@ struct InterfaceCleanupHandler {
   }
 };
 
-class Interface : public NLVObject<virInterfacePtr, InterfaceCleanupHandler>
+class Interface : public NLVObject<Interface, virInterfacePtr, InterfaceCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virInterfacePtr handle);
-
+  NLV_OBJECT_STATIC_HELPERS(Interface);
 private:
   static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
   friend class Hypervisor;
 
 private:

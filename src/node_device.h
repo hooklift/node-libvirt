@@ -16,15 +16,16 @@ struct NodeDeviceCleanupHandler {
   }
 };
 
-class NodeDevice : public NLVObject<virNodeDevicePtr, NodeDeviceCleanupHandler>
+class NodeDevice : public NLVObject<NodeDevice, virNodeDevicePtr, NodeDeviceCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virNodeDevicePtr handle);
+  NLV_OBJECT_STATIC_HELPERS(NodeDevice);
 
 private:
   explicit NodeDevice(virNodeDevicePtr handle);
   static Nan::Persistent<Function> constructor;
+  static Nan::Persistent<FunctionTemplate> constructor_template;
   friend class Hypervisor;
 
 private:

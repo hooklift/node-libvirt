@@ -23,11 +23,11 @@ struct DomainCleanupHandler {
   }
 };
 
-class Domain : public NLVObject<virDomainPtr, DomainCleanupHandler>
+class Domain : public NLVObject<Domain, virDomainPtr, DomainCleanupHandler>
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Object> NewInstance(virDomainPtr handle);
+  NLV_OBJECT_STATIC_HELPERS(Domain);
 
 private:
   explicit Domain(virDomainPtr handle);
