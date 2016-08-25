@@ -47,7 +47,6 @@ NAN_METHOD(StorageVolume::Create)
     Nan::ThrowTypeError("You must specify a string and callback");
     return;
   }
-
   auto sp = StoragePool::UnwrapHandle(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   unsigned int flags = GetFlags(info[1]);
@@ -57,7 +56,7 @@ NAN_METHOD(StorageVolume::Create)
     if (handle == NULL) {
       return virSaveLastError();
     }
-    return onFinished(InstanceReturnHandler<StoragePool, StorageVolume>(handle));
+    return onFinished(InstanceReturnHandler<StorageVolume>(handle));
   });
 }
 

@@ -14,7 +14,8 @@ namespace NLV {
     OnFinishedHandler on_finished_handler;
 
     explicit Worker(Nan::Callback *callback, ExecuteHandler handler)
-      : NLVAsyncWorkerBase(callback), execute_handler(handler) { };
+      : NLVAsyncWorkerBase(callback), execute_handler(handler)
+    { };
 
     void HandleOKCallback() {
       on_finished_handler(this);
@@ -30,7 +31,8 @@ namespace NLV {
         on_finished_handler = handler;
         return nullptr;
       });
-      if(error) {
+
+      if (error) {
         SetVirError(error);
       }
     }
@@ -47,7 +49,7 @@ namespace NLV {
     };
   }
 
-  template<class ParentClass, class T, class Y>
+  template<class T, class Y>
   Worker::OnFinishedHandler InstanceReturnHandler(Y val) {
     return [=](Worker* worker) {
       Nan::HandleScope scope;
@@ -55,17 +57,18 @@ namespace NLV {
 
       Local<Object> childObject = T::NewInstance(val);
       Local<Value> parentObject = worker->GetFromPersistent("parent");
+      T* child = T::Unwrap(childObject);
+      NLVObjectBasePtr* childPtr = new NLVObjectBasePtr(child);
       if (parentObject->IsObject()) {
         childObject->Set(Nan::New("_parent").ToLocalChecked(), parentObject);
+
+        auto parent = Nan::ObjectWrap::Unwrap<NLVObjectBase>(parentObject->ToObject());
+        if (parent) {
+          parent->children_.push_back(childPtr);
+        }
       }
 
-      T *child = Nan::ObjectWrap::Unwrap<T>(childObject);
-      NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
       child->SetParentReference(childPtr);
-      auto parent = ParentClass::Unwrap(parentObject);
-      if (parent) {
-        parent->children_.push_back(childPtr);
-      }
 
       if (try_catch.HasCaught()) {
         v8::Local<v8::Value> argv[] = { try_catch.Exception() };

@@ -54,6 +54,8 @@ public:
   virtual void ClearHandle() = 0;
   virtual void ClearChildren() = 0;
   virtual void SetParentReference(NLVObjectBasePtr *parentReference) = 0;
+
+  std::vector<NLVObjectBasePtr*> children_;
 };
 
 template <typename ParentClass, typename HandleType, typename CleanupHandler>
@@ -99,6 +101,7 @@ public:
 
     return ObjectWrap::Unwrap<ParentClass>(val);
   }
+
   NAN_INLINE static ParentClass* Unwrap(v8::Local<v8::Value> val) {
     if(!val->IsObject()) {
       char error[128];
@@ -146,8 +149,6 @@ public:
     parentReference_ = parentReference;
   }
 
-  std::vector<NLVObjectBasePtr*> children_;
-
 protected:
   HandleType handle_;
   NLVObjectBasePtr* parentReference_;
@@ -180,6 +181,5 @@ NAN_INLINE unsigned int GetFlags(v8::Local<v8::Value> val) {
 }
 
 };
-
 
 #endif  // NLV_OBJECT_H

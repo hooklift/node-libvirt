@@ -96,18 +96,6 @@ private:
   // static NAN_METHOD(FindStoragePoolSources);
 
 private:
-  // ACTION WORKERS
-  class ConnectWorker : public NLVAsyncWorker<virConnectPtr> {
-  public:
-    ConnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)
-      : NLVAsyncWorker(callback, NULL), hypervisor_(hypervisor) {}
-
-    void Execute();
-    static int auth_callback(virConnectCredentialPtr cred, unsigned int ncred, void *data);
-  private:
-    Hypervisor *hypervisor_;
-  };
-
   class DisconnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
     DisconnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)

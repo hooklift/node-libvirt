@@ -13,6 +13,7 @@
 #include "network_filter.h"
 #include "interface.h"
 #include "hypervisor.h"
+#include "worker.h"
 
 namespace NLV {
 
@@ -229,64 +230,45 @@ NAN_METHOD(Hypervisor::New)
   return info.GetReturnValue().Set(info.This());
 }
 
-int Hypervisor::ConnectWorker::auth_callback(virConnectCredentialPtr cred,
-                                             unsigned int ncred, void *data)
-{
-  Hypervisor *hypervisor = static_cast<ConnectWorker*>(data)->hypervisor_;
-
-  for (unsigned int i = 0; i < ncred; ++i) {
-    switch (cred[i].type) {
-    case VIR_CRED_AUTHNAME:
-      cred[i].result = strdup(hypervisor->username_.c_str());
-      if (cred[i].result == NULL)
-        return -1;
-      cred[i].resultlen = strlen(cred[i].result);
-      break;
-
-    case VIR_CRED_PASSPHRASE:
-      cred[i].result = strdup(hypervisor->password_.c_str());
-      if (cred[i].result == NULL)
-          return -1;
-      cred[i].resultlen = strlen(cred[i].result);
-      break;
-    }
-  }
-
-  return 0;
-}
-
 NAN_METHOD(Hypervisor::Connect)
 {
-  Nan::HandleScope scope;
-  if (info.Length() == 1 && !info[0]->IsFunction()) {
-    Nan::ThrowTypeError("You must specify a function as first argument");
-    return;
-  }
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
+  std::string uri = hv->uri_;
+  Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished ) {
+    static int supported_cred_types[] = {
+      VIR_CRED_AUTHNAME,
+      VIR_CRED_PASSPHRASE,
+    };
 
-  Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
-  Nan::AsyncQueueWorker(new ConnectWorker(callback, hv));
-  return;
-}
+    virConnectAuth auth;
+    auth.credtype = supported_cred_types;
+    auth.ncredtype = sizeof(supported_cred_types) / sizeof(int);
+    auth.cb = [](virConnectCredentialPtr cred, unsigned int ncred, void *data) {
+      Hypervisor *hypervisor = static_cast<Hypervisor*>(data);
+      for (unsigned int i = 0; i < ncred; ++i) {
+        switch (cred[i].type) {
+        case VIR_CRED_AUTHNAME:
+          cred[i].result = strdup(hypervisor->username_.c_str());
+          if (cred[i].result == NULL)
+            return -1;
+          cred[i].resultlen = strlen(cred[i].result);
+          break;
 
-NLV_WORKER_EXECUTE(Hypervisor, Connect)
-{
-  static int supported_cred_types[] = {
-    VIR_CRED_AUTHNAME,
-    VIR_CRED_PASSPHRASE,
-  };
-
-  virConnectAuth auth;
-  auth.credtype = supported_cred_types;
-  auth.ncredtype = sizeof(supported_cred_types) / sizeof(int);
-  auth.cb = ConnectWorker::auth_callback;
-  auth.cbdata = this;
-
-  hypervisor_->handle_ =
-    virConnectOpenAuth((const char*) hypervisor_->uri_.c_str(), &auth,
-                       hypervisor_->readOnly_ ? VIR_CONNECT_RO : 0);
-  if (hypervisor_->handle_ == NULL)
-    SetVirError(virSaveLastError());
+        case VIR_CRED_PASSPHRASE:
+          cred[i].result = strdup(hypervisor->password_.c_str());
+          if (cred[i].result == NULL)
+              return -1;
+          cred[i].resultlen = strlen(cred[i].result);
+          break;
+        }
+      }
+      return 0;
+    };
+    auth.cbdata = hv;
+    hv->handle_ = virConnectOpenAuth(uri.c_str(), &auth,
+                       hv->readOnly_ ? VIR_CONNECT_RO : 0);
+    return onFinished(PrimitiveReturnHandler(true));
+  });
 }
 
 NAN_METHOD(Hypervisor::Disconnect)
