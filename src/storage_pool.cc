@@ -108,12 +108,13 @@ NAN_METHOD(StoragePool::LookupByVolume)
 {
   Nan::HandleScope scope;
   auto volume = StorageVolume::UnwrapHandle(info[0]);
-  
+
   Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished) {
     auto storagePool = virStoragePoolLookupByVolume(volume);
-    if(!storagePool) {
+    if (!storagePool) {
       return virSaveLastError();
     }
+
     return onFinished(InstanceReturnHandler<Hypervisor, StoragePool>(storagePool));
   });
 }

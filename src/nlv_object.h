@@ -46,7 +46,7 @@ protected:
     return NLV_STRINGIFY(class_name); \
   } \
   friend class NLVObject;
-  
+
 
 class NLVObjectBase : public Nan::ObjectWrap
 {
@@ -61,7 +61,7 @@ class NLVObject : public NLVObjectBase
 {
 public:
   typedef HandleType handle_type;
-  
+
   NLVObject(HandleType handle) : handle_(handle), parentReference_(NULL) {}
   ~NLVObject() {
     // calling virtual ClearHandle() will break if overridden by subclasses
@@ -79,7 +79,7 @@ public:
     class_instance->Wrap(object);
     return scope.Escape(object);
   }
-  
+
   static bool IsInstanceOf(v8::Local<v8::Object> val) {
     Nan::HandleScope scope;
     return Nan::New(ParentClass::constructor_template)->HasInstance(val);
@@ -112,7 +112,7 @@ public:
   NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Value> val) {
     return Unwrap(val)->handle();
   }
-  
+
   template<class T>
   NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Object> val) {
     return Unwrap(val)->handle();
@@ -171,7 +171,7 @@ NAN_INLINE unsigned int GetFlags(v8::Local<v8::Value> val) {
     Nan::ThrowTypeError("flags must be an array");
     return 0;
   }
-  
+
   Local<Array> flags_ = Local<Array>::Cast(val);
   unsigned int flags = 0;
   for (unsigned int i = 0; i < flags_->Length(); i++)

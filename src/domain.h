@@ -491,7 +491,7 @@ private:
     unsigned long bandwidth_;
     unsigned int flags_;
   };
-  
+
   class BlockCommitWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
   public:
     BlockCommitWorker(Nan::Callback *callback, virDomainPtr handle, std::function<virErrorPtr(virDomainPtr)> func)
