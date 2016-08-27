@@ -58,17 +58,13 @@ namespace NLV {
       Local<Object> childObject = T::NewInstance(val);
       Local<Value> parentObject = worker->GetFromPersistent("parent");
       T* child = T::Unwrap(childObject);
-      NLVObjectBasePtr* childPtr = new NLVObjectBasePtr(child);
       if (parentObject->IsObject()) {
         childObject->Set(Nan::New("_parent").ToLocalChecked(), parentObject);
 
         auto parent = Nan::ObjectWrap::Unwrap<NLVObjectBase>(parentObject->ToObject());
-        if (parent) {
-          parent->children_.push_back(childPtr);
-        }
+        child->AddToParent(parent);
       }
 
-      child->SetParentReference(childPtr);
 
       if (try_catch.HasCaught()) {
         v8::Local<v8::Value> argv[] = { try_catch.Exception() };

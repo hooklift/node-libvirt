@@ -47,7 +47,6 @@ public:
 
 private:
   T handle_;
-
 };
 
 /**
@@ -304,11 +303,8 @@ protected:
     if (parentObject->IsObject()) {
       childObject->Set(Nan::New("_parent").ToLocalChecked(), parentObject);
     }
-
     InstanceClass *child = Nan::ObjectWrap::Unwrap<InstanceClass>(childObject);
-    NLVObjectBasePtr *childPtr = new NLVObjectBasePtr(child);
-    child->SetParentReference(childPtr);
-    parent_->children_.push_back(childPtr);
+    child->AddToParent(parent_);
     v8::Local<v8::Value> argv[] = { Nan::Null(), childObject };
     callback->Call(2, argv);
   }

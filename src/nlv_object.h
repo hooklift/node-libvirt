@@ -6,36 +6,14 @@
 
 #include <memory>
 #include <nan.h>
+#include <memory>
+#include <type_traits>
+#include <forward_list>
+
 using namespace node;
 using namespace v8;
 
 class NLVObjectBase;
-
-// hold a reference to a "child" object in a way that can be safely invalidated
-// if the child is destroyed by the GC before the parent.
-class NLVObjectBasePtr
-{
-public:
-  NLVObjectBasePtr(NLVObjectBase *ref) : ref_(ref), valid_(true) {}
-  bool IsValid() const { return valid_; }
-  NLVObjectBase* GetPointer() const {
-    if (!valid_) {
-      //Nan::ThrowReferenceError("attempt to access invalid NLVObjectBase pointer");
-      return NULL;
-    }
-
-    return ref_;
-  }
-
-  void SetInvalid() {
-    ref_ = NULL;
-    valid_ = false;
-  }
-
-protected:
-  NLVObjectBase *ref_;
-  bool valid_;
-};
 
 #define NLV_STRINGIFY0(v) #v
 #define NLV_STRINGIFY(v) NLV_STRINGIFY0(v)
@@ -49,38 +27,58 @@ protected:
   friend class NLVObject;
 
 
-class NLVObjectBase : public Nan::ObjectWrap
+class NLVObjectBase : public Nan::ObjectWrap, public std::enable_shared_from_this<NLVObjectBase>
 {
 public:
-  virtual void ClearHandle() = 0;
-  virtual void ClearChildren() = 0;
-  virtual void SetParentReference(NLVObjectBasePtr *parentReference) = 0;
+  void AddToParent(NLVObjectBase* parent) {
+    parent->PushChild(shared_from_this());
+  }
+  
+  void ClearChildren() {
+    for (auto& ptr: children_) {
+      if (auto object = ptr.lock()) {
+        object->ClearHandle();
+        object->ClearChildren();
+      }
+    }
+    children_.clear();
+  }
 
-  std::vector<NLVObjectBasePtr*> children_;
+  virtual void ClearHandle() = 0;
+
+  void PushChild(const std::shared_ptr<NLVObjectBase>& child) {
+    children_.emplace_front(child);
+  }
+  std::forward_list<std::weak_ptr<NLVObjectBase>> children_;
 };
 
 template <typename ParentClass, typename HandleType, typename CleanupHandler>
 class NLVObject : public NLVObjectBase
 {
+  std::shared_ptr<NLVObjectBase> selfPtr;
 public:
   typedef HandleType handle_type;
-
   typedef typename std::remove_pointer<HandleType>::type HandleValue;
-
-  NLVObject(HandleType handle) : handle_(handle, CleanupHandler::cleanup), parentReference_(NULL) {}
+    
+  NLVObject(HandleType handle) : handle_(handle, CleanupHandler::cleanup) {
+  }
+  
   ~NLVObject() {
-    // calling virtual ClearHandle() will break if overridden by subclasses
-    ClearHandle();
-    if (parentReference_ != NULL) {
-      parentReference_->SetInvalid();
-    }
+  }
+  
+  void RegisterSelf() {
+    selfPtr = shared_from_this();
   }
 
   static v8::Local<v8::Object> NewInstance(handle_type handle) {
     Nan::EscapableHandleScope scope;
     Local<Function> ctor = Nan::New<Function>(ParentClass::constructor);
     Local<Object> object = Nan::NewInstance(ctor).ToLocalChecked();
-    ParentClass *class_instance = new ParentClass(handle);
+    auto shared = std::shared_ptr<ParentClass>(new ParentClass(handle), [=](ParentClass*) {
+      // here we can now if GC has destroyed our object
+    });
+    ParentClass *class_instance = shared.get();
+    class_instance->RegisterSelf();
     class_instance->Wrap(object);
     return scope.Escape(object);
   }
@@ -92,8 +90,7 @@ public:
 
   const HandleType virHandle() const {
     return handle_.get();
-   }
-
+  }
 
   NAN_INLINE static ParentClass* Unwrap(v8::Local<v8::Object> val) {
     if(!ParentClass::IsInstanceOf(val)) {
@@ -126,34 +123,12 @@ public:
     return Unwrap(val)->virHandle();
   }
 
-  virtual void ClearHandle() {
+  void ClearHandle() {
     handle_.reset();
-  }
-
-  virtual void ClearChildren() {
-    std::vector<NLVObjectBasePtr*>::const_iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it) {
-      NLVObjectBasePtr *ptr = *it;
-      if (ptr->IsValid()) {
-        NLVObjectBase *obj = ptr->GetPointer();
-        obj->ClearChildren();
-        obj->ClearHandle();
-        obj->SetParentReference(NULL);
-        delete ptr;
-      }
-    }
-
-    children_.clear();
-  }
-
-  virtual void SetParentReference(NLVObjectBasePtr *parentReference) {
-    parentReference_ = parentReference;
   }
 
 protected:
   std::unique_ptr<HandleValue, decltype(&CleanupHandler::cleanup)> handle_;
-  NLVObjectBasePtr* parentReference_;
-
 };
 
 namespace NLV {
