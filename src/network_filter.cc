@@ -75,7 +75,7 @@ NLV_WORKER_METHOD_DEFINE(NetworkFilter)
 NLV_WORKER_EXECUTE(NetworkFilter, Define)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virNWFilterDefineXML(parent_->handle_, value_.c_str());
+  lookupHandle_ = virNWFilterDefineXML(parent_->handle(), value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;

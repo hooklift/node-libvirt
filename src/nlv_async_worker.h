@@ -279,7 +279,7 @@ protected:
 
 #define NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Class, Method, Accessor) \
   NLV_WORKER_EXECUTE(Class, Method) { \
-    lookupHandle_ = Accessor(parent_->handle_, value_.c_str());  \
+    lookupHandle_ = Accessor(parent_->handle_.get(), value_.c_str());  \
     if (lookupHandle_ == NULL) { \
       SetVirError(virSaveLastError()); \
       return; \

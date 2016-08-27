@@ -98,7 +98,7 @@ NAN_METHOD(StorageVolume::GetInfo)
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
   StorageVolume *storageVolume = Nan::ObjectWrap::Unwrap<StorageVolume>(info.This());
-  Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle_));
+  Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle()));
   return;
 }
 
@@ -280,7 +280,7 @@ NAN_METHOD(StorageVolume::Clone)
   StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
   StorageVolume *sv = Nan::ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  NLV::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle_), info.This());
+  NLV::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle()), info.This());
   return;
 }
 
@@ -289,7 +289,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Clone)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
   lookupHandle_ =
-    virStorageVolCreateXMLFrom(parent_->handle_, value_.c_str(), cloneHandle_, flags);
+    virStorageVolCreateXMLFrom(parent_->handle(), value_.c_str(), cloneHandle_, flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;

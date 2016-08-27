@@ -144,7 +144,7 @@ NLV_WORKER_EXECUTE(StoragePool, Create)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virStoragePoolCreateXML(parent_->handle_, value_.c_str(), flags);
+  lookupHandle_ = virStoragePoolCreateXML(parent_->handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -156,7 +156,7 @@ NLV_WORKER_EXECUTE(StoragePool, Define)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virStoragePoolDefineXML(parent_->handle_, value_.c_str(), flags);
+  lookupHandle_ = virStoragePoolDefineXML(parent_->handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -235,7 +235,7 @@ NAN_METHOD(StoragePool::Erase)
 
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   StoragePool *storagePool = ObjectWrap::Unwrap<StoragePool>(info.This());
-  Nan::AsyncQueueWorker(new EraseWorker(callback, storagePool->handle_, flags));
+  Nan::AsyncQueueWorker(new EraseWorker(callback, storagePool->handle(), flags));
   return;
 }
 
@@ -281,7 +281,7 @@ NAN_METHOD(StoragePool::SetAutostart)
   bool autoStart = info[0]->IsTrue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   StoragePool *storagePool = ObjectWrap::Unwrap<StoragePool>(info.This());
-  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, storagePool->handle_, autoStart));
+  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, storagePool->handle(), autoStart));
   return;
 }
 
@@ -401,7 +401,7 @@ NAN_METHOD(StoragePool::GetVolumes)
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
   StoragePool *storagePool = ObjectWrap::Unwrap<StoragePool>(info.This());
-  Nan::AsyncQueueWorker(new GetVolumesWorker(callback, storagePool->handle_));
+  Nan::AsyncQueueWorker(new GetVolumesWorker(callback, storagePool->handle()));
   return;
 }
 

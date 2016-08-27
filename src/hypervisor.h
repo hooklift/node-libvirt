@@ -99,7 +99,7 @@ private:
   class DisconnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
     DisconnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)
-      : NLVAsyncWorker(callback, hypervisor->handle_), hypervisor_(hypervisor) {}
+      : NLVAsyncWorker(callback, hypervisor->handle()), hypervisor_(hypervisor) {}
     void Execute();
   private:
     Hypervisor *hypervisor_;
@@ -238,7 +238,6 @@ private:
   private:
     virNodeInfo info_;
   };
-
 };
 
 }  // namespace NLV

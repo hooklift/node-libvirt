@@ -4,6 +4,7 @@
 #include <vector>
 #include <assert.h>
 
+#include <memory>
 #include <nan.h>
 using namespace node;
 using namespace v8;
@@ -64,7 +65,9 @@ class NLVObject : public NLVObjectBase
 public:
   typedef HandleType handle_type;
 
-  NLVObject(HandleType handle) : handle_(handle), parentReference_(NULL) {}
+  typedef typename std::remove_pointer<HandleType>::type HandleValue;
+
+  NLVObject(HandleType handle) : handle_(handle, CleanupHandler::cleanup), parentReference_(NULL) {}
   ~NLVObject() {
     // calling virtual ClearHandle() will break if overridden by subclasses
     ClearHandle();
@@ -87,9 +90,10 @@ public:
     return Nan::New(ParentClass::constructor_template)->HasInstance(val);
   }
 
-  HandleType handle() const {
-    return handle_;
-  }
+  const HandleType handle() const {
+    return handle_.get();
+   }
+
 
   NAN_INLINE static ParentClass* Unwrap(v8::Local<v8::Object> val) {
     if(!ParentClass::IsInstanceOf(val)) {
@@ -122,11 +126,7 @@ public:
   }
 
   virtual void ClearHandle() {
-    if (handle_ != NULL) {
-      int result = CleanupHandler::cleanup(handle_);
-      assert(result == 0);
-      handle_ = NULL;
-    }
+    handle_.reset();
   }
 
   virtual void ClearChildren() {
@@ -150,7 +150,7 @@ public:
   }
 
 protected:
-  HandleType handle_;
+  std::unique_ptr<HandleValue, decltype(&CleanupHandler::cleanup)> handle_;
   NLVObjectBasePtr* parentReference_;
 
 };

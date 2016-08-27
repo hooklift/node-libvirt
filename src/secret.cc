@@ -33,7 +33,7 @@ NLV_WORKER_EXECUTE(Secret, Define)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virSecretDefineXML(parent_->handle_, value_.c_str(), flags);
+  lookupHandle_ = virSecretDefineXML(parent_->handle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -93,7 +93,7 @@ NAN_METHOD(Secret::LookupByUsage)
 NLV_WORKER_EXECUTE(Secret, LookupByUsage)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virSecretLookupByUsage(parent_->handle_, usageType_, value_.c_str());
+  lookupHandle_ = virSecretLookupByUsage(parent_->handle(), usageType_, value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -194,7 +194,7 @@ NAN_METHOD(Secret::SetValue)
   std::string value(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Secret *secret = Nan::ObjectWrap::Unwrap<Secret>(info.This());
-  Nan::AsyncQueueWorker(new SetValueWorker(callback, secret->handle_, value));
+  Nan::AsyncQueueWorker(new SetValueWorker(callback, secret->handle(), value));
   return;
 }
 
