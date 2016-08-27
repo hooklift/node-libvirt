@@ -50,7 +50,7 @@ NAN_METHOD(StorageVolume::Create)
   auto sp = StoragePool::UnwrapHandle(info.This());
   std::string xmlData(*Nan::Utf8String(info[0]->ToString()));
   unsigned int flags = GetFlags(info[1]);
-  
+
   Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished) {
     auto handle = virStorageVolCreateXML(sp, xmlData.c_str(), flags);
     if (handle == NULL) {
@@ -98,7 +98,7 @@ NAN_METHOD(StorageVolume::GetInfo)
 
   Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
   StorageVolume *storageVolume = Nan::ObjectWrap::Unwrap<StorageVolume>(info.This());
-  Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->handle()));
+  Nan::AsyncQueueWorker(new GetInfoWorker(callback, storageVolume->virHandle()));
   return;
 }
 
@@ -280,7 +280,7 @@ NAN_METHOD(StorageVolume::Clone)
   StoragePool *sp = Nan::ObjectWrap::Unwrap<StoragePool>(object);
   StorageVolume *sv = Nan::ObjectWrap::Unwrap<StorageVolume>(info[0]->ToObject());
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
-  NLV::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->handle()), info.This());
+  NLV::AsyncQueueWorker(new CloneWorker(callback, sp, xml, sv->virHandle()), info.This());
   return;
 }
 
@@ -289,7 +289,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Clone)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
   lookupHandle_ =
-    virStorageVolCreateXMLFrom(parent_->handle(), value_.c_str(), cloneHandle_, flags);
+    virStorageVolCreateXMLFrom(parent_->virHandle(), value_.c_str(), cloneHandle_, flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;

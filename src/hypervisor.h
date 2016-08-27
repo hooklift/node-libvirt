@@ -99,7 +99,7 @@ private:
   class DisconnectWorker : public NLVAsyncWorker<virConnectPtr> {
   public:
     DisconnectWorker(Nan::Callback *callback, Hypervisor *hypervisor)
-      : NLVAsyncWorker(callback, hypervisor->handle()), hypervisor_(hypervisor) {}
+      : NLVAsyncWorker(callback, hypervisor->virHandle()), hypervisor_(hypervisor) {}
     void Execute();
   private:
     Hypervisor *hypervisor_;

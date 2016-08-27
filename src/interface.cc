@@ -66,7 +66,7 @@ NLV_WORKER_METHOD_DEFINE(Interface)
 NLV_WORKER_EXECUTE(Interface, Define)
 {
   unsigned int flags = 0;
-  lookupHandle_ = virInterfaceDefineXML(parent_->handle(), value_.c_str(), flags);
+  lookupHandle_ = virInterfaceDefineXML(parent_->virHandle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;

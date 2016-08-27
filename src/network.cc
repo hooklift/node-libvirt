@@ -80,7 +80,7 @@ NLV_WORKER_METHOD_CREATE(Network)
 NLV_WORKER_EXECUTE(Network, Create)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virNetworkCreateXML(parent_->handle(), value_.c_str());
+  lookupHandle_ = virNetworkCreateXML(parent_->virHandle(), value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -91,7 +91,7 @@ NLV_WORKER_METHOD_DEFINE(Network)
 NLV_WORKER_EXECUTE(Network, Define)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virNetworkDefineXML(parent_->handle(), value_.c_str());
+  lookupHandle_ = virNetworkDefineXML(parent_->virHandle(), value_.c_str());
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
@@ -166,7 +166,7 @@ NAN_METHOD(Network::SetAutostart)
   bool autoStart = info[0]->IsTrue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Network *network = ObjectWrap::Unwrap<Network>(info.This());
-  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, network->handle(), autoStart));
+  Nan::AsyncQueueWorker(new SetAutostartWorker(callback, network->virHandle(), autoStart));
   return;
 }
 

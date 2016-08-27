@@ -90,7 +90,7 @@ public:
     return Nan::New(ParentClass::constructor_template)->HasInstance(val);
   }
 
-  const HandleType handle() const {
+  const HandleType virHandle() const {
     return handle_.get();
    }
 
@@ -117,12 +117,12 @@ public:
   }
 
   NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Value> val) {
-    return Unwrap(val)->handle();
+    return Unwrap(val)->virHandle();
   }
 
   template<class T>
   NAN_INLINE static HandleType UnwrapHandle(v8::Local<v8::Object> val) {
-    return Unwrap(val)->handle();
+    return Unwrap(val)->virHandle();
   }
 
   virtual void ClearHandle() {

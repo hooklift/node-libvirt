@@ -33,7 +33,7 @@
   NLV_WORKER_ASSERT_HANDLE("domain")
 
 #define NLV_WORKER_ASSERT_PARENT_HANDLE() \
-  if (parent_->handle() == NULL) { \
+  if (parent_->virHandle() == nullptr) { \
     SetErrorMessage("invalid parent"); \
     return; \
   }
@@ -48,7 +48,7 @@
     } \
     Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());  \
     Class *object = Nan::ObjectWrap::Unwrap<Class>(info.This()); \
-    Nan::AsyncQueueWorker(new Method##Worker(callback, object->handle()));  \
+    Nan::AsyncQueueWorker(new Method##Worker(callback, object->virHandle()));  \
     return; \
   }
 
@@ -69,7 +69,7 @@
       return; \
     } \
     Class *object = Nan::ObjectWrap::Unwrap<Class>(info.This()); \
-    Nan::AsyncQueueWorker(new Method##Worker(callback, object->handle(), flags));  \
+    Nan::AsyncQueueWorker(new Method##Worker(callback, object->virHandle(), flags));  \
     return; \
   }
 

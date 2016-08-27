@@ -79,7 +79,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Create)
 {
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   unsigned int flags = 0;
-  lookupHandle_ = virNodeDeviceCreateXML(parent_->handle(), value_.c_str(), flags);
+  lookupHandle_ = virNodeDeviceCreateXML(parent_->virHandle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
     SetVirError(virSaveLastError());
     return;
