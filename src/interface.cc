@@ -102,7 +102,7 @@ NAN_METHOD(Interface::LookupByName)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = Hypervisor::Unwrap(object);
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   NLV::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name), info.This());
@@ -125,7 +125,7 @@ NAN_METHOD(Interface::LookupByMacAddress)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = Hypervisor::Unwrap(object);
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   NLV::AsyncQueueWorker(new LookupByMacAddressWorker(callback, hv, uuid), info.This());

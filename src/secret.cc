@@ -82,7 +82,7 @@ NAN_METHOD(Secret::LookupByUsage)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
   int usageType = info[0]->Int32Value();
   std::string usageId(*Nan::Utf8String(info[1]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
@@ -115,7 +115,7 @@ NAN_METHOD(Secret::LookupByUUID)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid));
@@ -193,7 +193,7 @@ NAN_METHOD(Secret::SetValue)
 
   std::string value(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Secret *secret = Nan::ObjectWrap::Unwrap<Secret>(info.This());
+  Secret *secret = Secret::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SetValueWorker(callback, secret->virHandle(), value));
   return;
 }

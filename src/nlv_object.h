@@ -113,6 +113,7 @@ public:
       Nan::ThrowTypeError(error);
       return nullptr;
     }
+
     return Unwrap(val->ToObject());
   }
 

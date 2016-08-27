@@ -253,7 +253,7 @@ NAN_METHOD(Domain::LookupByName)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
   std::string name(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   NLV::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name), info.This());
@@ -275,7 +275,7 @@ NAN_METHOD(Domain::LookupByUUID)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
   std::string uuid(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   NLV::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid), info.This());
@@ -296,7 +296,7 @@ NAN_METHOD(Domain::LookupById)
     return;
   }
 
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(info.This());
+  Hypervisor *hv = Hypervisor::Unwrap(info.This());
   int id = info[0]->IntegerValue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   NLV::AsyncQueueWorker(new LookupByIdWorker(callback, hv, id), info.This());
@@ -347,7 +347,7 @@ NAN_METHOD(Domain::Save)
 
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SaveWorker(callback, domain->virHandle(), path));
   return;
 }
@@ -381,7 +381,7 @@ NAN_METHOD(Domain::Restore)
 
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Hypervisor *hv = Nan::ObjectWrap::Unwrap<Hypervisor>(object);
+  Hypervisor *hv = Hypervisor::Unwrap(object);
   Nan::AsyncQueueWorker(new RestoreWorker(callback, hv->virHandle(), path));
   return;
 }
@@ -409,7 +409,7 @@ NAN_METHOD(Domain::CoreDump)
 
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new CoreDumpWorker(callback, domain->virHandle(), path));
   return;
 }
@@ -722,7 +722,7 @@ NAN_METHOD(Domain::SetAutostart)
 
   bool autoStart = info[0]->IsTrue();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SetAutostartWorker(callback, domain->virHandle(), autoStart));
   return;
 }
@@ -751,7 +751,7 @@ NAN_METHOD(Domain::SetMaxMemory)
   unsigned long maxMemory = static_cast<unsigned long>(info[0]->NumberValue());
   // @todo this unsafe, also needs bounds checking!
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SetMaxMemoryWorker(callback, domain->virHandle(), maxMemory));
   return;
 }
@@ -780,7 +780,7 @@ NAN_METHOD(Domain::SetMemory)
   unsigned long memory = static_cast<unsigned long>(info[0]->NumberValue());
   // @todo this unsafe, also needs bounds checking!
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SetMemoryWorker(callback, domain->virHandle(), memory));
   return;
 }
@@ -812,7 +812,7 @@ NAN_METHOD(Domain::ToXml)
     Nan::ThrowTypeError("signature is callback or flags, callback");
     return;
   }
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new ToXmlWorker(callback, domain->virHandle(), flags));
   return;
 }
@@ -857,7 +857,7 @@ NAN_METHOD(Domain::GetMetadata)
     Nan::ThrowTypeError("signature is type, namespace_uri, flags, callback");
     return;
   }
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new GetMetadataWorker(callback, domain->virHandle(), type, namespace_uri, flags));
   return;
 #endif
@@ -896,31 +896,33 @@ NAN_METHOD(Domain::SetMetadata)
   unsigned int flags;
   Nan::Callback *callback;
   if (info.Length() == 6
-	  && info[0]->IsNumber()
-	  && (info[1]->IsString() || info[1]->IsNull())
-	  && (info[2]->IsString() || info[2]->IsNull())
-	  && (info[3]->IsString() || info[3]->IsNull())
-	  && info[4]->IsNumber()
-	  && info[5]->IsFunction())
+      && info[0]->IsNumber()
+      && (info[1]->IsString() || info[1]->IsNull())
+      && (info[2]->IsString() || info[2]->IsNull())
+      && (info[3]->IsString() || info[3]->IsNull())
+      && info[4]->IsNumber()
+      && info[5]->IsFunction())
   {
     type = info[0]->IntegerValue();
     if (info[1]->IsNull()) {
-	null_metadata = true;
+      null_metadata = true;
     } else {
-	null_metadata = false;
-	metadata = *Nan::Utf8String(info[1]->ToString());
+      null_metadata = false;
+      metadata = *Nan::Utf8String(info[1]->ToString());
     }
+
     if (!info[2]->IsNull())
-	namespace_key = *Nan::Utf8String(info[2]->ToString());
+      namespace_key = *Nan::Utf8String(info[2]->ToString());
     if (!info[3]->IsNull())
-	namespace_uri = *Nan::Utf8String(info[3]->ToString());
+      namespace_uri = *Nan::Utf8String(info[3]->ToString());
     flags = info[4]->IntegerValue();
     callback = new Nan::Callback(info[5].As<Function>());
   } else {
     Nan::ThrowTypeError("signature is type, metadata, namespace_key, namespace_uri, flags, callback");
     return;
   }
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new SetMetadataWorker(callback, domain->virHandle(), type, null_metadata, metadata, namespace_key, namespace_uri, flags));
   return;
 #endif
@@ -999,7 +1001,7 @@ NAN_METHOD(Domain::GetBlockInfo)
 
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new GetBlockInfoWorker(callback, domain->virHandle(), path));
   return;
 }
@@ -1038,7 +1040,7 @@ NAN_METHOD(Domain::GetBlockStats)
 
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new GetBlockStatsWorker(callback, domain->virHandle(), path));
   return;
 }
@@ -1136,7 +1138,7 @@ NAN_METHOD(Domain::GetInterfaceStats)
 
   std::string interface(*Nan::Utf8String(info[0]->ToString()));
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new GetInterfaceStatsWorker(callback, domain->virHandle(), interface));
   return;
 }
@@ -1312,7 +1314,7 @@ NAN_METHOD(Domain::AttachDevice)
     callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new AttachDeviceWorker(callback, domain->virHandle(), xml, flags));
   return;
 }
@@ -1358,7 +1360,7 @@ NAN_METHOD(Domain::DetachDevice)
     callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new DetachDeviceWorker(callback, domain->virHandle(), xml, flags));
   return;
 }
@@ -1404,7 +1406,7 @@ NAN_METHOD(Domain::UpdateDevice)
     callback = new Nan::Callback(info[1].As<Function>());
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::AsyncQueueWorker(new UpdateDeviceWorker(callback, domain->virHandle(), xml, flags));
   return;
 }
@@ -1498,7 +1500,7 @@ NAN_METHOD(Domain::SetVcpus)
   }
 
   unsigned int count = info[0]->Int32Value();
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new SetVcpusWorker(callback, domain->virHandle(), count));
   return;
@@ -1534,7 +1536,7 @@ NAN_METHOD(Domain::BlockCommit)
   unsigned long bandwidth = info[3]->Int32Value();
   unsigned int flags = GetFlags(info[4]);
 
-  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->virHandle();
+  virDomainPtr domain = Domain::Unwrap(info.This())->virHandle();
   Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     if (virDomainBlockCommit(domain, path.c_str(), base.c_str(), top.c_str(), bandwidth, flags) < 0) {
       return virSaveLastError();
@@ -1558,7 +1560,7 @@ NAN_METHOD(Domain::BlockJobInfo)
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   unsigned int flags = GetFlags(info[1]);
 
-  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->virHandle();
+  virDomainPtr domain = Domain::Unwrap(info.This())->virHandle();
   Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     virDomainBlockJobInfo info;
     int ret = virDomainGetBlockJobInfo(domain, path.c_str(), &info, flags);
@@ -1596,7 +1598,7 @@ NAN_METHOD(Domain::BlockJobAbort)
   std::string path(*Nan::Utf8String(info[0]->ToString()));
   unsigned int flags = GetFlags(info[1]);
 
-  virDomainPtr domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->virHandle();
+  virDomainPtr domain = Domain::Unwrap(info.This())->virHandle();
 
   Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
     //abort_flags |= VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT;
@@ -1624,7 +1626,7 @@ NAN_METHOD(Domain::SendKeys)
   }
 
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new SendKeysWorker(callback, domain->virHandle(), keys));
   return;
@@ -1676,7 +1678,7 @@ NAN_METHOD(Domain::Migrate)
     bandwidth = info_->Get(Nan::New("bandwidth").ToLocalChecked())->Int32Value();
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
 
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   MigrateWorker *worker;
@@ -1688,7 +1690,7 @@ NAN_METHOD(Domain::Migrate)
       return;
     }
 
-    Hypervisor *hypervisor = Nan::ObjectWrap::Unwrap<Hypervisor>(hyp_obj);
+    Hypervisor *hypervisor = Hypervisor::Unwrap(hyp_obj);
     worker = new MigrateWorker(callback, domain->virHandle(), hypervisor->virHandle());
   } else {
     worker = new MigrateWorker(callback, domain->virHandle(), dest_uri);
@@ -1759,7 +1761,7 @@ NAN_METHOD(Domain::PinVcpu) {
     vcpus.push_back(cpu->Get(Nan::New("cpu").ToLocalChecked())->Int32Value());
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
   Nan::AsyncQueueWorker(new PinVcpuWorker(callback, domain->virHandle(), info[0]->Int32Value(), usables, vcpus));
   return;
@@ -1820,7 +1822,7 @@ NAN_METHOD(Domain::MemoryPeek)
   for (unsigned int i = 0; i < length; i++)
     flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[3].As<Function>());
   Nan::AsyncQueueWorker(new MemoryPeekWorker(callback, domain->virHandle(), start, size, flags));
   return;
@@ -1862,7 +1864,7 @@ NAN_METHOD(Domain::BlockPeek)
   for (unsigned int i = 0; i < length; i++)
     flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[4].As<Function>());
   Nan::AsyncQueueWorker(new BlockPeekWorker(callback, domain->virHandle(), path, start, size, flags));
   return;
@@ -1906,7 +1908,7 @@ NAN_METHOD(Domain::RevertToSnapshot) {
     return;
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new RevertToSnapshotWorker(callback, domain->virHandle(), *Nan::Utf8String(info[0]->ToString())));
   return;
@@ -1949,7 +1951,7 @@ NAN_METHOD(Domain::TakeSnapshot) {
   for (unsigned int i = 0; i < length; i++)
     flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
   Nan::AsyncQueueWorker(new TakeSnapshotWorker(callback, domain->virHandle(), *Nan::Utf8String(info[0]->ToString()), flags));
   return;
@@ -1979,7 +1981,7 @@ NAN_METHOD(Domain::DeleteSnapshot) {
   std::string name = *Nan::Utf8String(info[0]->ToString());
   unsigned int flags = GetFlags(info[1]);
 
-  auto domain = Nan::ObjectWrap::Unwrap<Domain>(info.This())->virHandle();
+  auto domain = Domain::Unwrap(info.This())->virHandle();
   //Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Worker::RunAsync(info, [=](Worker::SetOnFinishedHandler onFinished) {
     auto snapshot = virDomainSnapshotLookupByName(domain, name.c_str(), 0);
@@ -2006,7 +2008,7 @@ NAN_METHOD(Domain::LookupSnapshotByName) {
     return;
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new LookupSnapshotByNameWorker(callback, domain->virHandle(), *Nan::Utf8String(info[0]->ToString())));
   return;
@@ -2069,7 +2071,7 @@ NAN_METHOD(Domain::SetMigrationMaxDowntime) {
     return;
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new SetMigrationMaxDowntimeWorker(callback, domain->virHandle(), info[0]->Int32Value(), flags));
   return;
@@ -2143,7 +2145,7 @@ NAN_METHOD(Domain::RegisterEvent)
     return;
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   int eventId = arg_obj->Get(Nan::New("evtype").ToLocalChecked())->Int32Value();
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new RegisterEventWorker(callback, domain->virHandle(), domain, eventId));
@@ -2205,7 +2207,7 @@ NAN_METHOD(Domain::UnregisterEvent)
     return;
   }
 
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   Nan::AsyncQueueWorker(new UnregisterEventWorker(callback, domain->virHandle(), info[0]->Int32Value()));
   return;
@@ -2240,7 +2242,7 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   }
 
   Local<Object> newparams = info[0]->ToObject();
-  Domain *domain = Nan::ObjectWrap::Unwrap<Domain>(info.This());
+  Domain *domain = Domain::Unwrap(info.This());
 
   type = virDomainGetSchedulerType(domain->virHandle(), &nparams);
   if (type == NULL) {
