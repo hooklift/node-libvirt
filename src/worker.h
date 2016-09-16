@@ -1,6 +1,9 @@
+#ifndef WORKER_H
+#define WORKER_H
+
 #include <functional>
 
-#include "nlv_async_worker.h"
+#include "nlv_base.h"
 
 namespace NLV {
   class Worker : public NLVAsyncWorkerBase
@@ -55,8 +58,8 @@ namespace NLV {
       Nan::HandleScope scope;
       Nan::TryCatch try_catch;
 
-      Local<Object> childObject = T::NewInstance(val);
-      Local<Value> parentObject = worker->GetFromPersistent("parent");
+      v8::Local<v8::Object> childObject = T::NewInstance(val);
+      v8::Local<v8::Value> parentObject = worker->GetFromPersistent("parent");
       T* child = T::Unwrap(childObject);
       NLVObjectBasePtr* childPtr = new NLVObjectBasePtr(child);
       if (parentObject->IsObject()) {
@@ -81,3 +84,5 @@ namespace NLV {
     };
   }
 };
+
+#endif

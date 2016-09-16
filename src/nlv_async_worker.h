@@ -11,29 +11,6 @@
 #include "nlv_object.h"
 
 /**
- * Base class for all workers in node-libvirt
- */
-class NLVAsyncWorkerBase : public Nan::AsyncWorker
-{
-public:
-  explicit NLVAsyncWorkerBase(Nan::Callback *callback);
-  ~NLVAsyncWorkerBase();
-
-  virErrorPtr VirError() const;
-  void SetVirError(virErrorPtr error);
-
-  virtual void WorkComplete();
-
-protected:
-  virtual void HandleErrorCallback();
-
-private:
-  virErrorPtr virError_;
-
-};
-
-
-/**
  * Base class for most NLV async workers
  */
 template <typename T>
