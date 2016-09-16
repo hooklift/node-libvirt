@@ -74,7 +74,13 @@ namespace NLV {
       }
     };
     
+    static inline bool virHasFailed(int val) {
+      return val < 0;
+    }
     
+    static inline bool virHasFailed(const void* ptr) {
+      return ptr == nullptr;
+    }
 
     template<typename ReturnHandler = MethodNoReturnHandler, typename Z>
     static void MethodNoArgs(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction) {
@@ -82,7 +88,7 @@ namespace NLV {
       virDomainPtr domain = ParentClass::Unwrap(info.This())->virHandle();
       NLV::Worker::RunAsync(info, [=] (NLV::Worker::SetOnFinishedHandler onFinished) {
         auto retVal = virFunction(domain);
-        if (retVal < 0) {
+        if (virHasFailed(retVal)) {
           return virSaveLastError();
         }
         ReturnHandler returnHandler;

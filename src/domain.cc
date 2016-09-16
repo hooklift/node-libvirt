@@ -534,7 +534,11 @@ NAN_METHOD(Domain::Reset)
 
 NAN_METHOD(Domain::Shutdown)
 {
+#if LIBVIR_CHECK_VERSION(0,9,10)
   MethodWithFlags(info, virDomainShutdownFlags);
+#else
+  MethodNoArgs(info, virDomainShutdown);
+#endif
 }
 
 NAN_METHOD(Domain::Suspend)
