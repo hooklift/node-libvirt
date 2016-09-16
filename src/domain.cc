@@ -427,98 +427,39 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
   data_ = true;
 }
 
-NLV_WORKER_METHOD_FLAGS(Domain, Undefine)
-NLV_WORKER_EXECUTE(Domain, Undefine)
+NAN_METHOD(Domain::Undefine)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainUndefineFlags(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainUndefineFlags);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Destroy)
-NLV_WORKER_EXECUTE(Domain, Destroy)
+NAN_METHOD(Domain::Destroy)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainDestroy(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodNoArgs(info, virDomainDestroy);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, ManagedSave)
-NLV_WORKER_EXECUTE(Domain, ManagedSave)
+NAN_METHOD(Domain::ManagedSave)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned int flags = 0;
-  int result = virDomainManagedSave(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainManagedSave);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, ManagedSaveRemove)
-NLV_WORKER_EXECUTE(Domain, ManagedSaveRemove)
+NAN_METHOD(Domain::ManagedSaveRemove)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned int flags = 0;
-  int result = virDomainManagedSaveRemove(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainManagedSaveRemove);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetName)
-NLV_WORKER_EXECUTE(Domain, GetName)
+NAN_METHOD(Domain::GetName)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  const char *result = virDomainGetName(Handle());
-  if (result == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = result;
+  MethodNoArgs<MethodReturnString>(info, virDomainGetName);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetId)
-NLV_WORKER_EXECUTE(Domain, GetId)
+NAN_METHOD(Domain::GetId)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned int result = virDomainGetID(Handle());
-  if (result == -1u) {
-    data_ = -1;
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = result;
+  MethodNoArgs<MethodReturnInt>(info, virDomainGetID);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetOSType)
-NLV_WORKER_EXECUTE(Domain, GetOSType)
+NAN_METHOD(Domain::GetOSType)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  const char *result = virDomainGetOSType(Handle());
-  if (result == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = result;
+  MethodNoArgs<MethodReturnString>(info, virDomainGetOSType);
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetUUID)
@@ -551,165 +492,66 @@ NLV_WORKER_EXECUTE(Domain, GetAutostart)
   data_ = static_cast<bool>(autostart);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetMaxMemory)
-NLV_WORKER_EXECUTE(Domain, GetMaxMemory)
+NAN_METHOD(Domain::GetMaxMemory)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned long result = virDomainGetMaxMemory(Handle());
-  if (result == 0) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = result;
+  MethodNoArgs<MethodReturn<double>>(info, virDomainGetMaxMemory);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetMaxVcpus)
-NLV_WORKER_EXECUTE(Domain, GetMaxVcpus)
+NAN_METHOD(Domain::GetMaxVcpus)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainGetMaxVcpus(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = result;
+  MethodNoArgs<MethodReturnInt>(info, virDomainGetMaxVcpus);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, IsActive)
-NLV_WORKER_EXECUTE(Domain, IsActive)
+NAN_METHOD(Domain::IsActive)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainIsActive(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = static_cast<bool>(result);
+  MethodNoArgs<MethodReturnBool>(info, virDomainIsActive);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, IsPersistent)
-NLV_WORKER_EXECUTE(Domain, IsPersistent)
+NAN_METHOD(Domain::IsPersistent)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainIsPersistent(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = static_cast<bool>(result);
+  MethodNoArgs<MethodReturnBool>(info, virDomainIsPersistent);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, IsUpdated)
-NLV_WORKER_EXECUTE(Domain, IsUpdated)
+NAN_METHOD(Domain::IsUpdated)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainIsUpdated(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = static_cast<bool>(result);
+  MethodNoArgs<MethodReturnBool>(info, virDomainIsUpdated);
 }
 
-
-NLV_WORKER_METHOD_NO_ARGS(Domain, Start)
-NLV_WORKER_EXECUTE(Domain, Start)
+NAN_METHOD(Domain::Start)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainCreate(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodNoArgs(info, virDomainCreate);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Reboot)
-NLV_WORKER_EXECUTE(Domain, Reboot)
+NAN_METHOD(Domain::Reboot)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned long flags = 0;
-  int result = virDomainReboot(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainReboot);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Reset)
-NLV_WORKER_EXECUTE(Domain, Reset)
+NAN_METHOD(Domain::Reset)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned long flags = 0;
-  int result = virDomainReset(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainReset);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Shutdown)
-NLV_WORKER_EXECUTE(Domain, Shutdown)
+NAN_METHOD(Domain::Shutdown)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainShutdown(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodWithFlags(info, virDomainShutdownFlags);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Suspend)
-NLV_WORKER_EXECUTE(Domain, Suspend)
+NAN_METHOD(Domain::Suspend)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainSuspend(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodNoArgs(info, virDomainSuspend);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, Resume)
-NLV_WORKER_EXECUTE(Domain, Resume)
+NAN_METHOD(Domain::Resume)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int result = virDomainResume(Handle());
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+  MethodNoArgs(info, virDomainResume);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, HasManagedSaveImage)
-NLV_WORKER_EXECUTE(Domain, HasManagedSaveImage)
+NAN_METHOD(Domain::HasManagedSaveImage)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  unsigned long flags = 0;
-  int result = virDomainHasManagedSaveImage(Handle(), flags);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = static_cast<bool>(result);
+  MethodWithFlags<MethodReturnBool>(info, virDomainHasManagedSaveImage);
 }
+
 
 NAN_METHOD(Domain::SetAutostart)
 {
