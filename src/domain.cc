@@ -429,37 +429,37 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
 
 NAN_METHOD(Domain::Undefine)
 {
-  MethodWithFlags(info, virDomainUndefineFlags);
+  RunMethod(info, virDomainUndefineFlags, GetFlags(info[0]));
 }
 
 NAN_METHOD(Domain::Destroy)
 {
-  MethodNoArgs(info, virDomainDestroy);
+  RunMethod(info, virDomainDestroy);
 }
 
 NAN_METHOD(Domain::ManagedSave)
 {
-  MethodWithFlags(info, virDomainManagedSave);
+  RunMethod(info, virDomainManagedSave, GetFlags(info[0]));
 }
 
 NAN_METHOD(Domain::ManagedSaveRemove)
 {
-  MethodWithFlags(info, virDomainManagedSaveRemove);
+  RunMethod(info, virDomainManagedSaveRemove, GetFlags(info[0]));
 }
 
 NAN_METHOD(Domain::GetName)
 {
-  MethodNoArgs<MethodReturnString>(info, virDomainGetName);
+  RunMethod<MethodReturnString>(info, virDomainGetName);
 }
 
 NAN_METHOD(Domain::GetId)
 {
-  MethodNoArgs<MethodReturnInt>(info, virDomainGetID);
+  RunMethod<MethodReturnInt>(info, virDomainGetID);
 }
 
 NAN_METHOD(Domain::GetOSType)
 {
-  MethodNoArgs<MethodReturnString>(info, virDomainGetOSType);
+  RunMethod<MethodReturnString>(info, virDomainGetOSType);
 }
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetUUID)
@@ -494,66 +494,66 @@ NLV_WORKER_EXECUTE(Domain, GetAutostart)
 
 NAN_METHOD(Domain::GetMaxMemory)
 {
-  MethodNoArgs<MethodReturn<double>>(info, virDomainGetMaxMemory);
+  RunMethod<MethodReturn<double>>(info, virDomainGetMaxMemory);
 }
 
 NAN_METHOD(Domain::GetMaxVcpus)
 {
-  MethodNoArgs<MethodReturnInt>(info, virDomainGetMaxVcpus);
+  RunMethod<MethodReturnInt>(info, virDomainGetMaxVcpus);
 }
 
 NAN_METHOD(Domain::IsActive)
 {
-  MethodNoArgs<MethodReturnBool>(info, virDomainIsActive);
+  RunMethod<MethodReturnBool>(info, virDomainIsActive);
 }
 
 NAN_METHOD(Domain::IsPersistent)
 {
-  MethodNoArgs<MethodReturnBool>(info, virDomainIsPersistent);
+  RunMethod<MethodReturnBool>(info, virDomainIsPersistent);
 }
 
 NAN_METHOD(Domain::IsUpdated)
 {
-  MethodNoArgs<MethodReturnBool>(info, virDomainIsUpdated);
+  RunMethod<MethodReturnBool>(info, virDomainIsUpdated);
 }
 
 NAN_METHOD(Domain::Start)
 {
-  MethodNoArgs(info, virDomainCreate);
+  RunMethod(info, virDomainCreate);
 }
 
 NAN_METHOD(Domain::Reboot)
 {
-  MethodWithFlags(info, virDomainReboot);
+  RunMethod(info, virDomainReboot, GetFlags(info[0]));
 }
 
 NAN_METHOD(Domain::Reset)
 {
-  MethodWithFlags(info, virDomainReset);
+  RunMethod(info, virDomainReset, GetFlags(info[0]));
 }
 
 NAN_METHOD(Domain::Shutdown)
 {
 #if LIBVIR_CHECK_VERSION(0,9,10)
-  MethodWithFlags(info, virDomainShutdownFlags);
+  RunMethod(info, virDomainShutdownFlags, GetFlags(info[0]));
 #else
-  MethodNoArgs(info, virDomainShutdown);
+  RunMethod(info, virDomainShutdown);
 #endif
 }
 
 NAN_METHOD(Domain::Suspend)
 {
-  MethodNoArgs(info, virDomainSuspend);
+  RunMethod(info, virDomainSuspend);
 }
 
 NAN_METHOD(Domain::Resume)
 {
-  MethodNoArgs(info, virDomainResume);
+  RunMethod(info, virDomainResume);
 }
 
 NAN_METHOD(Domain::HasManagedSaveImage)
 {
-  MethodWithFlags<MethodReturnBool>(info, virDomainHasManagedSaveImage);
+  RunMethod<MethodReturnBool>(info, virDomainHasManagedSaveImage, GetFlags(info[0]));
 }
 
 

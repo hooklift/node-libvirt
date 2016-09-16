@@ -82,28 +82,14 @@ namespace NLV {
       return ptr == nullptr;
     }
 
-    template<typename ReturnHandler = MethodNoReturnHandler, typename Z>
-    static void MethodNoArgs(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction) {
+    template<typename ReturnHandler = MethodNoReturnHandler, typename Z, typename... Args>
+    static void RunMethod(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction, Args... args) {
       Nan::HandleScope scope;
-      virDomainPtr domain = ParentClass::Unwrap(info.This())->virHandle();
+      virDomainPtr handle = ParentClass::Unwrap(info.This())->virHandle();
+      auto virCaller = std::bind(virFunction, handle, args...);
       NLV::Worker::RunAsync(info, [=] (NLV::Worker::SetOnFinishedHandler onFinished) {
-        auto retVal = virFunction(domain);
+        auto retVal = virCaller();
         if (virHasFailed(retVal)) {
-          return virSaveLastError();
-        }
-        ReturnHandler returnHandler;
-        return onFinished(returnHandler(retVal));
-      });
-    }
-    
-    template<typename ReturnHandler = MethodNoReturnHandler, typename Z>
-    static void MethodWithFlags(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction) {
-      Nan::HandleScope scope;
-      virDomainPtr domain = ParentClass::Unwrap(info.This())->virHandle();
-      unsigned int flags = GetFlags(info[0]);
-      NLV::Worker::RunAsync(info, [=] (NLV::Worker::SetOnFinishedHandler onFinished) {
-        auto retVal = virFunction(domain, flags);
-        if (retVal < 0) {
           return virSaveLastError();
         }
         ReturnHandler returnHandler;
