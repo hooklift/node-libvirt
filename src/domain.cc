@@ -238,102 +238,29 @@ void Domain::Initialize(Handle<Object> exports)
 
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByName, virDomainLookupByName)
 NAN_METHOD(Domain::LookupByName)
-{
-  Nan::HandleScope scope;
-  if (info.Length() < 2 ||
-      (!info[0]->IsString() && !info[1]->IsFunction())) {
-    Nan::ThrowTypeError("You must specify a valid domain name and callback.");
-    return;
-  }
-
-  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
-    Nan::ThrowTypeError("You must specify a Hypervisor instance");
-    return;
-  }
-
-  Hypervisor *hv = Hypervisor::Unwrap(info.This());
-  std::string name(*Nan::Utf8String(info[0]->ToString()));
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV::AsyncQueueWorker(new LookupByNameWorker(callback, hv, name), info.This());
-  return;
+{  
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByName, GetString(info[0]));
 }
 
-NLV_LOOKUP_BY_VALUE_EXECUTE_IMPL(Domain, LookupByUUID, virDomainLookupByUUIDString)
 NAN_METHOD(Domain::LookupByUUID)
 {
-  Nan::HandleScope scope;
-  if (info.Length() < 2 ||
-      (!info[0]->IsString() && !info[1]->IsFunction())) {
-    Nan::ThrowTypeError("You must specify a valid domain uuid and callback.");
-    return;
-  }
-
-  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
-    Nan::ThrowTypeError("You must specify a Hypervisor instance");
-    return;
-  }
-
-  Hypervisor *hv = Hypervisor::Unwrap(info.This());
-  std::string uuid(*Nan::Utf8String(info[0]->ToString()));
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV::AsyncQueueWorker(new LookupByUUIDWorker(callback, hv, uuid), info.This());
-  return;
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByUUID, GetUString(info[0]));
 }
 
 NAN_METHOD(Domain::LookupById)
 {
-  Nan::HandleScope scope;
-  if (info.Length() < 2 ||
-      (!info[0]->IsInt32() && !info[1]->IsFunction())) {
-    Nan::ThrowTypeError("You must specify a valid domain id and callback.");
-    return;
-  }
-
-  if (!Nan::New(Hypervisor::constructor_template)->HasInstance(info.This())) {
-    Nan::ThrowTypeError("You must specify a Hypervisor instance");
-    return;
-  }
-
-  Hypervisor *hv = Hypervisor::Unwrap(info.This());
-  int id = info[0]->IntegerValue();
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  NLV::AsyncQueueWorker(new LookupByIdWorker(callback, hv, id), info.This());
-  return;
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByID, info[0]->Int32Value());
 }
 
-NLV_WORKER_EXECUTE(Domain, LookupById)
+NAN_METHOD(Domain::Create)
 {
-  NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virDomainLookupByID(parent_->virHandle(), id_);
-  if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainCreateXML, GetString(info[0]), GetFlags(info[1]));
 }
 
-NLV_WORKER_METHOD_CREATE(Domain)
-NLV_WORKER_EXECUTE(Domain, Create)
+NAN_METHOD(Domain::Define)
 {
-  NLV_WORKER_ASSERT_PARENT_HANDLE();
-  unsigned int flags = 0;
-  lookupHandle_ = virDomainCreateXML(parent_->virHandle(), value_.c_str(), flags);
-  if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-}
-
-NLV_WORKER_METHOD_DEFINE(Domain)
-NLV_WORKER_EXECUTE(Domain, Define)
-{
-  NLV_WORKER_ASSERT_PARENT_HANDLE();
-  lookupHandle_ = virDomainDefineXML(parent_->virHandle(), value_.c_str());
-  if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
-    return;
-  }
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainDefineXML, GetString(info[0]));
 }
 
 NAN_METHOD(Domain::Save)
@@ -454,7 +381,7 @@ NAN_METHOD(Domain::GetName)
 
 NAN_METHOD(Domain::GetId)
 {
-  RunMethod<MethodReturnInt>(info, virDomainGetID);
+  RunMethod<MethodReturn<int>>(info, virDomainGetID);
 }
 
 NAN_METHOD(Domain::GetOSType)
@@ -462,34 +389,14 @@ NAN_METHOD(Domain::GetOSType)
   RunMethod<MethodReturnString>(info, virDomainGetOSType);
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetUUID)
-NLV_WORKER_EXECUTE(Domain, GetUUID)
+NAN_METHOD(Domain::GetUUID)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  char *uuid = new char[VIR_UUID_STRING_BUFLEN];
-  int result = virDomainGetUUIDString(Handle(), uuid);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    delete[] uuid;
-    return;
-  }
-
-  data_ = uuid;
-  delete[] uuid;
+  RunMethod<MethodReturnString, 2>(info, virDomainGetUUIDString, MakeOutString(VIR_UUID_STRING_BUFLEN));
 }
 
-NLV_WORKER_METHOD_NO_ARGS(Domain, GetAutostart)
-NLV_WORKER_EXECUTE(Domain, GetAutostart)
+NAN_METHOD(Domain::GetAutostart)
 {
-  NLV_WORKER_ASSERT_DOMAIN();
-  int autostart;
-  int result = virDomainGetAutostart(Handle(), &autostart);
-  if (result == -1) {
-    SetVirError(virSaveLastError());
-    return;
-  }
-
-  data_ = static_cast<bool>(autostart);
+  RunMethod<MethodReturn<bool>, 2>(info, virDomainGetAutostart, MakeOut<int>());
 }
 
 NAN_METHOD(Domain::GetMaxMemory)
@@ -499,22 +406,22 @@ NAN_METHOD(Domain::GetMaxMemory)
 
 NAN_METHOD(Domain::GetMaxVcpus)
 {
-  RunMethod<MethodReturnInt>(info, virDomainGetMaxVcpus);
+  RunMethod<MethodReturn<int>>(info, virDomainGetMaxVcpus);
 }
 
 NAN_METHOD(Domain::IsActive)
 {
-  RunMethod<MethodReturnBool>(info, virDomainIsActive);
+  RunMethod<MethodReturn<bool>>(info, virDomainIsActive);
 }
 
 NAN_METHOD(Domain::IsPersistent)
 {
-  RunMethod<MethodReturnBool>(info, virDomainIsPersistent);
+  RunMethod<MethodReturn<bool>>(info, virDomainIsPersistent);
 }
 
 NAN_METHOD(Domain::IsUpdated)
 {
-  RunMethod<MethodReturnBool>(info, virDomainIsUpdated);
+  RunMethod<MethodReturn<bool>>(info, virDomainIsUpdated);
 }
 
 NAN_METHOD(Domain::Start)
@@ -553,7 +460,7 @@ NAN_METHOD(Domain::Resume)
 
 NAN_METHOD(Domain::HasManagedSaveImage)
 {
-  RunMethod<MethodReturnBool>(info, virDomainHasManagedSaveImage, GetFlags(info[0]));
+  RunMethod<MethodReturn<bool>>(info, virDomainHasManagedSaveImage, GetFlags(info[0]));
 }
 
 

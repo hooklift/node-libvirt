@@ -44,10 +44,20 @@ namespace NLV {
   };
 
   template<class T>
-  Worker::OnFinishedHandler PrimitiveReturnHandler(T val) {
+  inline Worker::OnFinishedHandler PrimitiveReturnHandler(T val) {
     return [=](Worker* worker) {
       Nan::HandleScope scope;
       v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(val) };
+      worker->Call(2, argv);
+    };
+  }
+
+  template<>
+  inline Worker::OnFinishedHandler PrimitiveReturnHandler(const char* val_) {
+    std::string val(val_);
+    return [=](Worker* worker) {
+      Nan::HandleScope scope;
+      v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(val.c_str()).ToLocalChecked() };
       worker->Call(2, argv);
     };
   }

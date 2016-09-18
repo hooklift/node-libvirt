@@ -8,10 +8,39 @@
 #include "nlv_base.h"
 
 #include "worker.h"
+
+#include "utility.hpp"
+
 using namespace node;
 using namespace v8;
 
-namespace NLV {
+namespace NLV {  
+  typedef std::basic_string<unsigned char> ustring;
+  
+  NAN_INLINE std::string GetString(v8::Local<v8::Value> val) {
+    if(!val->IsString()) {
+      Nan::ThrowTypeError("argument should be a string");
+    }    
+    return std::string(*Nan::Utf8String(val->ToString()));
+  }
+  
+  NAN_INLINE ustring GetUString(v8::Local<v8::Value> val) {
+    if(!val->IsString()) {
+      Nan::ThrowTypeError("argument should be a string");
+    }    
+    auto valString = val->ToString();
+    return ustring(reinterpret_cast<const unsigned char*>(*Nan::Utf8String(valString)));
+  }
+  
+  NAN_INLINE std::shared_ptr<std::string> MakeOutString(size_t siz) {
+    return std::make_shared<std::string>(siz+1, '\0');
+  }
+  
+  template<typename T, typename ...Args>
+  NAN_INLINE std::shared_ptr<T> MakeOut(Args&&... args) {
+    return std::make_shared<T>(args...);
+  }
+  
   NAN_INLINE unsigned int GetFlags(v8::Local<v8::Value> val) {
     if(val->IsUndefined() || val->IsFunction()) {
       return 0;
@@ -29,7 +58,52 @@ namespace NLV {
       return 0;
     }
   }
+    
+  template<typename T, typename Y = T> 
+  inline Y&& WrapArg(T&& val) {
+    return val;
+  }
 
+  struct Unwrapper {
+    template<typename T>
+    inline T operator()(T arg) {
+      return arg;
+    }
+    
+    inline const char* operator()(const std::string& arg) {
+      return arg.c_str();
+    }
+    
+    inline const unsigned char* operator()(const ustring& arg) {
+      return arg.c_str();
+    }
+    
+    inline char* operator()(std::shared_ptr<std::string>& str) {
+      return (char*)str->c_str();
+    }
+    
+    template<typename T>
+    inline T* operator()(std::shared_ptr<T>& val) {
+      return val.get();
+    }
+  };
+  
+  struct ReturnUnwrapper {
+    template<typename T>
+    inline T&& operator()(T&& arg) {
+      return arg;
+    }
+    
+    inline char* operator()(std::shared_ptr<std::string>& str) {
+      return (char*)str->c_str();
+    }
+    
+    template<typename T>
+    inline T operator()(std::shared_ptr<T>& val) {
+      return *val;
+    }
+  };
+    
   template <typename ParentClass, typename HandleType, typename CleanupHandler>
   class NLVObject : public NLVObjectBase
   {
@@ -60,40 +134,60 @@ namespace NLV {
         return NLV::PrimitiveReturnHandler(static_cast<T>(val));
       }
     };
-    using MethodReturnBool = MethodReturn<bool>;
-    using MethodReturnInt = MethodReturn<int>;
-
-    struct MethodReturnString {
-      Worker::OnFinishedHandler operator()(const char* val) {
-        std::string str = val;
-        return [=](Worker* worker) {
-          Nan::HandleScope scope;
-          v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(str).ToLocalChecked() };
-          worker->Call(2, argv);
-        };
+    using MethodReturnString = MethodReturn<const char*>;
+    
+    template<typename T>
+    struct MethodReturnInstance {
+      using handle_type = typename T::handle_type;
+      Worker::OnFinishedHandler operator()(handle_type handle) {
+        return NLV::InstanceReturnHandler<T>(handle);
       }
     };
     
     static inline bool virHasFailed(int val) {
-      return val < 0;
+      return val == -1;
     }
     
     static inline bool virHasFailed(const void* ptr) {
       return ptr == nullptr;
     }
 
-    template<typename ReturnHandler = MethodNoReturnHandler, typename Z, typename... Args>
-    static void RunMethod(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction, Args... args) {
+    template<typename ReturnHandler = MethodNoReturnHandler, int ReturnIndex = 0, typename Z,
+    typename... Args>
+    static void RunMethod(const Nan::FunctionCallbackInfo<v8::Value>& info, Z virFunction, Args&&... args) {
       Nan::HandleScope scope;
-      virDomainPtr handle = ParentClass::Unwrap(info.This())->virHandle();
-      auto virCaller = std::bind(virFunction, handle, args...);
+      auto handle = ParentClass::Unwrap(info.This())->virHandle();
+
+      /*
+        we're saving all arguments, wrapping them in safely copyable types, like:
+        const char* -> std::string
+        
+        different wrapping methods are defined by specialization/overloading of WrapArg
+        - by default WrapArg is just passthrough
+      */
+      auto tuple = std::make_tuple(handle, WrapArg(args)...);    
       NLV::Worker::RunAsync(info, [=] (NLV::Worker::SetOnFinishedHandler onFinished) {
-        auto retVal = virCaller();
+        // here we're running in non-v8 thread and the tuple has been copied by value
+        // now we need to call virFunction with all the arguments
+        // arguments are gonna be unwrapped using Unwrapper class with different
+        // specialization/overloads, for example:
+        // std::string -> const char*
+        // std::shared_ptr<std::string> -> char*   <- used for returning by pointer
+        auto retVal = utility::apply<Unwrapper>(virFunction, tuple);
         if (virHasFailed(retVal)) {
           return virSaveLastError();
         }
         ReturnHandler returnHandler;
-        return onFinished(returnHandler(retVal));
+        
+        // this tuple contains:
+        // 0 - virFunction return value
+        // 1 - handle
+        // 2 - first arugment after handle
+        // by default index 0 will be passed to javascript
+        // but by passing ReturnIndex > 1 we can get values returned by pointer
+        auto retTuple = std::tuple_cat(std::make_tuple(retVal), tuple);
+        
+        return onFinished(returnHandler(ReturnUnwrapper()(std::get<ReturnIndex>(retTuple))));
       });
     }
 
