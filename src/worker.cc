@@ -15,7 +15,7 @@ void Worker::RunAsync(const Nan::FunctionCallbackInfo<v8::Value>& info, ExecuteH
     return;
   }
 
-  Nan::Callback *callback = new Nan::Callback(v8_callback.As<Function>());
+  Nan::Callback *callback = new Nan::Callback(v8_callback.As<v8::Function>());
   auto worker = new NLV::Worker(callback, handler);
   auto parent = info.This();
   if (!parent->IsUndefined() && !parent->IsNull()) {

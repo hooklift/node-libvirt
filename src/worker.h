@@ -1,6 +1,9 @@
+#ifndef WORKER_H
+#define WORKER_H
+
 #include <functional>
 
-#include "nlv_async_worker.h"
+#include "nlv_base.h"
 
 namespace NLV {
   class Worker : public NLVAsyncWorkerBase
@@ -41,10 +44,20 @@ namespace NLV {
   };
 
   template<class T>
-  Worker::OnFinishedHandler PrimitiveReturnHandler(T val) {
+  inline Worker::OnFinishedHandler PrimitiveReturnHandler(T val) {
     return [=](Worker* worker) {
       Nan::HandleScope scope;
       v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(val) };
+      worker->Call(2, argv);
+    };
+  }
+
+  template<>
+  inline Worker::OnFinishedHandler PrimitiveReturnHandler(const char* val_) {
+    std::string val(val_);
+    return [=](Worker* worker) {
+      Nan::HandleScope scope;
+      v8::Local<v8::Value> argv[] = { Nan::Null(), Nan::New(val.c_str()).ToLocalChecked() };
       worker->Call(2, argv);
     };
   }
@@ -55,8 +68,8 @@ namespace NLV {
       Nan::HandleScope scope;
       Nan::TryCatch try_catch;
 
-      Local<Object> childObject = T::NewInstance(val);
-      Local<Value> parentObject = worker->GetFromPersistent("parent");
+      v8::Local<v8::Object> childObject = T::NewInstance(val);
+      v8::Local<v8::Value> parentObject = worker->GetFromPersistent("parent");
       T* child = T::Unwrap(childObject);
       NLVObjectBasePtr* childPtr = new NLVObjectBasePtr(child);
       if (parentObject->IsObject()) {
@@ -81,3 +94,5 @@ namespace NLV {
     };
   }
 };
+
+#endif
