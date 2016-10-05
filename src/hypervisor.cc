@@ -120,6 +120,10 @@ void Hypervisor::Initialize(Handle<Object> exports)
   Nan::SetPrototypeMethod(t, "lookupDomainByName",          Domain::LookupByName);
   Nan::SetPrototypeMethod(t, "lookupDomainByUUID",          Domain::LookupByUUID);
 
+#if LIBVIR_CHECK_VERSION(1,2,8)
+  Nan::SetPrototypeMethod(t, "getAllDomainStats",           Domain::GetAllDomainStats);
+#endif
+
   //Constants initialization
   // virConnectCredentialType
   NODE_DEFINE_CONSTANT(exports, VIR_CRED_USERNAME);

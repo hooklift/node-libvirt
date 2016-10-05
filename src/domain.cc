@@ -122,12 +122,12 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_NO_METADATA);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_HALT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY);
-  #if LIBVIR_CHECK_VERSION(0,9,10)
+#if LIBVIR_CHECK_VERSION(0,9,10)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_REUSE_EXT);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_QUIESCE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_CREATE_LIVE);
-  #endif
+#endif
 
   //virDomainSnapshotDelete
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_SNAPSHOT_DELETE_CHILDREN);
@@ -234,6 +234,28 @@ void Domain::Initialize(Handle<Object> exports)
 
   // ETC
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_EVENT_ID_LIFECYCLE);
+
+#if LIBVIR_CHECK_VERSION(1,2,8)
+  // virConnectGetAllDomainStatsFlags
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_ACTIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_INACTIVE);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_OTHER);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_PAUSED);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_PERSISTENT);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_RUNNING);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_SHUTOFF);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_TRANSIENT);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_BACKING);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_GET_ALL_DOMAINS_STATS_ENFORCE_STATS);
+
+  // virDomainStatsTypes
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_STATE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_CPU_TOTAL);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_BALLOON);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_VCPU);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_INTERFACE);
+  NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_BLOCK);
+#endif
 }
 
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
@@ -857,6 +879,76 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
     return;
   }
 }
+
+#if LIBVIR_CHECK_VERSION(1,2,8)
+NAN_METHOD(Domain::GetAllDomainStats)
+{
+  Nan::HandleScope scope;
+  unsigned int stats = GetFlags(info[0]);
+  unsigned int flags = GetFlags(info[1]);
+
+  auto handle = Hypervisor::UnwrapHandle(info.This());
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
+    virDomainStatsRecordPtr* records;
+    int result = virConnectGetAllDomainStats(handle, stats, &records, flags);
+
+    if (result == -1) {
+      virDomainStatsRecordListFree(records);
+      return virSaveLastError();
+    }
+
+    return onFinished([=] (Worker* worker) {
+      v8::Local<v8::Object> result = Nan::New<v8::Object>();
+      // @TODO: this is essentially the body of the NLVTypedParameterReturnWorker's ok callback code
+      virDomainStatsRecordPtr *next;
+      for (next = records; *next; next++) {
+        virDomainStatsRecordPtr record = *next;
+
+        v8::Local<v8::Object> recordObject = Nan::New<v8::Object>();
+        for (int i = 0; i < record->nparams; i++) {
+          virTypedParameterPtr param = record->params + i;
+
+          v8::Local<v8::Value> value;
+          switch(param->type) {
+          case VIR_TYPED_PARAM_INT:
+            value = Nan::New<v8::Integer>(param->value.i);
+            break;
+          case VIR_TYPED_PARAM_UINT:
+            value = Nan::New<v8::Integer>(param->value.ui);
+            break;
+          case VIR_TYPED_PARAM_LLONG:
+            value = Nan::New<v8::Number>(param->value.l);
+            break;
+          case VIR_TYPED_PARAM_ULLONG:
+            value = Nan::New<v8::Number>(param->value.ul);
+            break;
+          case VIR_TYPED_PARAM_DOUBLE:
+            value = Nan::New<v8::Number>(param->value.d);
+            break;
+          case VIR_TYPED_PARAM_BOOLEAN:
+            value = Nan::New<v8::Boolean>(param->value.b);
+            break;
+          case VIR_TYPED_PARAM_STRING:
+            value = Nan::New(param->value.s).ToLocalChecked();
+            break;
+          default:
+            value = Nan::Null();
+          }
+
+          recordObject->Set(Nan::New(param->field).ToLocalChecked(), value);
+        }
+
+        std::string domain_name(virDomainGetName(record->dom));
+        result->Set(Nan::New(domain_name).ToLocalChecked(), recordObject);
+      }
+
+      virDomainStatsRecordListFree(records);
+      Local<Value> argv[] = { Nan::Null(), result };
+      worker->Call(2, argv);
+    });
+  });
+}
+#endif
 
 NLV_WORKER_METHOD_NO_ARGS(Domain, GetSecurityLabel)
 NLV_WORKER_EXECUTE(Domain, GetSecurityLabel)
