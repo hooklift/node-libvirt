@@ -239,7 +239,7 @@ void Domain::Initialize(Handle<Object> exports)
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
 
 NAN_METHOD(Domain::LookupByName)
-{  
+{
   Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByName, GetString(info[0]));
 }
 
@@ -391,7 +391,7 @@ NAN_METHOD(Domain::GetOSType)
 
 NAN_METHOD(Domain::GetUUID)
 {
-  RunMethod<MethodReturnString, 2>(info, virDomainGetUUIDString, MakeOutString(VIR_UUID_STRING_BUFLEN));
+  RunMethod<MethodReturn<std::string>, 2>(info, virDomainGetUUIDString, MakeOutString(VIR_UUID_STRING_BUFLEN));
 }
 
 NAN_METHOD(Domain::GetAutostart)
