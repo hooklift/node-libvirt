@@ -49,6 +49,10 @@ private:
   static NAN_METHOD(RegisterEvent);
   static NAN_METHOD(UnregisterEvent);
 
+#if LIBVIR_CHECK_VERSION(1,2,8)
+  static NAN_METHOD(GetAllDomainStats);
+#endif
+
   // ACTIONS
   static NAN_METHOD(Destroy);
   static NAN_METHOD(Start);
@@ -116,7 +120,7 @@ private:
   // UNFINISHED SYNC ACCESSORS/MUTATORS
   static NAN_METHOD(SetSchedulerParameters);
 
-private:  
+private:
   class RestoreWorker : public NLVPrimitiveReturnWorker<virConnectPtr, bool> {
   public:
     RestoreWorker(Nan::Callback *callback, virConnectPtr handle, const std::string &path)
