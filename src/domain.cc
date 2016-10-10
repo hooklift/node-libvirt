@@ -907,35 +907,7 @@ NAN_METHOD(Domain::GetAllDomainStats)
         v8::Local<v8::Object> recordObject = Nan::New<v8::Object>();
         for (int i = 0; i < record->nparams; i++) {
           virTypedParameterPtr param = record->params + i;
-
-          v8::Local<v8::Value> value;
-          switch(param->type) {
-          case VIR_TYPED_PARAM_INT:
-            value = Nan::New<v8::Integer>(param->value.i);
-            break;
-          case VIR_TYPED_PARAM_UINT:
-            value = Nan::New<v8::Integer>(param->value.ui);
-            break;
-          case VIR_TYPED_PARAM_LLONG:
-            value = Nan::New<v8::Number>(param->value.l);
-            break;
-          case VIR_TYPED_PARAM_ULLONG:
-            value = Nan::New<v8::Number>(param->value.ul);
-            break;
-          case VIR_TYPED_PARAM_DOUBLE:
-            value = Nan::New<v8::Number>(param->value.d);
-            break;
-          case VIR_TYPED_PARAM_BOOLEAN:
-            value = Nan::New<v8::Boolean>(param->value.b);
-            break;
-          case VIR_TYPED_PARAM_STRING:
-            value = Nan::New(param->value.s).ToLocalChecked();
-            break;
-          default:
-            value = Nan::Null();
-          }
-
-          recordObject->Set(Nan::New(param->field).ToLocalChecked(), value);
+          recordObject->Set(Nan::New(param->field).ToLocalChecked(), extractTypedParameter(param));
         }
 
         std::string domain_name(virDomainGetName(record->dom));

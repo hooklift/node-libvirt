@@ -285,6 +285,40 @@ namespace NLV {
       worker->SaveToPersistent("parent", parent);
     Nan::AsyncQueueWorker(worker);
   }
+
+  NAN_INLINE v8::Local<v8::Value> extractTypedParameter(virTypedParameterPtr param) {
+    Nan::EscapableHandleScope scope;
+
+    v8::Local<v8::Value> value;
+    switch(param->type) {
+    case VIR_TYPED_PARAM_INT:
+      value = Nan::New<v8::Integer>(param->value.i);
+      break;
+    case VIR_TYPED_PARAM_UINT:
+      value = Nan::New<v8::Integer>(param->value.ui);
+      break;
+    case VIR_TYPED_PARAM_LLONG:
+      value = Nan::New<v8::Number>(param->value.l);
+      break;
+    case VIR_TYPED_PARAM_ULLONG:
+      value = Nan::New<v8::Number>(param->value.ul);
+      break;
+    case VIR_TYPED_PARAM_DOUBLE:
+      value = Nan::New<v8::Number>(param->value.d);
+      break;
+    case VIR_TYPED_PARAM_BOOLEAN:
+      value = Nan::New<v8::Boolean>(param->value.b);
+      break;
+    case VIR_TYPED_PARAM_STRING:
+      value = Nan::New(param->value.s).ToLocalChecked();
+      break;
+    default:
+      value = Nan::Null();
+    }
+
+    return scope.Escape(value);
+  }
+
 };
 
 #endif  // NLV_OBJECT_H
