@@ -898,6 +898,7 @@ NAN_METHOD(Domain::GetAllDomainStats)
     }
 
     return onFinished([=] (Worker* worker) {
+      Nan::HandleScope scope;
       v8::Local<v8::Object> result = Nan::New<v8::Object>();
       // @TODO: this is essentially the body of the NLVTypedParameterReturnWorker's ok callback code
       virDomainStatsRecordPtr *next;
