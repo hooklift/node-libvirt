@@ -1,29 +1,25 @@
 language: node_js
-
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.8
-    - g++-4.8
-
-env:
-  - CXX=g++-4.8
-
 node_js:
   - '0.10'
   - '0.12'
   - '4'
   - '5'
 
-cache:
-  directories:
-    - node_modules
+sudo: required
+dist: trusty
 
-before_install:
-  - sudo apt-get -q update
-  - sudo apt-get -y install libvirt-dev
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - sourceline: 'ppa:ubuntu-cloud-archive/mitaka-staging'
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - libvirt-dev
+
+env:
+  - CXX=g++-4.8
 
 script:
   - make test
