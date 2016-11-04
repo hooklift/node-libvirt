@@ -518,6 +518,14 @@ private:
                                             const char *authScheme,
                                             virDomainEventGraphicsSubjectPtr subject,
                                             void *opaque);
+
+#if LIBVIR_CHECK_VERSION(1,2,11)
+  static int domain_event_agent_lifecycle_callback(virConnectPtr conn,
+                                                   virDomainPtr dom,
+                                                   int state,
+                                                   int reason,
+                                                   void * opaque);
+#endif
 };
 
 }  //namespace NLV

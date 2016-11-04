@@ -256,6 +256,17 @@ void Domain::Initialize(Handle<Object> exports)
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_INTERFACE);
   NODE_DEFINE_CONSTANT(exports, VIR_DOMAIN_STATS_BLOCK);
 #endif
+
+#if LIBVIR_CHECK_VERSION(1,2,11)
+  // virConnectDomainEventAgentLifecycleReason
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_DOMAIN_EVENT_AGENT_LIFECYCLE_REASON_UNKNOWN);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_DOMAIN_EVENT_AGENT_LIFECYCLE_REASON_DOMAIN_STARTED);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_DOMAIN_EVENT_AGENT_LIFECYCLE_REASON_CHANNEL);
+
+  // virConnectDomainEventAgentLifecycleState
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_DOMAIN_EVENT_AGENT_LIFECYCLE_STATE_CONNECTED);
+  NODE_DEFINE_CONSTANT(exports, VIR_CONNECT_DOMAIN_EVENT_AGENT_LIFECYCLE_STATE_DISCONNECTED);
+#endif
 }
 
 Domain::Domain(virDomainPtr handle) : NLVObject(handle) {}
@@ -1995,6 +2006,11 @@ NLV_WORKER_EXECUTE(Domain, RegisterEvent)
     case VIR_DOMAIN_EVENT_ID_GRAPHICS:
       callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_graphics_callback);
       break;
+#if LIBVIR_CHECK_VERSION(1,2,11)
+    case VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE:
+      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_agent_lifecycle_callback);
+      break;
+#endif
     default:
       callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_generic_callback);
       break;
@@ -2293,5 +2309,28 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
+
+#if LIBVIR_CHECK_VERSION(1,2,11)
+int Domain::domain_event_agent_lifecycle_callback(virConnectPtr conn,
+                                                  virDomainPtr dom,
+                                                  int state,
+                                                  int reason,
+                                                  void * opaque)
+{
+  Nan::HandleScope scope;
+  Local<Object> data = Nan::New<Object>();
+  data->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(state));
+  data->Set(Nan::New("reason").ToLocalChecked(), Nan::New<Integer>(reason));
+
+  Local<Value> argv[2] = {
+    Nan::New("agentLifecycleEvent").ToLocalChecked(),
+    data
+  };
+
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
+  return 0;
+}
+#endif
 
 } //namespace NLV
