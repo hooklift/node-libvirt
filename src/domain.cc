@@ -4,6 +4,7 @@
 #include "hypervisor.h"
 #include "domain.h"
 #include "worker.h"
+#include "event_impl.h"
 
 namespace NLV {
 
@@ -1993,6 +1994,11 @@ NAN_METHOD(Domain::RegisterEvent)
       !arg_obj->Get(Nan::New("evtype").ToLocalChecked())->IsInt32()) {
     Nan::ThrowTypeError("You must specify an valid event type");
     return;
+  }
+
+  // start the event loop if necessary
+  if (!EventImpl::IsEventLoopStarted()) {
+    EventImpl::StartEventLoop();
   }
 
   Domain *domain = Domain::Unwrap(info.This());

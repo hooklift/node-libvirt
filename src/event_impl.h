@@ -16,6 +16,9 @@ class EventImpl
 public:
   static void Initialize(Handle<Object> target);
 
+  static void StartEventLoop();
+  static bool IsEventLoopStarted();
+
 private:
   static NAN_METHOD(SetupEvent);
 
@@ -53,6 +56,7 @@ private:
   static int nextTimeout;
   static std::vector<nodeEventHandle*> handles;
   static std::vector<nodeEventTimeout*> timeouts;
+  static bool started;
 };
 
 }  //namespace NLV
