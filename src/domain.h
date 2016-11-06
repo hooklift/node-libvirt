@@ -139,25 +139,6 @@ private:
     std::string path_;
   };
 
-  class RegisterEventWorker : public NLVPrimitiveReturnWorker<virDomainPtr, int> {
-  public:
-    RegisterEventWorker(Nan::Callback *callback, virDomainPtr handle, Domain *domain, int eventId)
-      : NLVPrimitiveReturnWorker<virDomainPtr, int>(callback, handle), domain_(domain), eventId_(eventId) {}
-    void Execute();
-  private:
-    Domain *domain_;
-    int eventId_;
-  };
-
-  class UnregisterEventWorker : public NLVPrimitiveReturnWorker<virDomainPtr, bool> {
-  public:
-    UnregisterEventWorker(Nan::Callback *callback, virDomainPtr handle, int callbackId)
-      : NLVPrimitiveReturnWorker<virDomainPtr, bool>(callback, handle), callbackId_(callbackId) {}
-    void Execute();
-  private:
-    int callbackId_;
-  };
-
   // ACTION METHOD WORKERS
   NLV_PRIMITIVE_RETURN_WORKER(AbortCurrentJob, virDomainPtr, bool);
 
@@ -502,29 +483,26 @@ private:
   };
 
 private:
-  static void domain_event_free(void *opaque);
-  static int domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr domain,
-                                             int event, int detail, void *opaque);
-  static int domain_event_generic_callback(virConnectPtr conn, virDomainPtr domain, void *opaque);
-  static int domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr domain, long long utcoffset, void *opaque);
-  static int domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr domain, int action, void *opaque);
-  static int domain_event_io_error_callback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
-                                            const char *dev_alias, int action, void *opaque);
-  static int domain_event_io_error_reason_callback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
-                                                   const char *dev_alias, int action, const char *reason, void *opaque);
-  static int domain_event_graphics_callback(virConnectPtr conn, virDomainPtr domain, int phase,
-                                            virDomainEventGraphicsAddressPtr local,
-                                            virDomainEventGraphicsAddressPtr remote,
-                                            const char *authScheme,
-                                            virDomainEventGraphicsSubjectPtr subject,
-                                            void *opaque);
+  static void DomainEventFree(void *opaque);
+  static int DomainEventLifecycleCallback(virConnectPtr conn, virDomainPtr domain,
+                                          int event, int detail, void *opaque);
+  static int DomainEventGenericCallback(virConnectPtr conn, virDomainPtr domain, void *opaque);
+  static int DomainEventRtcChangeCallback(virConnectPtr conn, virDomainPtr domain, long long utcoffset, void *opaque);
+  static int DomainEventWatchdogCallback(virConnectPtr conn, virDomainPtr domain, int action, void *opaque);
+  static int DomainEventIoErrorCallback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
+                                        const char *dev_alias, int action, void *opaque);
+  static int DomainEventIoErrorReasonCallback(virConnectPtr conn, virDomainPtr domain, const char *src_path,
+                                              const char *dev_alias, int action, const char *reason, void *opaque);
+  static int DomainEventGraphicsCallback(virConnectPtr conn, virDomainPtr domain, int phase,
+                                         virDomainEventGraphicsAddressPtr local,
+                                         virDomainEventGraphicsAddressPtr remote,
+                                         const char *authScheme,
+                                         virDomainEventGraphicsSubjectPtr subject,
+                                         void *opaque);
 
 #if LIBVIR_CHECK_VERSION(1,2,11)
-  static int domain_event_agent_lifecycle_callback(virConnectPtr conn,
-                                                   virDomainPtr dom,
-                                                   int state,
-                                                   int reason,
-                                                   void * opaque);
+  static int DomainEventAgentLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
+                                               int state, int reason, void * opaque);
 #endif
 };
 

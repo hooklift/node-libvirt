@@ -52,24 +52,13 @@ void EventImpl::Initialize(Handle<Object> exports)
 NAN_METHOD(EventImpl::SetupEvent)
 {
   Nan::HandleScope scope;
-
-  uv_mutex_init(&lock);
-  uv_check_init(uv_default_loop(), &updateHandleChecker);
-  uv_check_start(&updateHandleChecker, EventImpl::UpdateHandlesOnce);
-
-  virEventRegisterImpl(
-    AddHandle, UpdateHandle, RemoveHandle,
-    AddTimeout, UpdateTimeout, RemoveTimeout
-  );
-
-  return;
+  StartEventLoop();
 }
 
 bool EventImpl::IsEventLoopStarted() { return started; }
 void EventImpl::StartEventLoop()
 {
   if (started) return;
-
   uv_mutex_init(&lock);
   uv_check_init(uv_default_loop(), &updateHandleChecker);
   uv_check_start(&updateHandleChecker, EventImpl::UpdateHandlesOnce);

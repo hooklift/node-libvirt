@@ -1980,20 +1980,31 @@ NLV_WORKER_OKCALLBACK(Domain, GetSnapshots)
   callback->Call(2, argv);
 }
 
-
 NAN_METHOD(Domain::RegisterEvent)
 {
   Nan::HandleScope scope;
-  if (info.Length() == 0 || !info[0]->IsObject() || !info[1]->IsFunction()) {
-    Nan::ThrowTypeError("You must specify a object and a callback as argument");
+  if (info.Length() == 0 || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError("You must specify an event and a callback as arguments");
     return;
   }
 
-  Local<Object> arg_obj = info[0]->ToObject();
-  if (!arg_obj->Has(Nan::New("evtype").ToLocalChecked()) ||
-      !arg_obj->Get(Nan::New("evtype").ToLocalChecked())->IsInt32()) {
-    Nan::ThrowTypeError("You must specify an valid event type");
+  if (!info[0]->IsObject() && !info[0]->IsInt32()) {
+    Nan::ThrowTypeError("First parameter must be an event type");
     return;
+  }
+
+  int event_id;
+  if (info[0]->IsObject()) {
+    Local<Object> arg_obj = info[0]->ToObject();
+    if (!arg_obj->Has(Nan::New("evtype").ToLocalChecked()) ||
+        !arg_obj->Get(Nan::New("evtype").ToLocalChecked())->IsInt32()) {
+      Nan::ThrowTypeError("You must specify an valid event type");
+      return;
+    }
+
+    event_id = arg_obj->Get(Nan::New("evtype").ToLocalChecked())->Int32Value();
+  } else {
+    event_id = info[0]->Int32Value();
   }
 
   // start the event loop if necessary
@@ -2001,87 +2012,71 @@ NAN_METHOD(Domain::RegisterEvent)
     EventImpl::StartEventLoop();
   }
 
-  Domain *domain = Domain::Unwrap(info.This());
-  int eventId = arg_obj->Get(Nan::New("evtype").ToLocalChecked())->Int32Value();
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new RegisterEventWorker(callback, domain->virHandle(), domain, eventId));
-  return;
-}
+  auto domain = Domain::Unwrap(info.This());
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
+    virConnectDomainEventGenericCallback callback = NULL;
+    switch (event_id) {
+      case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventLifecycleCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_REBOOT:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGenericCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventRtcChangeCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_WATCHDOG:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventWatchdogCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_IO_ERROR:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventIoErrorCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventIoErrorReasonCallback);
+        break;
+      case VIR_DOMAIN_EVENT_ID_GRAPHICS:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGraphicsCallback);
+        break;
+  #if LIBVIR_CHECK_VERSION(1,2,11)
+      case VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventAgentLifecycleCallback);
+        break;
+  #endif
+      default:
+        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGenericCallback);
+        break;
+    }
 
-NLV_WORKER_EXECUTE(Domain, RegisterEvent)
-{
-  virConnectDomainEventGenericCallback callback = NULL;
-  switch (eventId_) {
-    case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_lifecycle_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_REBOOT:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_generic_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_rtcchange_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_WATCHDOG:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_watchdog_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_IO_ERROR:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_io_error_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_io_error_reason_callback);
-      break;
-    case VIR_DOMAIN_EVENT_ID_GRAPHICS:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_graphics_callback);
-      break;
-#if LIBVIR_CHECK_VERSION(1,2,11)
-    case VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_agent_lifecycle_callback);
-      break;
-#endif
-    default:
-      callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::domain_event_generic_callback);
-      break;
-  }
+    auto domainHandle = domain->virHandle();
+    int result = virConnectDomainEventRegisterAny(
+      virDomainGetConnect(domainHandle), domainHandle, event_id, callback, domain, DomainEventFree
+    );
 
-  virDomainPtr domain = Handle();
-  int result = virConnectDomainEventRegisterAny(
-    virDomainGetConnect(domain), domain, eventId_, callback, domain_, domain_event_free
-  );
+    if (result == -1) {
+      return virSaveLastError();
+    }
 
-  if (result == -1) {
-    SET_ERROR_WITH_CONTEXT(virSaveLastError());
-    return;
-  }
-
-  // @todo: this should be added to a vector so we can free it if the
-  //        object is deleted
-
-  data_ = result;
+    return onFinished(PrimitiveReturnHandler(result));
+  });
 }
 
 NAN_METHOD(Domain::UnregisterEvent)
 {
   Nan::HandleScope scope;
-
   if (info.Length() != 2 || !info[0]->IsInt32() || !info[1]->IsFunction()) {
     Nan::ThrowTypeError("You must specify a callback identifier and a callback");
     return;
   }
 
-  Domain *domain = Domain::Unwrap(info.This());
-  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
-  Nan::AsyncQueueWorker(new UnregisterEventWorker(callback, domain->virHandle(), info[0]->Int32Value()));
-  return;
-}
+  int callback_id = info[0]->Int32Value();
+  auto handle = Domain::UnwrapHandle(info.This());
+  Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
+    if (virConnectDomainEventDeregisterAny(virDomainGetConnect(handle), callback_id) == -1) {
+      return virSaveLastError();
+    }
 
-NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
-{
-  if (virConnectDomainEventDeregisterAny(virDomainGetConnect(Handle()), callbackId_) == -1) {
-    SET_ERROR_WITH_CONTEXT(virSaveLastError());
-    return;
-  }
-
-  data_ = true;
+    return onFinished(PrimitiveReturnHandler(true));
+  });
 }
 
 /////////////////////////////////////////////////////
@@ -2168,13 +2163,13 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   return info.GetReturnValue().Set(Nan::True());
 }
 
-void Domain::domain_event_free(void *opaque)
+void Domain::DomainEventFree(void *opaque)
 {
   fprintf(stderr, "NOT IMPLEMENTED!");
 }
 
-int Domain::domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr dom, int event,
-                                            int detail, void *opaque)
+int Domain::DomainEventLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
+                                         int event, int detail, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2185,19 +2180,20 @@ int Domain::domain_event_lifecycle_callback(virConnectPtr conn, virDomainPtr dom
     Nan::New("lifecycleEvent").ToLocalChecked(),
     data
   };
+
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::domain_event_generic_callback(virConnectPtr conn, virDomainPtr dom, void *opaque)
+int Domain::DomainEventGenericCallback(virConnectPtr conn, virDomainPtr dom, void *opaque)
 {
   fprintf(stderr, "GENERIC CALLBACK CALLED");
   return 0;
 }
 
-int Domain::domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr dom,
-                                            long long utcoffset, void *opaque)
+int Domain::DomainEventRtcChangeCallback(virConnectPtr conn, virDomainPtr dom,
+                                         long long utcoffset, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2213,8 +2209,8 @@ int Domain::domain_event_rtcchange_callback(virConnectPtr conn, virDomainPtr dom
   return 0;
 }
 
-int Domain::domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr dom, int action,
-                                           void *opaque)
+int Domain::DomainEventWatchdogCallback(virConnectPtr conn, virDomainPtr dom, int action,
+                                        void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2230,16 +2226,15 @@ int Domain::domain_event_watchdog_callback(virConnectPtr conn, virDomainPtr dom,
   return 0;
 }
 
-int Domain::domain_event_io_error_callback(virConnectPtr conn, virDomainPtr dom,
-                                           const char *src_path, const char *dev_alias,
-                                           int action, void *opaque)
+int Domain::DomainEventIoErrorCallback(virConnectPtr conn, virDomainPtr dom,
+                                       const char *src_path, const char *dev_alias,
+                                       int action, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
   data->Set(Nan::New("sourcePath").ToLocalChecked(), Nan::New(src_path).ToLocalChecked());
   data->Set(Nan::New("devAlias").ToLocalChecked(), Nan::New(dev_alias).ToLocalChecked());
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
-
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
   Local<Value> argv[2] = {
@@ -2252,9 +2247,9 @@ int Domain::domain_event_io_error_callback(virConnectPtr conn, virDomainPtr dom,
   return 0;
 }
 
-int Domain::domain_event_io_error_reason_callback(virConnectPtr conn, virDomainPtr dom,
-                                                  const char *src_path, const char *dev_alias,
-                                                  int action, const char *reason, void *opaque)
+int Domain::DomainEventIoErrorReasonCallback(virConnectPtr conn, virDomainPtr dom,
+                                             const char *src_path, const char *dev_alias,
+                                             int action, const char *reason, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2273,12 +2268,12 @@ int Domain::domain_event_io_error_reason_callback(virConnectPtr conn, virDomainP
   return 0;
 }
 
-int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom, int phase,
-                                           virDomainEventGraphicsAddressPtr local,
-                                           virDomainEventGraphicsAddressPtr remote,
-                                           const char *auth_scheme,
-                                           virDomainEventGraphicsSubjectPtr subject,
-                                           void *opaque)
+int Domain::DomainEventGraphicsCallback(virConnectPtr conn, virDomainPtr dom, int phase,
+                                        virDomainEventGraphicsAddressPtr local,
+                                        virDomainEventGraphicsAddressPtr remote,
+                                        const char *auth_scheme,
+                                        virDomainEventGraphicsSubjectPtr subject,
+                                        void *opaque)
 {
   Nan::HandleScope scope;
   Local<String> lfamily;
@@ -2338,11 +2333,8 @@ int Domain::domain_event_graphics_callback(virConnectPtr conn, virDomainPtr dom,
 }
 
 #if LIBVIR_CHECK_VERSION(1,2,11)
-int Domain::domain_event_agent_lifecycle_callback(virConnectPtr conn,
-                                                  virDomainPtr dom,
-                                                  int state,
-                                                  int reason,
-                                                  void * opaque)
+int Domain::DomainEventAgentLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
+                                              int state, int reason, void * opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
