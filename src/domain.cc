@@ -1980,6 +1980,44 @@ NLV_WORKER_OKCALLBACK(Domain, GetSnapshots)
   callback->Call(2, argv);
 }
 
+struct domain_event_data_t {
+  int event;
+  virConnectDomainEventGenericCallback callback;
+};
+
+#define DOMAIN_EVENT(event, callback) \
+  { event, VIR_DOMAIN_EVENT_CALLBACK(callback) }
+
+struct domain_event_data_t domainEvents[] = {
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_LIFECYCLE, DomainEventLifecycleCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_REBOOT, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_RTC_CHANGE, DomainEventRTCChangeCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_WATCHDOG, DomainEventWatchdogCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_IO_ERROR, DomainEventIOErrorCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_GRAPHICS, DomainEventGraphicsCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON, DomainEventIOErrorReasonCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_CONTROL_ERROR, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_BLOCK_JOB, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_DISK_CHANGE, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_TRAY_CHANGE, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_PMWAKEUP, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_PMSUSPEND, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_BALLOON_CHANGE, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_PMSUSPEND_DISK, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_DEVICE_REMOVED, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_BLOCK_JOB_2, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_TUNABLE, DomainEventUnimplementedCallback),
+#if LIBVIR_CHECK_VERSION(1,2,11)
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE, DomainEventAgentLifecycleCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_DEVICE_ADDED, DomainEventUnimplementedCallback),
+#endif
+#if LIBVIR_CHECK_VERSION(2,0,0)
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_MIGRATION_ITERATION, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_JOB_COMPLETED, DomainEventUnimplementedCallback),
+  DOMAIN_EVENT(VIR_DOMAIN_EVENT_ID_DEVICE_REMOVAL_FAILED, DomainEventUnimplementedCallback)
+#endif
+};
+
 NAN_METHOD(Domain::RegisterEvent)
 {
   Nan::HandleScope scope;
@@ -2014,40 +2052,8 @@ NAN_METHOD(Domain::RegisterEvent)
 
   auto domain = Domain::Unwrap(info.This());
   Worker::RunAsync(info, [=] (Worker::SetOnFinishedHandler onFinished) {
-    virConnectDomainEventGenericCallback callback = NULL;
-    switch (event_id) {
-      case VIR_DOMAIN_EVENT_ID_LIFECYCLE:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventLifecycleCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_REBOOT:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGenericCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_RTC_CHANGE:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventRtcChangeCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_WATCHDOG:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventWatchdogCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_IO_ERROR:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventIoErrorCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_IO_ERROR_REASON:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventIoErrorReasonCallback);
-        break;
-      case VIR_DOMAIN_EVENT_ID_GRAPHICS:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGraphicsCallback);
-        break;
-  #if LIBVIR_CHECK_VERSION(1,2,11)
-      case VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventAgentLifecycleCallback);
-        break;
-  #endif
-      default:
-        callback = VIR_DOMAIN_EVENT_CALLBACK(Domain::DomainEventGenericCallback);
-        break;
-    }
-
     auto domainHandle = domain->virHandle();
+    virConnectDomainEventGenericCallback callback = domainEvents[event_id].callback;
     int result = virConnectDomainEventRegisterAny(
       virDomainGetConnect(domainHandle), domainHandle, event_id, callback, domain, DomainEventFree
     );
@@ -2163,72 +2169,68 @@ NAN_METHOD(Domain::SetSchedulerParameters)
   return info.GetReturnValue().Set(Nan::True());
 }
 
-void Domain::DomainEventFree(void *opaque)
+void DomainEventFree(void *opaque)
 {
   fprintf(stderr, "NOT IMPLEMENTED!");
 }
 
-int Domain::DomainEventLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
-                                         int event, int detail, void *opaque)
+int DomainEventLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
+                                 int event, int detail, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
   data->Set(Nan::New("evtype").ToLocalChecked(), Nan::New<Integer>(event));
   data->Set(Nan::New("detail").ToLocalChecked(), Nan::New<Integer>(detail));
 
-  Local<Value> argv[2] = {
-    Nan::New("lifecycleEvent").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("lifecycleEvent").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventGenericCallback(virConnectPtr conn, virDomainPtr dom, void *opaque)
+int DomainEventUnimplementedCallback(virConnectPtr conn, virDomainPtr domain, void *opaque)
 {
-  fprintf(stderr, "GENERIC CALLBACK CALLED");
+  fprintf(stderr, "unimplemented event handler called\n");
+  return DomainEventGenericCallback(conn, domain, opaque);
+}
+
+int DomainEventGenericCallback(virConnectPtr conn, virDomainPtr dom, void *opaque)
+{
+  Local<Value> argv[2] = { Nan::New("genericEvent").ToLocalChecked(), Nan::Null() };
+  Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
+  Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventRtcChangeCallback(virConnectPtr conn, virDomainPtr dom,
-                                         long long utcoffset, void *opaque)
+int DomainEventRTCChangeCallback(virConnectPtr conn, virDomainPtr dom,
+                                 long long utcoffset, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
   data->Set(Nan::New("utcOffset").ToLocalChecked(), Nan::New<Number>(utcoffset));
 
-  Local<Value> argv[2] = {
-    Nan::New("rtcChange").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("rtcChange").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventWatchdogCallback(virConnectPtr conn, virDomainPtr dom, int action,
-                                        void *opaque)
+int DomainEventWatchdogCallback(virConnectPtr conn, virDomainPtr dom,
+                                int action, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Local<Value> argv[2] = {
-    Nan::New("watchdogEvent").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("watchdogEvent").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventIoErrorCallback(virConnectPtr conn, virDomainPtr dom,
-                                       const char *src_path, const char *dev_alias,
-                                       int action, void *opaque)
+int DomainEventIOErrorCallback(virConnectPtr conn, virDomainPtr dom,
+                               const char *src_path, const char *dev_alias,
+                               int action, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2237,19 +2239,15 @@ int Domain::DomainEventIoErrorCallback(virConnectPtr conn, virDomainPtr dom,
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Local<Value> argv[2] = {
-    Nan::New("ioError").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("ioError").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventIoErrorReasonCallback(virConnectPtr conn, virDomainPtr dom,
-                                             const char *src_path, const char *dev_alias,
-                                             int action, const char *reason, void *opaque)
+int DomainEventIOErrorReasonCallback(virConnectPtr conn, virDomainPtr dom,
+                                     const char *src_path, const char *dev_alias,
+                                     int action, const char *reason, void *opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
@@ -2258,51 +2256,43 @@ int Domain::DomainEventIoErrorReasonCallback(virConnectPtr conn, virDomainPtr do
   data->Set(Nan::New("reason").ToLocalChecked(), Nan::New(reason).ToLocalChecked());
   data->Set(Nan::New("action").ToLocalChecked(), Nan::New<Integer>(action));
 
-  Local<Value> argv[2] = {
-    Nan::New("ioErrorReason").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("ioErrorReason").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
-int Domain::DomainEventGraphicsCallback(virConnectPtr conn, virDomainPtr dom, int phase,
-                                        virDomainEventGraphicsAddressPtr local,
-                                        virDomainEventGraphicsAddressPtr remote,
-                                        const char *auth_scheme,
-                                        virDomainEventGraphicsSubjectPtr subject,
-                                        void *opaque)
+Local<String> FamilyToString(int family) {
+  Nan::EscapableHandleScope scope;
+
+  Local<String> result;
+  switch (family) {
+  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
+    result = Nan::New("ipv4").ToLocalChecked();
+    break;
+  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
+    result = Nan::New("ipv6").ToLocalChecked();
+    break;
+  };
+
+  return scope.Escape(result);
+}
+
+int DomainEventGraphicsCallback(virConnectPtr conn, virDomainPtr dom, int phase,
+                                virDomainEventGraphicsAddressPtr local,
+                                virDomainEventGraphicsAddressPtr remote,
+                                const char *auth_scheme,
+                                virDomainEventGraphicsSubjectPtr subject,
+                                void *opaque)
 {
   Nan::HandleScope scope;
-  Local<String> lfamily;
-  switch (local->family) {
-  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-    lfamily = Nan::New("ipv4").ToLocalChecked();
-    break;
-  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-    lfamily = Nan::New("ipv6").ToLocalChecked();
-    break;
-  };
-
-  Local<String> rfamily;
-  switch(remote->family) {
-  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4:
-    rfamily = Nan::New("ipv4").ToLocalChecked();
-    break;
-  case VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV6:
-    rfamily = Nan::New("ipv6").ToLocalChecked();
-    break;
-  };
-
   Local<Object> local_ = Nan::New<Object>();
-  local_->Set(Nan::New("family").ToLocalChecked(), lfamily);
+  local_->Set(Nan::New("family").ToLocalChecked(), FamilyToString(local->family));
   local_->Set(Nan::New("node").ToLocalChecked(), Nan::New(local->node).ToLocalChecked());
   local_->Set(Nan::New("service").ToLocalChecked(), Nan::New(local->service).ToLocalChecked());
 
   Local<Object> remote_ = Nan::New<Object>();
-  remote_->Set(Nan::New("family").ToLocalChecked(), rfamily);
+  remote_->Set(Nan::New("family").ToLocalChecked(), FamilyToString(remote->family));
   remote_->Set(Nan::New("node").ToLocalChecked(), Nan::New(remote->node).ToLocalChecked());
   remote_->Set(Nan::New("service").ToLocalChecked(), Nan::New(remote->service).ToLocalChecked());
 
@@ -2322,30 +2312,22 @@ int Domain::DomainEventGraphicsCallback(virConnectPtr conn, virDomainPtr dom, in
   data->Set(Nan::New("phase").ToLocalChecked(), Nan::New<Integer>(phase));
   data->Set(Nan::New("auth_scheme").ToLocalChecked(), Nan::New(auth_scheme).ToLocalChecked());
 
-  Local<Value> argv[2] = {
-    Nan::New("graphicsEvent").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("graphicsEvent").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
 }
 
 #if LIBVIR_CHECK_VERSION(1,2,11)
-int Domain::DomainEventAgentLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
-                                              int state, int reason, void * opaque)
+int DomainEventAgentLifecycleCallback(virConnectPtr conn, virDomainPtr dom,
+                                      int state, int reason, void * opaque)
 {
   Nan::HandleScope scope;
   Local<Object> data = Nan::New<Object>();
   data->Set(Nan::New("state").ToLocalChecked(), Nan::New<Integer>(state));
   data->Set(Nan::New("reason").ToLocalChecked(), Nan::New<Integer>(reason));
 
-  Local<Value> argv[2] = {
-    Nan::New("agentLifecycleEvent").ToLocalChecked(),
-    data
-  };
-
+  Local<Value> argv[2] = { Nan::New("agentLifecycleEvent").ToLocalChecked(), data };
   Nan::ObjectWrap *domain = static_cast<Nan::ObjectWrap*>(opaque);
   Nan::MakeCallback(domain->handle(), "emit", 2, argv);
   return 0;
