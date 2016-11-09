@@ -258,7 +258,7 @@ protected:
   NLV_WORKER_EXECUTE(Class, Method) { \
     lookupHandle_ = Accessor(parent_->handle_.get(), value_.c_str());  \
     if (lookupHandle_ == NULL) { \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
   }

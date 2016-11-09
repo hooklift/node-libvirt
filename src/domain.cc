@@ -339,7 +339,7 @@ NLV_WORKER_EXECUTE(Domain, Save)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainSave(Handle(), path_.c_str());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -373,7 +373,7 @@ NLV_WORKER_EXECUTE(Domain, Restore)
   NLV_WORKER_ASSERT_CONNECTION();
   int result = virDomainRestore(Handle(), path_.c_str());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -402,7 +402,7 @@ NLV_WORKER_EXECUTE(Domain, CoreDump)
   unsigned int flags = 0;
   int result = virDomainCoreDump(Handle(), path_.c_str(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -540,7 +540,7 @@ NLV_WORKER_EXECUTE(Domain, SetAutostart)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainSetAutostart(Handle(), autoStart_ ? 1 : 0);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -569,7 +569,7 @@ NLV_WORKER_EXECUTE(Domain, SetMaxMemory)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainSetMaxMemory(Handle(), maxMemory_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -598,7 +598,7 @@ NLV_WORKER_EXECUTE(Domain, SetMemory)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainSetMemory(Handle(), memory_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -630,7 +630,7 @@ NLV_WORKER_EXECUTE(Domain, ToXml)
   NLV_WORKER_ASSERT_DOMAIN();
   char *result = virDomainGetXMLDesc(Handle(), flags_);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -679,7 +679,7 @@ NLV_WORKER_EXECUTE(Domain, GetMetadata)
 	  ? namespace_uri_.c_str() : NULL;
   char *result = virDomainGetMetadata(Handle(), type_, namespace_uri, flags_);
   if (result == NULL) {
-      SetVirError(virSaveLastError());
+      SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -747,7 +747,7 @@ NLV_WORKER_EXECUTE(Domain, SetMetadata)
 	  ? namespace_uri_.c_str() : NULL;
   int result = virDomainSetMetadata(Handle(), type_, metadata, namespace_key, namespace_uri, flags_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -761,7 +761,7 @@ NLV_WORKER_EXECUTE(Domain, GetInfo)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainGetInfo(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -820,7 +820,7 @@ NLV_WORKER_EXECUTE(Domain, GetBlockInfo)
   unsigned int flags = 0;
   int result = virDomainGetBlockInfo(Handle(), path_.c_str(), &info_, flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -859,7 +859,7 @@ NLV_WORKER_EXECUTE(Domain, GetBlockStats)
   int result =
     virDomainBlockStats(Handle(), path_.c_str(), &stats_, sizeof(stats_));
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -884,7 +884,7 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerType)
   NLV_WORKER_ASSERT_DOMAIN();
   char *result = virDomainGetSchedulerType(Handle(), NULL);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -900,7 +900,7 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
   int numParams;
   char *type = virDomainGetSchedulerType(Handle(), &numParams);
   if (type == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
   free(type);
@@ -908,7 +908,7 @@ NLV_WORKER_EXECUTE(Domain, GetSchedulerParameters)
   params_.resize(numParams);
   int result = virDomainGetSchedulerParameters(Handle(), params_.data(), &numParams);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -962,7 +962,7 @@ NLV_WORKER_EXECUTE(Domain, GetSecurityLabel)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainGetSecurityLabel(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -1000,7 +1000,7 @@ NLV_WORKER_EXECUTE(Domain, GetInterfaceStats)
   int result =
     virDomainInterfaceStats(Handle(), interface_.c_str(), &stats_, sizeof(stats_));
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -1034,7 +1034,7 @@ NLV_WORKER_EXECUTE(Domain, GetJobInfo)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainGetJobInfo(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -1091,7 +1091,7 @@ NLV_WORKER_EXECUTE(Domain, AbortCurrentJob)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainAbortJob(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1106,7 +1106,7 @@ NLV_WORKER_EXECUTE(Domain, GetMemoryStats)
   stats_.resize(VIR_DOMAIN_MEMORY_STAT_NR);
   int result = virDomainMemoryStats(Handle(), stats_.data(), stats_.size(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -1181,7 +1181,7 @@ NLV_WORKER_EXECUTE(Domain, AttachDevice)
   }
 
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1227,7 +1227,7 @@ NLV_WORKER_EXECUTE(Domain, DetachDevice)
   }
 
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1267,7 +1267,7 @@ NLV_WORKER_EXECUTE(Domain, UpdateDevice)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainUpdateDeviceFlags(Handle(), xml_.c_str(), flags_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1281,13 +1281,13 @@ NLV_WORKER_EXECUTE(Domain, GetVcpus)
   virDomainInfo info;
   int result = virDomainGetInfo(Handle(), &info);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
   result = virNodeGetInfo(virDomainGetConnect(Handle()), &nodeInfo_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1297,7 +1297,7 @@ NLV_WORKER_EXECUTE(Domain, GetVcpus)
   result =
     virDomainGetVcpus(Handle(), info_.data(), info_.size(), map_.data(), map_.size());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -1362,7 +1362,7 @@ NLV_WORKER_EXECUTE(Domain, SetVcpus)
   NLV_WORKER_ASSERT_DOMAIN();
   int result = virDomainSetVcpus(Handle(), count_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1489,7 +1489,7 @@ NLV_WORKER_EXECUTE(Domain, SendKeys)
   int result =
     virDomainSendKey(Handle(), 0, 150, keys_.data(), keys_.size(), 0);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1560,14 +1560,14 @@ NLV_WORKER_EXECUTE(Domain, Migrate)
   if(conn_) {
     migrated_ = virDomainMigrate(Handle(), conn_, flags_, destname_.c_str(), uri_.c_str(), bandwidth_);
     if(migrated_ == NULL) {
-      SetVirError(virSaveLastError());
+      SET_ERROR_WITH_CONTEXT(virSaveLastError());
       return;
     }
   } else {
     int ret = -1;
     ret = virDomainMigrateToURI(Handle(), uri_.c_str(), flags_, destname_.c_str(), bandwidth_);
     if(ret == -1) {
-      SetVirError(virSaveLastError());
+      SET_ERROR_WITH_CONTEXT(virSaveLastError());
       return;
     }
   }
@@ -1625,7 +1625,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
   int cpumaplen;
 
   if(virNodeGetInfo(virDomainGetConnect(Handle()), &nodeinfo) == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1645,7 +1645,7 @@ NLV_WORKER_EXECUTE(Domain, PinVcpu)
   }
 
   if(virDomainPinVcpu(Handle(), vcpu_, cpumap.data(), cpumaplen) == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1682,7 +1682,7 @@ NAN_METHOD(Domain::MemoryPeek)
 NLV_WORKER_EXECUTE(Domain, MemoryPeek)
 {
   if(virDomainMemoryPeek(Handle(), start_, size_ , buffer_.data(), flags_) == -1)
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
 }
 
 NLV_WORKER_OKCALLBACK(Domain, MemoryPeek)
@@ -1724,7 +1724,7 @@ NAN_METHOD(Domain::BlockPeek)
 NLV_WORKER_EXECUTE(Domain, BlockPeek)
 {
   if(virDomainBlockPeek(Handle(), path_.c_str(), start_, size_ , buffer_.data(), flags_) == -1)
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
 }
 
 NLV_WORKER_OKCALLBACK(Domain, BlockPeek)
@@ -1743,7 +1743,7 @@ NLV_WORKER_EXECUTE(Domain, HasCurrentSnapshot)
   ret = virDomainHasCurrentSnapshot(Handle(), flags);
 
   if (ret == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1773,13 +1773,13 @@ NLV_WORKER_EXECUTE(Domain, RevertToSnapshot)
 
   snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
   if(snapshot == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
   ret = virDomainRevertToSnapshot(snapshot, flags);
   if(ret == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1813,7 +1813,7 @@ NLV_WORKER_EXECUTE(Domain, TakeSnapshot)
   virDomainSnapshotPtr snapshot = NULL;
   snapshot = virDomainSnapshotCreateXML(Handle(), xml_.c_str(), flags_);
   if(snapshot == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1873,14 +1873,14 @@ NLV_WORKER_EXECUTE(Domain, LookupSnapshotByName)
 
   snapshot = virDomainSnapshotLookupByName(Handle(), name_.c_str(), flags);
   if(snapshot == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
   xml = virDomainSnapshotGetXMLDesc(snapshot, flags);
   virDomainSnapshotFree(snapshot);
   if(xml == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1897,14 +1897,14 @@ NLV_WORKER_EXECUTE(Domain, GetCurrentSnapshot)
 
   snapshot = virDomainSnapshotCurrent(Handle(), flags);
   if(snapshot == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
   xml = virDomainSnapshotGetXMLDesc(snapshot, flags);
   virDomainSnapshotFree(snapshot);
   if(xml == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1931,7 +1931,7 @@ NAN_METHOD(Domain::SetMigrationMaxDowntime) {
 NLV_WORKER_EXECUTE(Domain, SetMigrationMaxDowntime)
 {
   if(virDomainMigrateSetMaxDowntime(Handle(), downtime_, flags_) == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -1947,13 +1947,13 @@ NLV_WORKER_EXECUTE(Domain, GetSnapshots)
 
   num_snapshots = virDomainSnapshotNum(Handle(), flags);
   if(num_snapshots == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
   std::vector<char*> names(num_snapshots);
   if(virDomainSnapshotListNames(Handle(), names.data(), num_snapshots, flags) == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -2043,7 +2043,7 @@ NLV_WORKER_EXECUTE(Domain, RegisterEvent)
   );
 
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -2071,7 +2071,7 @@ NAN_METHOD(Domain::UnregisterEvent)
 NLV_WORKER_EXECUTE(Domain, UnregisterEvent)
 {
   if (virConnectDomainEventDeregisterAny(virDomainGetConnect(Handle()), callbackId_) == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 

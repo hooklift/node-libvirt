@@ -5,6 +5,8 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
+#include "error.h"
+
 class NLVObjectBase;
 
 // hold a reference to a "child" object in a way that can be safely invalidated
@@ -65,7 +67,7 @@ public:
   ~NLVAsyncWorkerBase();
 
   virErrorPtr VirError() const;
-  void SetVirError(virErrorPtr error);
+  void SetVirError(virErrorPtr error, const char *context);
 
   virtual void WorkComplete();
 
@@ -74,6 +76,7 @@ protected:
 
 private:
   virErrorPtr virError_;
+  std::string virErrorContext_;
 
 };
 

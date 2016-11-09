@@ -36,7 +36,7 @@ namespace NLV {
       });
 
       if (error) {
-        SetVirError(error);
+        SET_ERROR_WITH_CONTEXT(error);
       }
     }
 

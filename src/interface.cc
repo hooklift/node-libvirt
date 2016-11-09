@@ -40,7 +40,7 @@ NLV_WORKER_EXECUTE(Interface, Start)
   unsigned int flags = 0;
   int result = virInterfaceCreate(Handle(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -55,7 +55,7 @@ NLV_WORKER_EXECUTE(Interface, Stop)
   unsigned int flags = 0;
   int result = virInterfaceDestroy(Handle(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -68,7 +68,7 @@ NLV_WORKER_EXECUTE(Interface, Define)
   unsigned int flags = 0;
   lookupHandle_ = virInterfaceDefineXML(parent_->virHandle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -79,7 +79,7 @@ NLV_WORKER_EXECUTE(Interface, Undefine)
   NLV_WORKER_ASSERT_INTERFACE();
   int result = virInterfaceUndefine(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -138,7 +138,7 @@ NLV_WORKER_EXECUTE(Interface, GetName)
   NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virInterfaceGetName(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -151,7 +151,7 @@ NLV_WORKER_EXECUTE(Interface, GetMacAddress)
   NLV_WORKER_ASSERT_INTERFACE();
   const char *result = virInterfaceGetMACString(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -164,7 +164,7 @@ NLV_WORKER_EXECUTE(Interface, IsActive)
   NLV_WORKER_ASSERT_INTERFACE();
   int result = virInterfaceIsActive(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -178,7 +178,7 @@ NLV_WORKER_EXECUTE(Interface, ToXml)
   unsigned int flags = 0;
   char *result = virInterfaceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 

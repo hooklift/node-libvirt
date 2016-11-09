@@ -10,25 +10,26 @@ class Error : public Nan::ObjectWrap
 {
 public:
   static void Initialize(Handle<Object> exports);
-  static Local<Value> New(virErrorPtr error, const char* context);
+  static Local<Value> New(virErrorPtr error, std::string context);
 
 private:
-  explicit Error(virErrorPtr error, const char* context);
+  explicit Error(virErrorPtr error, std::string context);
   ~Error();
   static Nan::Persistent<Function> constructor;
 
   static NAN_GETTER(Getter);
 
   virErrorPtr error_;
-  const char* context_;
+  std::string context_;
 };
 
 } //namespace NLV
 
 #define _LIBVIRT_STRINGIZE_DETAIL(x) #x
 #define _LIBVIRT_STRINGIZE(x) _LIBVIRT_STRINGIZE_DETAIL(x)
-
-#define ThrowLastVirError() Nan::ThrowError(Error::New(virSaveLastError(), __FILE__ ":" _LIBVIRT_STRINGIZE(__LINE__)))
-#define MakeVirError() Error::New(VirError(), __FILE__ ":" _LIBVIRT_STRINGIZE(__LINE__))
+#define ThrowLastVirError() \
+  Nan::ThrowError(Error::New(virSaveLastError(), __FILE__ ":" _LIBVIRT_STRINGIZE(__LINE__)))
+#define SET_ERROR_WITH_CONTEXT(error) \
+  SetVirError(error, __FILE__ ":" _LIBVIRT_STRINGIZE(__LINE__))
 
 #endif // ERROR_H

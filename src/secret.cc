@@ -35,7 +35,7 @@ NLV_WORKER_EXECUTE(Secret, Define)
   unsigned int flags = 0;
   lookupHandle_ = virSecretDefineXML(parent_->virHandle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -46,7 +46,7 @@ NLV_WORKER_EXECUTE(Secret, Undefine)
   NLV_WORKER_ASSERT_SECRET();
   int result = virSecretUndefine(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -95,7 +95,7 @@ NLV_WORKER_EXECUTE(Secret, LookupByUsage)
   NLV_WORKER_ASSERT_PARENT_HANDLE();
   lookupHandle_ = virSecretLookupByUsage(parent_->virHandle(), usageType_, value_.c_str());
   if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -129,7 +129,7 @@ NLV_WORKER_EXECUTE(Secret, GetUUID)
   char *uuid = new char[VIR_UUID_STRING_BUFLEN];
   int result = virSecretGetUUIDString(Handle(), uuid);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     delete[] uuid;
     return;
   }
@@ -144,7 +144,7 @@ NLV_WORKER_EXECUTE(Secret, GetUsageId)
   NLV_WORKER_ASSERT_SECRET();
   const char *result = virSecretGetUsageID(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -158,7 +158,7 @@ NLV_WORKER_EXECUTE(Secret, GetUsageType)
   // int usage_type = VIR_SECRET_USAGE_TYPE_NONE;
   int result = virSecretGetUsageType(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -173,7 +173,7 @@ NLV_WORKER_EXECUTE(Secret, GetValue)
   unsigned int flags = 0;
   unsigned char *result = virSecretGetValue(Handle(), &size, flags);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -205,7 +205,7 @@ NLV_WORKER_EXECUTE(Secret, SetValue)
   int result = virSecretSetValue(Handle(),
       reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -219,7 +219,7 @@ NLV_WORKER_EXECUTE(Secret, ToXml)
   unsigned int flags = 0;
   char *result = virSecretGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 

@@ -67,7 +67,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Delete)
   unsigned int flags = 0;
   int result = virStorageVolDelete(Handle(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -81,7 +81,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Wipe)
   unsigned int flags = 0;
   int result = virStorageVolWipe(Handle(), flags);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -107,7 +107,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetInfo)
   NLV_WORKER_ASSERT_STORAGEVOLUME();
   int result = virStorageVolGetInfo(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -130,7 +130,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetKey)
   NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetKey(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -143,7 +143,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetName)
   NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetName(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -156,7 +156,7 @@ NLV_WORKER_EXECUTE(StorageVolume, GetPath)
   NLV_WORKER_ASSERT_STORAGEVOLUME();
   const char *result = virStorageVolGetPath(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -170,7 +170,7 @@ NLV_WORKER_EXECUTE(StorageVolume, ToXml)
   unsigned int flags = 0;
   char *result = virStorageVolGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -291,7 +291,7 @@ NLV_WORKER_EXECUTE(StorageVolume, Clone)
   lookupHandle_ =
     virStorageVolCreateXMLFrom(parent_->virHandle(), value_.c_str(), cloneHandle_, flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }

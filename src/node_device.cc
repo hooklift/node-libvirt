@@ -81,7 +81,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Create)
   unsigned int flags = 0;
   lookupHandle_ = virNodeDeviceCreateXML(parent_->virHandle(), value_.c_str(), flags);
   if (lookupHandle_ == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -92,7 +92,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Destroy)
   NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceDestroy(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -105,7 +105,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Detach)
   NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceDettach(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -118,7 +118,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Reattach)
   NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceReAttach(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -131,7 +131,7 @@ NLV_WORKER_EXECUTE(NodeDevice, Reset)
   NLV_WORKER_ASSERT_NODEDEVICE();
   int result = virNodeDeviceReset(Handle());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -144,7 +144,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetName)
   NLV_WORKER_ASSERT_NODEDEVICE();
   const char *result = virNodeDeviceGetName(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -157,7 +157,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetParentName)
   NLV_WORKER_ASSERT_NODEDEVICE();
   const char *result = virNodeDeviceGetParent(Handle());
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -171,7 +171,7 @@ NLV_WORKER_EXECUTE(NodeDevice, ToXml)
   unsigned int flags = 0;
   char *result = virNodeDeviceGetXMLDesc(Handle(), flags);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -187,7 +187,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
   Nan::HandleScope scope;
   int num_caps = virNodeDeviceNumOfCaps(Handle());
   if (num_caps == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -200,7 +200,7 @@ NLV_WORKER_EXECUTE(NodeDevice, GetCapabilities)
   num_caps = virNodeDeviceListCaps(Handle(), names, num_caps);
   if (num_caps == -1) {
     free(names);
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 

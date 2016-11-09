@@ -23,16 +23,19 @@ virErrorPtr NLVAsyncWorkerBase::VirError() const
   return virError_;
 }
 
-void NLVAsyncWorkerBase::SetVirError(virErrorPtr error)
+void NLVAsyncWorkerBase::SetVirError(virErrorPtr error, const char *context)
 {
   if (virError_ != NULL) {
     virFreeError(virError_);
   }
+
   if (error != NULL && error->level == VIR_ERR_NONE) {
-      virFreeError(error);
-      error = NULL;
+    virFreeError(error);
+    error = NULL;
   }
+
   virError_ = error;
+  virErrorContext_ = context;
 }
 
 void NLVAsyncWorkerBase::WorkComplete()
@@ -52,7 +55,7 @@ void NLVAsyncWorkerBase::HandleErrorCallback()
 {
   Nan::HandleScope scope;
   if (virError_ != NULL) {
-    v8::Local<v8::Value> argv[] = { MakeVirError() };
+    v8::Local<v8::Value> argv[] = { Error::New(virError_, virErrorContext_.c_str()) };
     // the reference to virError will be cleaned up by Error object now
     virError_ = NULL;
     callback->Call(1, argv);

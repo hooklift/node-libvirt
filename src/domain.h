@@ -473,7 +473,7 @@ private:
       NLV_WORKER_ASSERT_DOMAIN();
       virErrorPtr error = func_(Handle());
       if(error) {
-        SetVirError(error);
+        SET_ERROR_WITH_CONTEXT(error);
       }
     }
   private:

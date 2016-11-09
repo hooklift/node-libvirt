@@ -296,7 +296,7 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
   hypervisor_->ClearHandle();
   // int result = virConnectClose(Handle());
   // if (result == -1) {
-  //   SetVirError(virSaveLastError());
+  //   SET_ERROR_WITH_CONTEXT(virSaveLastError());
   //   return;
   // }
 
@@ -309,7 +309,7 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
     NLV_WORKER_ASSERT_CONNECTION(); \
     char *result = Accessor(Handle()); \
     if (result == NULL) { \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     data_ = result; \
@@ -321,7 +321,7 @@ NLV_WORKER_EXECUTE(Hypervisor, Disconnect)
     NLV_WORKER_ASSERT_CONNECTION(); \
     const char *result = Accessor(Handle()); \
     if (result == NULL) { \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     data_ = result; \
@@ -340,7 +340,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetSysInfo)
   NLV_WORKER_ASSERT_CONNECTION();
   char *result = virConnectGetSysinfo(Handle(), 0);
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -362,7 +362,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetVersion)
   unsigned long version;
   int result = virConnectGetVersion(Handle(), &version);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   } else if (result == 0 && version == 0) {
     return;
@@ -386,7 +386,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
   unsigned long version;
   int result = virConnectGetLibVersion(Handle(), &version);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -404,7 +404,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetLibVirtVersion)
     NLV_WORKER_ASSERT_CONNECTION(); \
     int result = Accessor(Handle());  \
     if (result == -1) { \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     data_ = result;  \
@@ -450,7 +450,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetMaxVcpus)
   NLV_WORKER_ASSERT_CONNECTION();
   int result = virConnectGetMaxVcpus(Handle(), type_.c_str());
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -496,7 +496,7 @@ NLV_WORKER_EXECUTE(Hypervisor, SetKeepAlive)
 
   int result = virConnectSetKeepAlive(Handle(), interval_, count_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -540,7 +540,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetBaselineCPU)
   delete [] cpus_;
 
   if (result == NULL) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -570,7 +570,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
   NLV_WORKER_ASSERT_CONNECTION();
   int result = virConnectCompareCPU(Handle(), (const char *)cpu_.c_str(), flags_);
   if (result == VIR_CPU_COMPARE_ERROR) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -582,7 +582,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
     NLV_WORKER_ASSERT_CONNECTION()  \
     int count = CountMethod(Handle());  \
     if (count == -1) {  \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     char **names = new char*[count]; \
@@ -592,7 +592,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
     } \
     int nameCount = ListMethod(Handle(), names, count); \
     if (nameCount == -1) {  \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       delete [] names; \
       return; \
     } \
@@ -608,7 +608,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
     NLV_WORKER_ASSERT_CONNECTION()  \
     int count = CountMethod(Handle());  \
     if (count == -1) {  \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     int *elements = new int[count]; \
@@ -619,7 +619,7 @@ NLV_WORKER_EXECUTE(Hypervisor, CompareCPU)
     } \
     int elementCount = ListMethod(Handle(), elements, count); \
     if (elementCount == -1) {  \
-      SetVirError(virSaveLastError()); \
+      SET_ERROR_WITH_CONTEXT(virSaveLastError()); \
       return; \
     } \
     for (int i = 0; i < elementCount; ++i) { \
@@ -730,7 +730,7 @@ NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
     virNodeNumOfDevices(Handle(), (const char *) capability_.c_str(), flags);
 
   if (num_devices == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -744,7 +744,7 @@ NLV_WORKER_EXECUTE(Hypervisor, ListNodeDevices)
     virNodeListDevices(Handle(), (const char *)capability_.c_str(), names, num_devices, flags);
   if (num_devices == -1) {
     free(names);
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -762,7 +762,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeSecurityModel)
   NLV_WORKER_ASSERT_CONNECTION();
   int result = virNodeGetSecurityModel(Handle(), &securityModel_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -789,7 +789,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeInfo)
   NLV_WORKER_ASSERT_CONNECTION();
   int result = virNodeGetInfo(Handle(), &info_);
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -818,7 +818,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeFreeMemory)
   NLV_WORKER_ASSERT_CONNECTION();
   unsigned long long result = virNodeGetFreeMemory(Handle());
   if (result == 0) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
@@ -851,7 +851,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeMemoryStats)
       result = virNodeGetMemoryStats(Handle(), cellNum_, &info_[0], &nparams, flags_);
   }
   if (result == -1) {
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 }
@@ -904,7 +904,7 @@ NLV_WORKER_EXECUTE(Hypervisor, GetNodeCellsFreeMemory)
     virNodeGetCellsFreeMemory(Handle(), results, startCell_, maxCells_);
   if (cells == -1) {
     free(results);
-    SetVirError(virSaveLastError());
+    SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
   }
 
