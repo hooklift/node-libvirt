@@ -11,12 +11,12 @@ if (global.gc) setInterval(global.gc, 1);
 var xml = fixture('storage_volume.xml');
 var hv = new virt.Hypervisor('test:///default');
 function run() {
-  return hv.connectAsync()
-    .then(function() { return hv.lookupStoragePoolByNameAsync('default-pool'); })
+  return hv.connect()
+    .then(function() { return hv.lookupStoragePoolByName('default-pool'); })
     .delay(100)
-    .then(function(pool) { return pool.createVolumeAsync(xml); })
+    .then(function(pool) { return pool.createVolume(xml); })
     .delay(100)
-    .then(function() { return hv.disconnectAsync(); })
+    .then(function() { return hv.disconnect(); })
     .delay(100)
     .then(function() { console.log('success'); })
     .catch(function(err) { console.log('error: ', err); });
