@@ -302,14 +302,47 @@ describe('Domain', function() {
     // });
 
     it('should migrate a domain to another hypervisor through an uri', function(done) {
-      var flags = [
-        test.domain.VIR_MIGRATE_LIVE,
-        test.domain.VIR_MIGRATE_PEER2PEER,
-        test.domain.VIR_MIGRATE_PAUSED,
-        test.domain.VIR_MIGRATE_PERSIST_DEST
-      ];
+      var options = {
+        dest_uri: 'test:///default',
+        dest_name: 'test2',
+        bandwidth: 100,
+        flags: [
+          test.domain.VIR_MIGRATE_LIVE,
+          test.domain.VIR_MIGRATE_PEER2PEER,
+          test.domain.VIR_MIGRATE_PAUSED,
+          test.domain.VIR_MIGRATE_PERSIST_DEST
+        ]
+      };
 
-      test.domain.migrate({ dest_uri: 'test:///default', dest_name: 'test2', bandwidth: 100, flags: flags }, function(err) {
+      test.domain.migrate(options, function(err) {
+        expect(err).to.exist;
+        // some libvirt versions report different error codes.
+        var possibleErrors = [
+          libvirt.VIR_ERR_OPERATION_INVALID,
+          libvirt.VIR_ERR_NO_SUPPORT,
+          libvirt.VIR_ERR_ARGUMENT_UNSUPPORTED
+        ];
+
+        expect(possibleErrors).to.include(err.code);
+        // NOTE: not supported by test driver
+        // expect(err).to.not.exist;
+
+        done();
+      });
+    });
+
+    it('should migrate a domain to another hypervisor through an uri (int flags)', function(done) {
+      var options = {
+        dest_uri: 'qemu://192.168.1.202/system',
+        dest_name: 'test1',
+        flags: test.domain.VIR_MIGRATE_LIVE |
+               test.domain.VIR_MIGRATE_PEER2PEER |
+               test.domain.VIR_MIGRATE_TUNNELLED |
+               test.domain.VIR_MIGRATE_PERSIST_DEST |
+               test.domain.VIR_MIGRATE_UNDEFINE_SOURCE
+      };
+
+      test.domain.migrate(options, function(err) {
         expect(err).to.exist;
         // some libvirt versions report different error codes.
         var possibleErrors = [

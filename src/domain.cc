@@ -1518,23 +1518,27 @@ NAN_METHOD(Domain::Migrate)
   std::string dest_uri(*Nan::Utf8String(info_->Get(Nan::New("dest_uri").ToLocalChecked())));
   std::string dest_name(*Nan::Utf8String(info_->Get(Nan::New("dest_name").ToLocalChecked())));
 
-  if(info_->Has(Nan::New("flags").ToLocalChecked())) {
-    Local<Array> flags_ = info_->Get(Nan::New("flags").ToLocalChecked()).As<Array>();
-    unsigned int length = flags_->Length();
-    for (unsigned int i = 0; i < length; i++)
-      flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
+  if (info_->Has(Nan::New("flags").ToLocalChecked())) {
+    Local<Value> flagsValue = info_->Get(Nan::New("flags").ToLocalChecked());
+    if (flagsValue->IsArray()) {
+      Local<Array> flags_ = flagsValue.As<Array>();
+      unsigned int length = flags_->Length();
+      for (unsigned int i = 0; i < length; i++)
+        flags |= flags_->Get(Nan::New<Integer>(i))->Int32Value();
+    } else if (flagsValue->IsNumber()) {
+      flags = flagsValue->IntegerValue();
+    }
   }
 
-  if(info_->Has(Nan::New("bandwidth").ToLocalChecked())) {
+  if (info_->Has(Nan::New("bandwidth").ToLocalChecked())) {
     bandwidth = info_->Get(Nan::New("bandwidth").ToLocalChecked())->Int32Value();
   }
 
   Domain *domain = Domain::Unwrap(info.This());
-
   Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   MigrateWorker *worker;
 
-  if(info_->Has(Nan::New("dest_hypervisor").ToLocalChecked())) {
+  if (info_->Has(Nan::New("dest_hypervisor").ToLocalChecked())) {
     Local<Object> hyp_obj = info_->Get(Nan::New("dest_hypervisor").ToLocalChecked())->ToObject();
     if(!Nan::New(Hypervisor::constructor_template)->HasInstance(hyp_obj)) {
       Nan::ThrowTypeError("You must specify a Hypervisor object instance");
