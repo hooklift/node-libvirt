@@ -300,7 +300,7 @@ NAN_METHOD(Domain::LookupByName)
 
 NAN_METHOD(Domain::LookupByUUID)
 {
-  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByUUID, GetUString(info[0]));
+  Hypervisor::RunMethod<MethodReturnInstance<Domain>>(info, virDomainLookupByUUIDString, GetString(info[0]));
 }
 
 NAN_METHOD(Domain::LookupById)
