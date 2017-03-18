@@ -1,9 +1,7 @@
 language: node_js
 node_js:
-  - '0.10'
-  - '0.12'
   - '4'
-  - '5'
+  - '6'
 
 sudo: required
 dist: trusty
@@ -17,9 +15,15 @@ addons:
     - gcc-4.8
     - g++-4.8
     - libvirt-dev
+    - libvirt-bin
+    - qemu
 
 env:
   - CXX=g++-4.8
+
+before_script:
+  - sudo sh -c "sed -i 's/^\(unix_sock_rw_perms\s*=\).*$/\1 \"0777\"/' /etc/libvirt/libvirtd.conf"
+  - sudo service libvirt-bin restart
 
 script:
   - make test

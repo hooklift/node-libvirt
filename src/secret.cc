@@ -203,7 +203,7 @@ NLV_WORKER_EXECUTE(Secret, SetValue)
   NLV_WORKER_ASSERT_SECRET();
   unsigned int flags = 0;
   int result = virSecretSetValue(Handle(),
-      reinterpret_cast<const unsigned char *>(value_.c_str()), sizeof(value_.c_str()), flags);
+      reinterpret_cast<const unsigned char *>(value_.c_str()), value_.size(), flags);
   if (result == -1) {
     SET_ERROR_WITH_CONTEXT(virSaveLastError());
     return;
