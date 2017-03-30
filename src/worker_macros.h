@@ -42,7 +42,7 @@
 #define NLV_WORKER_METHOD_NO_ARGS(Class, Method) \
   NAN_METHOD(Class::Method) {  \
     Nan::HandleScope scope; \
-    if (info.Length() == 1 && !info[0]->IsFunction()) { \
+    if (info.Length() < 1 || !info[0]->IsFunction()) { \
       Nan::ThrowTypeError("You must specify a function as first argument"); \
       return; \
     } \
