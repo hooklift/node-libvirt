@@ -4,7 +4,7 @@ node-libvirt - The virtualization API bindings for [NodeJS][nodejs_home]
 [![Build Status](https://secure.travis-ci.org/hooklift/node-libvirt.svg?branch=master)](https://travis-ci.org/hooklift/node-libvirt)
 [![Dependency Status](https://david-dm.org/hooklift/node-libvirt.svg)](https://david-dm.org/hooklift/node-libvirt)
 [![npm version](https://badge.fury.io/js/libvirt.svg)](http://badge.fury.io/js/libvirt)
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/hooklift/node-libvirt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hooklift/node-libvirt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=339079)](https://www.bountysource.com/trackers/339079-node-libvirt?utm_source=339079&utm_medium=shield&utm_campaign=TRACKER_BADGE)
 
 Libvirt is a toolkit to interact with virtualization capabilities
